@@ -27,9 +27,39 @@ import { ToastContainer, ToastMessage } from './components/common/Toast';
 import { NewItemModal } from './components/common/NewItemModal';
 import { AlertTriangle, X } from 'lucide-react';
 
+const getTabFromUrl = (): ActiveTab => {
+  const path = window.location.pathname.replace(/^\//, '').toLowerCase();
+  const validTabs: ActiveTab[] = [
+    'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
+    'docs-b2', 'docs-schreiben', 'docs-sprechen',
+    'results', 'vocab', 'grammar', 'students', 'history'
+  ];
+  if (path && validTabs.includes(path as ActiveTab)) {
+    return path as ActiveTab;
+  }
+  return 'dashboard';
+};
+
 export default function App() {
   // Navigation & User role
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTabState] = useState<ActiveTab>(getTabFromUrl);
+
+  const setActiveTab = (tab: ActiveTab) => {
+    setActiveTabState(tab);
+    const targetPath = tab === 'dashboard' ? '/' : `/${tab}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ tab }, '', targetPath);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTabState(getTabFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [currentUser, setCurrentUser] = useState<'admin' | 'student'>('admin');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

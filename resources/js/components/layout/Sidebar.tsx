@@ -88,11 +88,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+            const href = item.id === 'dashboard' ? '/' : `/${item.id}`;
 
             return (
-              <button
+              <a
                 key={item.id}
-                onClick={() => {
+                href={href}
+                onClick={(e) => {
+                  e.preventDefault();
                   onSelectTab(item.id);
                   onCloseMobile();
                 }}
@@ -117,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {item.badge}
                   </span>
                 )}
-              </button>
+              </a>
             );
           })}
         </nav>
