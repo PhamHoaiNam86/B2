@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .brutal-shadow-sm {
+    box-shadow: 2px 2px 0px #1c1b1b;
+  }
+  .brutal-shadow {
+    box-shadow: 4px 4px 0px #1c1b1b;
+  }
+  .brutal-shadow-lg {
+    box-shadow: 6px 6px 0px #1c1b1b;
+  }
+  .brutal-shadow-xl {
+    box-shadow: 8px 8px 0px #1c1b1b;
+  }
+  .brutal-shadow-pink {
+    box-shadow: 4px 4px 0px #f36b92;
+  }
+  .brutal-btn {
+    transition: all 0.15s ease-in-out;
+  }
+  .brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #1c1b1b;
+  }
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #fcf9f8;
+  color: #1c1b1b;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f0edec;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c1b1b;
+  border-radius: 4px;
+}
