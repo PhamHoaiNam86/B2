@@ -21,6 +21,7 @@ import { FlashcardsModal } from './components/vocab/FlashcardsModal';
 import { GrammarView } from './components/grammar/GrammarView';
 import { GrammarLessonModal } from './components/grammar/GrammarLessonModal';
 import { SchreibenView } from './components/schreiben/SchreibenView';
+import { DocumentMaterialView } from './components/docs/DocumentMaterialView';
 import { StudentsView } from './components/students/StudentsView';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
 import { NewItemModal } from './components/common/NewItemModal';
@@ -303,6 +304,16 @@ export default function App() {
                   onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
                   onShowToast={showToast}
                 />
+              )}
+
+              {/* TÀI LIỆU SCHREIBEN */}
+              {activeTab === 'docs-schreiben' && (
+                <DocumentMaterialView type="schreiben" onShowToast={showToast} />
+              )}
+
+              {/* TÀI LIỆU SPRECHEN */}
+              {activeTab === 'docs-sprechen' && (
+                <DocumentMaterialView type="sprechen" onShowToast={showToast} />
               )}
 
               {/* TAB 3: EXAM RESULTS */}

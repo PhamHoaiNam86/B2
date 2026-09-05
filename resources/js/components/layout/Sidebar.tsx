@@ -35,6 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2, badge: 'B1' },
     { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2, badge: 'A2' },
     { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2, badge: 'A1' },
+    { id: 'docs-schreiben' as ActiveTab, label: 'Tài liệu Schreiben', icon: PenTool, badge: 'Docs' },
+    { id: 'docs-sprechen' as ActiveTab, label: 'Tài liệu Sprechen', icon: Sparkles, badge: 'Docs' },
     { id: 'results' as ActiveTab, label: 'Kết quả & Bằng', icon: Award },
     { id: 'vocab' as ActiveTab, label: 'Kho Từ vựng', icon: BookOpen, badge: 'Flashcard' },
     { id: 'grammar' as ActiveTab, label: 'Ngữ pháp', icon: Brain },

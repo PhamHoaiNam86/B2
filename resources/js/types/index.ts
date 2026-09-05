@@ -4,6 +4,8 @@ export type ActiveTab =
   | 'exam-b1'
   | 'exam-a2'
   | 'exam-a1'
+  | 'docs-schreiben'
+  | 'docs-sprechen'
   | 'results'
   | 'vocab'
   | 'grammar'
