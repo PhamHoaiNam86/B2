@@ -11,7 +11,7 @@ interface ChatMessage {
 }
 
 interface DocumentMaterialViewProps {
-  type: 'schreiben' | 'sprechen';
+  type: 'b2' | 'schreiben' | 'sprechen';
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
 }
 
@@ -34,6 +34,93 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
   const [userExp, setUserExp] = useState(1);
   const [completedCount, setCompletedCount] = useState(0);
   const [studyMinutes, setStudyMinutes] = useState(0);
+
+  const b2LibraryDocs = [
+    {
+      id: 'doc-b2-1',
+      title: '8 GIÁO TRÌNH KINH ĐIỂN B2',
+      description: 'Trọn bộ 8 sách học tiếng Đức B2 hay nhất (Aspekte Neu, Sicher, Grammatik Aktiv...)',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-2',
+      title: 'CỤM CÂU NÊN HỌC B2',
+      description: 'Tổng hợp các cụm từ Redewendungen hay dùng giúp tăng điểm nói/viết',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-3',
+      title: 'SÁCH NGỮ PHÁP GRAMMATIK AKTIV B2-C1',
+      description: 'Sách ngữ pháp giải thích chi tiết kèm bài tập thực hành chất lượng cao',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-4',
+      title: 'KIẾN THỨC NGỮ PHÁP TỪ CƠ BẢN ĐẾN NÂNG CAO',
+      description: 'Hệ thống ngữ pháp kèm ví dụ và bài tập (từ loại, câu, mệnh đề, chia động từ...)',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-5',
+      title: 'TỪ ĐIỂN THÀNH NGỮ REDEWENDUNGEN',
+      description: 'Giải thích ý nghĩa, nguồn gốc và ví dụ sử dụng thành ngữ trong ngữ cảnh cụ thể',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-6',
+      title: 'TỪ ĐIỂN TỪ ĐỒNG NGHĨA TIẾNG ĐỨC',
+      description: 'Tổng hợp từ đồng nghĩa giúp mở rộng vốn từ và tránh lặp từ khi nói/viết',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-7',
+      title: 'TỔNG HỢP TỪ VỰNG TRỌNG TÂM B2',
+      description: 'Các từ vựng quan trọng kèm giải nghĩa tiếng Đức đơn giản, cách dùng thực tế',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-8',
+      title: 'TỪ ĐIỂN HÌNH ẢNH MINH HỌA B2',
+      description: 'Minh họa hàng nghìn đồ vật, bộ phận bằng hình ảnh kèm từ vựng tiếng Đức sinh động',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-9',
+      title: 'TỪ VỰNG SÁCH ASPEKTE NEU B2',
+      description: 'Trọn bộ từ vựng 10 Kapitel sách Aspekte Neu B2 kèm phiên âm',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-10',
+      title: 'TỪ VỰNG SÁCH SICHER B2',
+      description: 'Danh mục từ vựng chuyên ngành và đời sống sách Sicher B2',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-11',
+      title: 'SÁCH BÀI TẬP TỰ HỌC B2',
+      description: 'Tuyển tập 100+ bài tập tự ôn luyện ngữ pháp và đọc hiểu B2',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+    {
+      id: 'doc-b2-12',
+      title: 'FVG NOMEN-VERB-VERBINDUNGEN B2',
+      description: 'Bảng tổng hợp cụm danh-động từ cố định hay gặp trong đề thi TELC B2',
+      isPremium: true,
+      badge: 'PREMIUM',
+    },
+  ];
 
   const isSchreiben = type === 'schreiben';
 
@@ -103,7 +190,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
     },
   ];
 
-  const currentDocs = isSchreiben ? schreibenDocs : sprechenDocs;
+  const currentDocs = type === 'b2' ? b2LibraryDocs : type === 'schreiben' ? schreibenDocs : sprechenDocs;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -114,7 +201,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
           {/* Header Title */}
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#1c1b1b] font-heading uppercase tracking-wide">
-              {isSchreiben ? 'TÀI LIỆU SCHREIBEN' : 'TÀI LIỆU SPRECHEN'}
+              {type === 'b2' ? 'THƯ VIỆN TÀI LIỆU B2' : type === 'schreiben' ? 'TÀI LIỆU SCHREIBEN' : 'TÀI LIỆU SPRECHEN'}
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-[#564145] mt-1">
               Chọn một kỹ năng bên dưới để bắt đầu luyện tập.

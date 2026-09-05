@@ -35,6 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'Kho Đề Thi & Phòng Thi Thử A2';
       case 'exam-a1':
         return 'Kho Đề Thi & Phòng Thi Thử A1';
+      case 'docs-b2':
+        return 'Thư Viện Tài Liệu Tiếng Đức B2';
       case 'docs-schreiben':
         return 'Tài Liệu Luyện Viết Schreiben B2';
       case 'docs-sprechen':

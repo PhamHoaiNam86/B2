@@ -306,6 +306,11 @@ export default function App() {
                 />
               )}
 
+              {/* THƯ VIỆN TÀI LIỆU B2 */}
+              {activeTab === 'docs-b2' && (
+                <DocumentMaterialView type="b2" onShowToast={showToast} />
+              )}
+
               {/* TÀI LIỆU SCHREIBEN */}
               {activeTab === 'docs-schreiben' && (
                 <DocumentMaterialView type="schreiben" onShowToast={showToast} />
