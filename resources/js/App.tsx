@@ -257,7 +257,7 @@ export default function App() {
                   onStartExamRoom={handleStartExamRoom}
                   onNavigateToVocab={() => setActiveTab('vocab')}
                   onNavigateToGrammar={() => setActiveTab('grammar')}
-                  onNavigateToSchreiben={() => setActiveTab('schreiben')}
+                  onNavigateToSchreiben={() => setActiveTab('docs-schreiben')}
                 />
               )}
 
