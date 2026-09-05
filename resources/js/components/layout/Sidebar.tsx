@@ -30,16 +30,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tabSwitchCount = 0,
 }) => {
   const navItems = [
-    { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard, badge: 'Live' },
-    { id: 'exam' as ActiveTab, label: 'Thi thử B2', icon: FileCheck2, badge: 'B2' },
-    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2, badge: 'B1' },
-    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2, badge: 'A2' },
-    { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2, badge: 'A1' },
-    { id: 'docs-b2' as ActiveTab, label: 'Thư viện Tài liệu B2', icon: BookOpen, badge: 'Thư viện' },
-    { id: 'docs-schreiben' as ActiveTab, label: 'Tài liệu Schreiben', icon: PenTool, badge: 'Docs' },
-    { id: 'docs-sprechen' as ActiveTab, label: 'Tài liệu Sprechen', icon: Sparkles, badge: 'Docs' },
+    { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'exam' as ActiveTab, label: 'Thi thử B2', icon: FileCheck2 },
+    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2 },
+    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2 },
+    { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2 },
+    { id: 'docs-b2' as ActiveTab, label: 'Thư viện Tài liệu B2', icon: BookOpen },
+    { id: 'docs-schreiben' as ActiveTab, label: 'Tài liệu Schreiben', icon: PenTool },
+    { id: 'docs-sprechen' as ActiveTab, label: 'Tài liệu Sprechen', icon: Sparkles },
     { id: 'results' as ActiveTab, label: 'Kết quả & Bằng', icon: Award },
-    { id: 'vocab' as ActiveTab, label: 'Kho Từ vựng', icon: BookOpen, badge: 'Flashcard' },
+    { id: 'vocab' as ActiveTab, label: 'Kho Từ vựng', icon: BookOpen },
     { id: 'grammar' as ActiveTab, label: 'Ngữ pháp', icon: Brain },
     { id: 'students' as ActiveTab, label: 'Quản lý Học viên', icon: Users },
     { id: 'history' as ActiveTab, label: 'Lịch sử & Bảng điểm', icon: History },
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectTab(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-between transition-all cursor-pointer ${
+                className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-start transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm font-black'
                     : 'bg-transparent text-[#111827] border-transparent hover:border-[#111827] hover:bg-[#f8fafc]'
@@ -109,17 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#4b5563]'}`} />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span
-                    className={`px-2 py-0.5 rounded-md text-[9px] font-black border ${
-                      isActive
-                        ? 'bg-white text-[#2563EB] border-[#111827]'
-                        : 'bg-[#fff7ed] text-[#c2410c] border-[#111827]'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </a>
             );
           })}
