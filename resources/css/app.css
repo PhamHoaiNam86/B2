@@ -2,33 +2,36 @@
 
 @layer utilities {
   .brutal-shadow-sm {
-    box-shadow: 2px 2px 0px #1c1b1b;
+    box-shadow: 2px 2px 0px #111827;
   }
   .brutal-shadow {
-    box-shadow: 4px 4px 0px #1c1b1b;
+    box-shadow: 4px 4px 0px #111827;
   }
   .brutal-shadow-lg {
-    box-shadow: 6px 6px 0px #1c1b1b;
+    box-shadow: 6px 6px 0px #111827;
   }
   .brutal-shadow-xl {
-    box-shadow: 8px 8px 0px #1c1b1b;
+    box-shadow: 8px 8px 0px #111827;
   }
-  .brutal-shadow-pink {
-    box-shadow: 4px 4px 0px #f36b92;
+  .brutal-shadow-primary {
+    box-shadow: 4px 4px 0px #2563EB;
+  }
+  .brutal-shadow-cta {
+    box-shadow: 4px 4px 0px #F97316;
   }
   .brutal-btn {
     transition: all 0.15s ease-in-out;
   }
   .brutal-btn:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0px #1c1b1b;
+    box-shadow: 1px 1px 0px #111827;
   }
 }
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: #fcf9f8;
-  color: #1c1b1b;
+  background-color: #f8fafc;
+  color: #111827;
 }
 
 h1, h2, h3, h4, .font-heading {
@@ -41,9 +44,9 @@ h1, h2, h3, h4, .font-heading {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f0edec;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1c1b1b;
+  background: #111827;
   border-radius: 4px;
 }

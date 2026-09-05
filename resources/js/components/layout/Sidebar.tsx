@@ -57,28 +57,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white border-r-[2.5px] border-[#1c1b1b] flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white border-r-[2.5px] border-[#111827] flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b-[2.5px] border-[#1c1b1b] flex items-center justify-between bg-[#fcf9f8]">
+        <div className="p-5 border-b-[2.5px] border-[#111827] flex items-center justify-between bg-[#f8fafc]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#f36b92] text-white border-2 border-[#1c1b1b] flex items-center justify-center font-black brutal-shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm">
               DE
             </div>
             <div>
-              <h2 className="text-base font-black text-[#1c1b1b] font-heading leading-tight">
+              <h2 className="text-base font-black text-[#111827] font-heading leading-tight">
                 DeutschMitPN
               </h2>
-              <span className="text-[10px] font-bold text-[#897175]">
+              <span className="text-[10px] font-bold text-[#4b5563]">
                 TELC B2 Prep & Exam Portal
               </span>
             </div>
           </div>
           <button
             onClick={onCloseMobile}
-            className="md:hidden p-1 rounded-lg border border-[#1c1b1b] hover:bg-[#f0edec]"
+            className="md:hidden p-1 rounded-lg border border-[#111827] hover:bg-[#f1f5f9]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -99,20 +99,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-between transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#f36b92] text-white border-[#1c1b1b] brutal-shadow-sm font-black'
-                    : 'bg-transparent text-[#1c1b1b] border-transparent hover:border-[#1c1b1b] hover:bg-[#fcf9f8]'
+                    ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm font-black'
+                    : 'bg-transparent text-[#111827] border-transparent hover:border-[#111827] hover:bg-[#f8fafc]'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#564145]'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#4b5563]'}`} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
                     className={`px-2 py-0.5 rounded-md text-[9px] font-black border ${
                       isActive
-                        ? 'bg-white text-[#f36b92] border-[#1c1b1b]'
-                        : 'bg-[#ffe3ea] text-[#800035] border-[#1c1b1b]'
+                        ? 'bg-white text-[#2563EB] border-[#111827]'
+                        : 'bg-[#fff7ed] text-[#c2410c] border-[#111827]'
                     }`}
                   >
                     {item.badge}

@@ -59,27 +59,27 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] border-[#1c1b1b] px-4 sm:px-6 py-3 shadow-xs">
+    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] border-[#111827] px-4 sm:px-6 py-3 shadow-xs">
       <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
         {/* Left: Mobile Menu Toggle & Title */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleMobileMenu}
-            className="md:hidden p-2 rounded-xl border-2 border-[#1c1b1b] bg-[#fcf9f8] hover:bg-[#f36b92] hover:text-white transition-all cursor-pointer"
+            className="md:hidden p-2 rounded-xl border-2 border-[#111827] bg-[#f8fafc] hover:bg-[#2563EB] hover:text-white transition-all cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-md bg-[#f36b92] text-white text-[10px] font-black uppercase border border-[#1c1b1b]">
+              <span className="px-2 py-0.5 rounded-md bg-[#2563EB] text-white text-[10px] font-black uppercase border border-[#111827]">
                 TELC B2
               </span>
-              <h1 className="text-base sm:text-lg font-black text-[#1c1b1b] font-heading line-clamp-1">
+              <h1 className="text-base sm:text-lg font-black text-[#111827] font-heading line-clamp-1">
                 {getTabTitle()}
               </h1>
             </div>
-            <p className="text-[11px] text-[#564145] hidden sm:block">
+            <p className="text-[11px] text-[#4b5563] hidden sm:block">
               Hệ thống luyện thi & mô phỏng phòng thi chuẩn quốc tế DeutschMitPN
             </p>
           </div>
@@ -89,13 +89,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3">
           {/* Search bar */}
           <div className="relative hidden lg:block w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#564145]" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Tìm kiếm bài thi, từ vựng..."
-              className="w-full pl-9 pr-3 py-1.5 bg-[#fcf9f8] border-2 border-[#1c1b1b] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#f36b92]"
+              className="w-full pl-9 pr-3 py-1.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
             />
           </div>
 

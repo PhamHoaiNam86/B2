@@ -51,13 +51,13 @@ export const VocabView: React.FC<VocabViewProps> = ({
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={onOpenFlashcardModal}
-            className="px-4 py-2.5 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#a83159] transition-all cursor-pointer flex items-center gap-2"
+            className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4" /> Lật Thẻ Flashcard 3D
           </button>
           <button
             onClick={onOpenAddModal}
-            className="px-4 py-2.5 bg-[#ffe082] text-[#3e2723] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ffd54f] transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" /> Thêm Từ Mới
           </button>

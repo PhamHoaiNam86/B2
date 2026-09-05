@@ -10,7 +10,7 @@
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/main.tsx'])
   </head>
-  <body class="bg-[#fcf9f8] text-[#1c1b1b] font-sans antialiased selection:bg-[#f36b92] selection:text-white">
+  <body class="bg-[#f8fafc] text-[#111827] font-sans antialiased selection:bg-[#F97316] selection:text-white">
     <div id="root"></div>
   </body>
 </html>

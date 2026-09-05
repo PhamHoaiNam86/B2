@@ -27,7 +27,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   return (
     <div className="min-h-screen bg-[#fcf9f8] flex flex-col font-sans">
       {/* 1. EXAM ROOM HEADER */}
-      <header className="sticky top-0 z-40 bg-[#1c1b1b] text-white px-4 sm:px-6 py-3 border-b-4 border-[#f36b92]">
+      <header className="sticky top-0 z-40 bg-[#111827] text-white px-4 sm:px-6 py-3 border-b-4 border-[#2563EB]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -38,7 +38,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               <span className="hidden sm:inline">Rời phòng thi</span>
             </button>
             <div>
-              <span className="px-2 py-0.5 bg-[#f36b92] text-white text-[10px] font-black rounded uppercase">
+              <span className="px-2 py-0.5 bg-[#2563EB] text-white text-[10px] font-black rounded uppercase">
                 PHÒNG THI THỬ TRỰC TUYẾN
               </span>
               <h2 className="text-sm sm:text-base font-black font-heading text-white line-clamp-1">
@@ -50,20 +50,20 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
           {/* Countdown & Anti-cheat status */}
           <div className="flex items-center gap-3">
             {examState.tabSwitchCount > 0 && (
-              <div className="px-3 py-1 bg-[#ba1a1a] text-white border border-white/30 rounded-lg text-xs font-black flex items-center gap-1.5 animate-bounce">
-                <ShieldAlert className="w-4 h-4 text-[#FFED4A]" />
+              <div className="px-3 py-1 bg-[#dc2626] text-white border border-white/30 rounded-lg text-xs font-black flex items-center gap-1.5 animate-bounce">
+                <ShieldAlert className="w-4 h-4 text-[#fef08a]" />
                 <span>Vi phạm: {examState.tabSwitchCount} lần</span>
               </div>
             )}
 
-            <div className="px-3 py-1.5 bg-white text-[#1c1b1b] rounded-xl font-black text-sm font-heading border-2 border-[#f36b92] flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#f36b92]" />
+            <div className="px-3 py-1.5 bg-white text-[#111827] rounded-xl font-black text-sm font-heading border-2 border-[#2563EB] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#2563EB]" />
               <span>{formattedCountdown}</span>
             </div>
 
             <button
               onClick={onFinishSection}
-              className="px-4 py-2 bg-[#f36b92] text-white rounded-xl font-black text-xs border border-white hover:bg-[#a83159] transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#F97316] text-white rounded-xl font-black text-xs border border-white hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 uppercase"
             >
               <Send className="w-3.5 h-3.5" />
               Nộp Bài Thi
@@ -111,8 +111,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   onClick={() => onAnswerChange(currentQuestion.id, opt.id)}
                   className={`w-full text-left p-4 rounded-xl border-[2.5px] font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? 'bg-[#f36b92] text-white border-[#1c1b1b] brutal-shadow font-black'
-                      : 'bg-white text-[#1c1b1b] border-[#1c1b1b] hover:bg-[#fcf9f8]'
+                      ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black'
+                      : 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]'
                   }`}
                 >
                   <span>{opt.text}</span>

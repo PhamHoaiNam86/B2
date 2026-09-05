@@ -36,15 +36,15 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={onOpenDiagnosticTest}
-            className="px-4 py-2.5 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#a83159] transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Sparkles className="w-4 h-4" /> Test Chẩn Đoán B2
           </button>
           <button
             onClick={onOpenTrapQuiz}
-            className="px-4 py-2.5 bg-[#1c1b1b] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#333] transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5"
           >
-            <AlertTriangle className="w-4 h-4 text-[#ffe082]" /> Luyện Bẫy Đề Thi
+            <AlertTriangle className="w-4 h-4 text-white" /> Luyện Bẫy Đề Thi
           </button>
         </div>
       </div>

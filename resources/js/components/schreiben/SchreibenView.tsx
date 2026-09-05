@@ -66,8 +66,8 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
               onClick={() => setPromptType('beschwerde')}
               className={`px-4 py-2 rounded-xl border-2 text-xs font-black cursor-pointer transition-all ${
                 promptType === 'beschwerde'
-                  ? 'bg-[#f36b92] text-white border-[#1c1b1b] brutal-shadow-sm'
-                  : 'bg-white text-[#1c1b1b] border-[#1c1b1b] hover:bg-[#fcf9f8]'
+                  ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm'
+                  : 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]'
               }`}
             >
               1. Beschwerdebrief (Thư Phàn Nàn)
@@ -76,8 +76,8 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
               onClick={() => setPromptType('bitte')}
               className={`px-4 py-2 rounded-xl border-2 text-xs font-black cursor-pointer transition-all ${
                 promptType === 'bitte'
-                  ? 'bg-[#f36b92] text-white border-[#1c1b1b] brutal-shadow-sm'
-                  : 'bg-white text-[#1c1b1b] border-[#1c1b1b] hover:bg-[#fcf9f8]'
+                  ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm'
+                  : 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]'
               }`}
             >
               2. Bitte um Information (Thư Xin Thông Tin)
@@ -85,35 +85,35 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
           </div>
 
           {/* Prompt Text Box */}
-          <div className="p-4 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow text-xs space-y-1">
-            <h4 className="font-black text-[#1c1b1b] uppercase">Đề Bài Chi Tiết:</h4>
+          <div className="p-4 bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow text-xs space-y-1">
+            <h4 className="font-black text-[#111827] uppercase">Đề Bài Chi Tiết:</h4>
             {promptType === 'beschwerde' ? (
-              <p className="text-[#564145] leading-relaxed">
+              <p className="text-[#4b5563] leading-relaxed">
                 Bạn đặt mua thiết bị y tế từ công ty MedTech nhưng giao hàng trễ 3 tuần và thiếu phụ kiện. Hãy viết thư khiếu nại yêu cầu bồi thường hoặc đổi trả sản phẩm (khoảng 150-200 từ).
               </p>
             ) : (
-              <p className="text-[#564145] leading-relaxed">
+              <p className="text-[#4b5563] leading-relaxed">
                 Viết thư hỏi thông tin chi tiết về khóa đào tạo điều dưỡng chuyển đổi bằng tại Đức: thời gian, học phí, điều kiện tiếng Đức B2 và hỗ trợ nhà ở.
               </p>
             )}
           </div>
 
           {/* Editor TextArea */}
-          <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow p-4 space-y-3">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow p-4 space-y-3">
             <div className="flex items-center justify-between text-xs font-bold">
               <span>Nội dung bài viết của bạn:</span>
-              <span className="text-[#897175]">{essayText.split(/\s+/).filter(Boolean).length} từ</span>
+              <span className="text-[#6b7280]">{essayText.split(/\s+/).filter(Boolean).length} từ</span>
             </div>
             <textarea
               value={essayText}
               onChange={(e) => setEssayText(e.target.value)}
               placeholder="Sehr geehrte Damen und Herren, in Bezug auf Ihre Anzeige..."
-              className="w-full h-64 p-3 bg-[#fcf9f8] border-2 border-[#1c1b1b] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#f36b92] resize-none"
+              className="w-full h-64 p-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none"
             />
             <button
               onClick={handleAiEvaluation}
               disabled={isAnalyzing}
-              className="w-full py-3 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl font-black text-xs brutal-shadow-sm hover:bg-[#a83159] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 uppercase"
             >
               <Sparkles className="w-4 h-4" />
               {isAnalyzing ? 'AI Gemini đang phân tích & chấm điểm...' : 'Bắt Đầu AI Chấm Điểm TELC B2'}

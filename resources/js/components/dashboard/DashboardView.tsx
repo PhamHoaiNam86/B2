@@ -26,10 +26,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. HERO BANNER */}
-      <div className="bg-gradient-to-r from-[#f36b92] to-[#a83159] text-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 sm:p-8 brutal-shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#2563EB] to-[#1d4ed8] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow-lg relative overflow-hidden">
         <div className="max-w-2xl relative z-10 space-y-3">
-          <span className="px-3 py-1 bg-white text-[#1c1b1b] rounded-full text-xs font-black border border-[#1c1b1b] inline-flex items-center gap-1.5 brutal-shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#f36b92]" />
+          <span className="px-3 py-1 bg-white text-[#111827] rounded-full text-xs font-black border border-[#111827] inline-flex items-center gap-1.5 brutal-shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
             HỆ THỐNG LUYỆN THI TELC B2 DÙNG AI
           </span>
           <h2 className="text-2xl sm:text-3xl font-black font-heading leading-tight">
@@ -42,16 +42,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
               onClick={onStartExamRoom}
-              className="px-5 py-3 bg-[#ffe082] text-[#3e2723] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow flex items-center gap-2 hover:bg-[#ffd54f] transition-all cursor-pointer font-heading"
+              className="px-5 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow flex items-center gap-2 hover:bg-[#ea580c] transition-all cursor-pointer font-heading uppercase"
             >
               <Play className="w-4 h-4 fill-current" />
               Vào Phòng Thi Thử Trực Tuyến
             </button>
             <button
               onClick={onNavigateToSchreiben}
-              className="px-5 py-3 bg-white text-[#1c1b1b] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow flex items-center gap-2 hover:bg-[#f0edec] transition-all cursor-pointer font-heading"
+              className="px-5 py-3 bg-white text-[#111827] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow flex items-center gap-2 hover:bg-[#f1f5f9] transition-all cursor-pointer font-heading"
             >
-              <Sparkles className="w-4 h-4 text-[#f36b92]" />
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
               Luyện Viết Thư AI Chấm
             </button>
           </div>
@@ -122,15 +122,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               >
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-[#f36b92] text-white text-[10px] font-black border border-[#1c1b1b]">
+                    <span className="px-2 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black border border-[#111827]">
                       {exam.examCode}
                     </span>
-                    <span className="px-2 py-0.5 rounded bg-[#e8f1ff] text-[#003882] text-[10px] font-black border border-[#1c1b1b]">
+                    <span className="px-2 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] text-[10px] font-black border border-[#111827]">
                       {exam.durationMinutes} phút
                     </span>
                   </div>
-                  <h4 className="text-base font-black text-[#1c1b1b]">{exam.name}</h4>
-                  <p className="text-xs text-[#564145] leading-relaxed line-clamp-2">
+                  <h4 className="text-base font-black text-[#111827]">{exam.name}</h4>
+                  <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-2">
                     {exam.description}
                   </p>
                 </div>
@@ -138,13 +138,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => onSelectExam(exam)}
-                    className="px-4 py-2 bg-white border-2 border-[#1c1b1b] rounded-xl text-xs font-bold hover:bg-[#f0edec] brutal-shadow-xs cursor-pointer"
+                    className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold hover:bg-[#f1f5f9] brutal-shadow-xs cursor-pointer"
                   >
                     Xem chi tiết
                   </button>
                   <button
                     onClick={onStartExamRoom}
-                    className="px-4 py-2 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#a83159] transition-all cursor-pointer flex items-center gap-1"
+                    className="px-4 py-2 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1"
                   >
                     Thi ngay <ArrowRight className="w-3.5 h-3.5" />
                   </button>

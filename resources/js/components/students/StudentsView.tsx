@@ -10,32 +10,32 @@ interface StudentsViewProps {
 export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToast }) => {
   return (
     <div className="space-y-6">
-      <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="px-2.5 py-0.5 rounded-md bg-[#ffe082] text-[#3e2723] text-xs font-black border border-[#1c1b1b]">
+          <span className="px-2.5 py-0.5 rounded-md bg-[#2563EB]/10 text-[#2563EB] text-xs font-bold border border-[#2563EB]/20">
             QUẢN LÝ HỌC VIÊN
           </span>
-          <h2 className="text-2xl font-black text-[#1c1b1b] mt-1 font-heading">
+          <h2 className="text-2xl font-black text-[#111827] mt-1 font-heading">
             Danh Sách Học Viên Luyện Thi TELC B2
           </h2>
-          <p className="text-xs text-[#564145] mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Theo dõi điểm số thi thử, mục tiêu điểm và ngày thi chính thức của từng học viên
           </p>
         </div>
 
         <button
           onClick={() => onShowToast('Thêm học viên', 'Tính năng thêm học viên mới đã sẵn sàng.', 'info')}
-          className="px-4 py-2.5 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#a83159] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+          className="px-4 py-2.5 bg-[#F97316] text-white rounded-xl text-xs font-bold hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md shadow-orange-500/20"
         >
           <Plus className="w-4 h-4" /> Thêm Học Viên Mới
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl overflow-hidden brutal-shadow">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#fcf9f8] border-b-2 border-[#1c1b1b] uppercase font-black text-[#564145]">
+            <thead className="bg-slate-50 border-b border-slate-200 uppercase font-black text-slate-500">
               <tr>
                 <th className="p-4">Học Viên</th>
                 <th className="p-4">Lớp Học</th>
@@ -45,29 +45,29 @@ export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToas
                 <th className="p-4 text-right">Ngày Thi Dự Kiến</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1c1b1b]/10 font-bold">
+            <tbody className="divide-y divide-slate-100 font-bold">
               {students.map((student) => (
-                <tr key={student.id} className="hover:bg-[#fcf9f8] transition-colors">
+                <tr key={student.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4 flex items-center gap-3">
                     <img
                       src={student.avatarUrl}
                       alt={student.name}
-                      className="w-10 h-10 rounded-xl border-2 border-[#1c1b1b] object-cover shrink-0"
+                      className="w-10 h-10 rounded-xl border border-slate-200 object-cover shrink-0"
                     />
                     <div>
-                      <span className="font-black text-[#1c1b1b] text-sm block">{student.name}</span>
-                      <span className="text-[#897175] text-[11px] font-normal">{student.email}</span>
+                      <span className="font-black text-[#111827] text-sm block">{student.name}</span>
+                      <span className="text-slate-400 text-[11px] font-normal">{student.email}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-[#564145]">{student.className}</td>
-                  <td className="p-4 font-black text-sm text-[#003882]">{student.currentScore} / 300</td>
-                  <td className="p-4 text-[#f36b92]">{student.targetScore} điểm</td>
+                  <td className="p-4 text-slate-600">{student.className}</td>
+                  <td className="p-4 font-black text-sm text-[#2563EB]">{student.currentScore} / 300</td>
+                  <td className="p-4 text-[#F97316]">{student.targetScore} điểm</td>
                   <td className="p-4">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-950 border border-emerald-400">
                       {student.status}
                     </span>
                   </td>
-                  <td className="p-4 text-right text-[#564145]">{student.targetExamDate}</td>
+                  <td className="p-4 text-right text-slate-500">{student.targetExamDate}</td>
                 </tr>
               ))}
             </tbody>

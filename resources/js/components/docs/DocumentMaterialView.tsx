@@ -282,7 +282,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
                       onClick={() =>
                         onShowToast('Nâng cấp Premium', 'Gói tài liệu Premium bao gồm toàn bộ bài mẫu PDF và MP3 chuẩn TELC B2.', 'info')
                       }
-                      className="w-full py-2.5 bg-[#ffe082] text-[#3e2723] border-2 border-[#1c1b1b] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#ffd54f] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
+                      className="w-full py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
                     >
                       <Lock className="w-3.5 h-3.5 fill-current" /> PREMIUM
                     </button>
@@ -292,7 +292,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
                         setUserExp((prev) => prev + 5);
                         onShowToast('Mở tài liệu', `Đã mở tài liệu "${doc.title}". +5 EXP!`, 'success');
                       }}
-                      className="w-full py-2.5 bg-[#f36b92] text-white border-2 border-[#1c1b1b] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#a83159] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
+                      className="w-full py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
                     >
                       XEM TÀI LIỆU &amp; HỌC NGAY
                     </button>
