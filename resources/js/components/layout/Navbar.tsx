@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] border-[#111827] px-4 sm:px-6 py-3 shadow-xs">
+    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] md:border-l-[2.5px] border-[#111827] px-4 sm:px-6 py-3 shadow-xs">
       <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
         {/* Left: Mobile Menu Toggle & Title */}
         <div className="flex items-center gap-3">

@@ -256,8 +256,8 @@ export default function App() {
             tabSwitchCount={examState.tabSwitchCount}
           />
 
-          {/* Main Wrapper Offset for Desktop Sidebar */}
-          <div className="pl-0 md:pl-64 flex-1 flex flex-col min-w-0">
+          {/* Main Wrapper Offset for Desktop Sidebar with 5px gap */}
+          <div className="pl-0 md:pl-[261px] flex-1 flex flex-col min-w-0">
             <Navbar
               activeTab={activeTab}
               searchQuery={searchQuery}
