@@ -102,16 +102,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectTab(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-between transition-all cursor-pointer ${
+                className={`group w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-between transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm font-black'
                     : isLockedForStudent
                     ? 'bg-slate-50 text-slate-400 border-transparent hover:border-slate-300'
-                    : 'bg-transparent text-[#111827] border-transparent hover:border-[#111827] hover:bg-[#f8fafc]'
+                    : 'bg-transparent text-[#111827] border-transparent hover:border-[#2563EB] hover:bg-[#eff6ff] hover:text-[#2563EB]'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLockedForStudent ? 'text-slate-400' : 'text-[#4b5563]'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLockedForStudent ? 'text-slate-400' : 'text-[#4b5563] group-hover:text-[#2563EB]'}`} />
                   <span>{item.label}</span>
                 </div>
                 {isLockedForStudent && (

@@ -120,27 +120,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Role Toggle Button */}
-          <button
-            onClick={onToggleUser}
-            className={`px-3 py-1.5 rounded-xl border-2 border-[#1c1b1b] text-xs font-bold flex items-center gap-2 brutal-shadow-sm hover:translate-y-[-1px] transition-all cursor-pointer ${
-              currentUser === 'admin'
-                ? 'bg-[#ffe082] text-[#3e2723]'
-                : 'bg-[#b2dfdb] text-[#004d40]'
-            }`}
-          >
-            {currentUser === 'admin' ? (
-              <>
-                <GraduationCap className="w-4 h-4" />
-                <span>Giáo viên / Admin</span>
-              </>
-            ) : (
-              <>
-                <UserCheck className="w-4 h-4" />
-                <span>Học viên B2</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
     </header>
