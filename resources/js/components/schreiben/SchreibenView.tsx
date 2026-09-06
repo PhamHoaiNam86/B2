@@ -20,7 +20,7 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
 
   const handleAiEvaluation = () => {
     if (!essayText.trim() || essayText.length < 50) {
-      onShowToast('Bài viết quá ngắn', 'Vui lòng nhập tối thiểu 50 từ để AI Gemini có thể chấm điểm.', 'warning');
+      onShowToast('Bài viết quá ngắn', 'Vui lòng nhập tối thiểu 50 từ để hệ thống kiểm tra và chấm điểm bài viết.', 'warning');
       return;
     }
 
@@ -38,7 +38,7 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
           'Nâng cấp từ vựng: dùng "unverzüglich" thay cho "schnell"',
         ],
       });
-      onShowToast('Hoàn tất chấm bài AI', 'Đã phân tích cấu trúc, ngữ pháp và chấm điểm bài viết B2.', 'success');
+      onShowToast('Hoàn tất chấm bài', 'Đã phân tích cấu trúc, ngữ pháp và chấm điểm bài viết B2.', 'success');
     }, 1800);
   };
 
@@ -50,7 +50,7 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
           MODUL SCHREIBEN TELC B2
         </span>
         <h2 className="text-2xl font-black text-[#1c1b1b] font-heading">
-          Luyện Viết Thư B2 Có Công Nghệ AI Gemini Chấm Điểm
+          Luyện Viết Thư B2 Theo Tiêu Chuẩn Chấm TELC
         </h2>
         <p className="text-xs text-[#564145]">
           Hỗ trợ 2 dạng đề chính trong đề thi TELC B2: Thư phàn nàn (Beschwerdebrief) và Thư xin thông tin (Bitte um Informationen)
@@ -115,24 +115,24 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
               disabled={isAnalyzing}
               className="w-full py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 uppercase"
             >
-              <Sparkles className="w-4 h-4" />
-              {isAnalyzing ? 'AI Gemini đang phân tích & chấm điểm...' : 'Bắt Đầu AI Chấm Điểm TELC B2'}
+              <FileText className="w-4 h-4" />
+              {isAnalyzing ? 'Hệ thống đang chấm điểm...' : 'Bắt Đầu Chấm Điểm Bài Viết B2'}
             </button>
           </div>
         </div>
 
-        {/* Right 5 Cols: AI Result Panel */}
+        {/* Right 5 Cols: Result Panel */}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow space-y-4">
             <h3 className="text-base font-black text-[#1c1b1b] font-heading border-b-2 border-[#1c1b1b] pb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#f36b92]" />
-              Kết Quả Chấm Điểm AI
+              <FileText className="w-5 h-5 text-[#2563EB]" />
+              Kết Quả Chấm Điểm Bài Viết
             </h3>
 
             {aiResult ? (
               <div className="space-y-4">
                 <div className="p-4 bg-[#ffe082] border-2 border-[#1c1b1b] rounded-xl text-center space-y-1">
-                  <span className="text-xs font-bold text-[#3e2723]">Điểm Viết AI Đánh Giá</span>
+                  <span className="text-xs font-bold text-[#3e2723]">Điểm Viết Đánh Giá</span>
                   <p className="text-3xl font-black text-[#3e2723] font-heading">{aiResult.score} / 45</p>
                   <span className="px-2.5 py-0.5 rounded bg-white text-[#3e2723] border border-[#1c1b1b] text-[10px] font-black">
                     ĐẠT CHUẨN WRITING B2
@@ -157,7 +157,7 @@ export const SchreibenView: React.FC<SchreibenViewProps> = ({ onShowToast }) => 
               <div className="p-8 text-center text-xs text-[#897175] space-y-2 border-2 border-dashed border-[#1c1b1b]/30 rounded-xl">
                 <FileText className="w-8 h-8 text-[#897175] mx-auto" />
                 <p className="font-bold">Chưa có bài chấm nào</p>
-                <p>Nhập nội dung bài viết và nhấn "Bắt Đầu AI Chấm Điểm" để xem kết quả.</p>
+                <p>Nhập nội dung bài viết và nhấn "Bắt Đầu Chấm Điểm Bài Viết B2" để xem kết quả.</p>
               </div>
             )}
           </div>

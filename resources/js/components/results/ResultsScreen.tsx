@@ -102,7 +102,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 className="text-base font-black text-[#111827] font-heading border-b border-slate-100 pb-2 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#2563EB]" />
-            Phân Tích Đánh Giá AI Gemini
+            Phân Tích Đánh Giá Kỹ Năng TELC B2
           </h3>
 
           <div className="p-4 bg-blue-50/60 border border-blue-100 rounded-xl text-xs space-y-2 leading-relaxed">

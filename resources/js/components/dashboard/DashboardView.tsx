@@ -52,7 +52,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="px-5 py-3 bg-white text-[#111827] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow flex items-center gap-2 hover:bg-[#f1f5f9] transition-all cursor-pointer font-heading"
             >
               <Sparkles className="w-4 h-4 text-[#2563EB]" />
-              Luyện Viết Thư AI Chấm
+              Luyện Viết Thư B2 Standard
             </button>
           </div>
         </div>

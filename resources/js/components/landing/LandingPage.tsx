@@ -1,0 +1,539 @@
+import React from 'react';
+import {
+  Sparkles,
+  CheckCircle2,
+  Star,
+  Play,
+  BookOpen,
+  Brain,
+  Headphones,
+  Award,
+  ShieldCheck,
+  Zap,
+  Users,
+  ArrowRight,
+  MessageSquare,
+  ChevronRight,
+  LogIn,
+  PenTool,
+} from 'lucide-react';
+
+interface LandingPageProps {
+  onEnterApp: () => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#fcf9f8] text-[#1c1b1b] font-sans selection:bg-[#F97316] selection:text-white">
+      {/* -------------------------------------------------------------
+          HEADER / NAVBAR PUBLIC
+      ------------------------------------------------------------- */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b-[2.5px] border-[#111827] px-4 sm:px-8 py-3.5 shadow-xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          {/* Logo */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black text-lg brutal-shadow-sm">
+              TD
+            </div>
+            <div>
+              <h1 className="text-lg font-black text-[#111827] font-heading leading-tight tracking-tight">
+                TRIEUVY DEUTSCH
+              </h1>
+              <span className="text-[10px] font-bold text-[#4b5563] block -mt-0.5">
+                TELC B2 Prep & Exam Portal
+              </span>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-[#111827]">
+            <button
+              onClick={() => scrollToSection('features')}
+              className="hover:text-[#2563EB] transition-colors cursor-pointer"
+            >
+              Thông tin & Tính năng
+            </button>
+            <button
+              onClick={() => scrollToSection('why-choose')}
+              className="hover:text-[#2563EB] transition-colors cursor-pointer"
+            >
+              Tại sao chọn
+            </button>
+            <button
+              onClick={() => scrollToSection('testimonials')}
+              className="hover:text-[#2563EB] transition-colors cursor-pointer"
+            >
+              Đánh giá học viên
+            </button>
+          </nav>
+
+          {/* Login / Portal Button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onEnterApp}
+              className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] hover:translate-y-[-1px] transition-all cursor-pointer flex items-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Vào Portal Luyện Thi</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* -------------------------------------------------------------
+          1. BANNER / HERO SECTION (Strictly matching screenshot design)
+      ------------------------------------------------------------- */}
+      <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] overflow-hidden border-b-[2.5px] border-[#111827]">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Main Headline */}
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-[#111827] font-heading tracking-tight leading-[1.08]">
+              Học tiếng Đức <br className="hidden sm:inline" />
+              nhẹ nhàng. <br />
+              Chinh phục B2 <br className="hidden sm:inline" />
+              <span className="bg-gradient-to-r from-[#e879f9] via-[#c084fc] to-[#a855f7] bg-clip-text text-transparent italic">
+                dễ dàng.
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg font-medium text-[#374151] leading-relaxed max-w-2xl">
+              Nền tảng tối giản tập trung luyện thi TELC: từ vựng, ngữ pháp, luyện nghe và bộ đề thi thử chuẩn cấu trúc.
+            </p>
+
+            <p className="text-sm font-extrabold text-[#111827]">
+              Sẵn sàng đạt chứng chỉ B2 cùng chúng tôi?
+            </p>
+          </div>
+
+          {/* Main CTA Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              onClick={onEnterApp}
+              className="px-8 py-4 bg-[#fce7f3] text-[#111827] border-[2.5px] border-[#111827] rounded-2xl text-sm font-black brutal-shadow hover:bg-[#fbcfe8] hover:translate-y-[-2px] active:translate-y-[0px] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide"
+            >
+              <span>BẮT ĐẦU NGAY</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button className="px-4 py-3 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs hover:bg-slate-50 cursor-pointer">
+                VI
+              </button>
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="px-6 py-3 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs hover:bg-slate-50 cursor-pointer"
+              >
+                Liên hệ
+              </button>
+            </div>
+          </div>
+
+          {/* Feature Badges Pills */}
+          <div className="flex flex-wrap items-center gap-3 pt-4">
+            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
+                <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
+              </div>
+              <span>Từ vựng</span>
+            </div>
+
+            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
+                <Brain className="w-3.5 h-3.5 text-sky-700" />
+              </div>
+              <span>Ngữ pháp</span>
+            </div>
+
+            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
+                <Headphones className="w-3.5 h-3.5 text-amber-700" />
+              </div>
+              <span>Luyện nghe</span>
+            </div>
+
+            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
+                <Award className="w-3.5 h-3.5 text-purple-700" />
+              </div>
+              <span>Chấm điểm chuẩn</span>
+            </div>
+          </div>
+
+          {/* Counters Row */}
+          <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-[#111827]/10 max-w-lg">
+            <div>
+              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+                100%
+              </div>
+              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
+                ĐỖ B2
+              </div>
+            </div>
+
+            <div>
+              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+                5000+
+              </div>
+              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
+                VOKABELN
+              </div>
+            </div>
+
+            <div>
+              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+                TELC B2
+              </div>
+              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
+                STANDARD
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          2. THÔNG TIN & TÍNH NĂNG NỔI BẬT SECTION
+      ------------------------------------------------------------- */}
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="px-3 py-1 rounded-md bg-[#2563EB]/10 text-[#2563EB] text-xs font-black border border-[#2563EB]/30 uppercase">
+              TÍNH NĂNG HỆ THỐNG
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+              Hệ Thống Luyện Thi TELC B2 Toàn Diện
+            </h2>
+            <p className="text-sm font-medium text-[#4b5563]">
+              Tất cả công cụ bạn cần để đạt chứng chỉ tiếng Đức TELC B2 ngay trong lần thi đầu tiên.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Feature 1 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                  <Play className="w-6 h-6 fill-current" />
+                </div>
+                <h3 className="text-lg font-black text-[#111827] font-heading">
+                  Phòng Thi Thử Mô Phỏng TELC
+                </h3>
+                <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
+                  Thi thử với bộ đếm giờ thực tế, chống gian lận tab switch và chấm điểm tức thì chuẩn thang điểm 300 của TELC.
+                </p>
+              </div>
+              <button
+                onClick={onEnterApp}
+                className="text-xs font-black text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+              >
+                <span>Thi thử ngay</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                  <PenTool className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-[#111827] font-heading">
+                  Luyện Viết & Nói Schreiben / Sprechen
+                </h3>
+                <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
+                  Dàn ý bài viết chuẩn, bài mẫu điểm cao và hệ thống từ vựng Redewendungen B2 giúp tối ưu điểm số Modul Schreiben & Sprechen.
+                </p>
+              </div>
+              <button
+                onClick={onEnterApp}
+                className="text-xs font-black text-[#F97316] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+              >
+                <span>Xem bài mẫu Viết/Nói</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-[#111827] font-heading">
+                  Flashcard 3D & Kho Từ Vựng
+                </h3>
+                <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
+                  5.000+ từ vựng phân loại theo chủ đề Y tế, Điều dưỡng, Công sở kèm lật thẻ 3D ghi nhớ phản xạ cực nhanh.
+                </p>
+              </div>
+              <button
+                onClick={onEnterApp}
+                className="text-xs font-black text-[#10B981] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+              >
+                <span>Học từ vựng</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                  <Brain className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-[#111827] font-heading">
+                  Chuyên Đề Bẫy Sprachbausteine
+                </h3>
+                <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
+                  Tổng hợp bẫy ngữ pháp B2 thường gặp (indem, sodass, Konjunktiv II, N-Deklination) kèm phân tích đáp án chi tiết.
+                </p>
+              </div>
+              <button
+                onClick={onEnterApp}
+                className="text-xs font-black text-[#8B5CF6] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+              >
+                <span>Luyện bẫy đề thi</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          3. TẠI SAO NÊN CHỌN TRIEUVY DEUTSCH SECTION
+      ------------------------------------------------------------- */}
+      <section id="why-choose" className="py-16 sm:py-24 px-4 sm:px-6 bg-[#fff8e7] border-b-[2.5px] border-[#111827]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="px-3 py-1 rounded-md bg-[#ffe082] text-[#3e2723] text-xs font-black border border-[#111827] uppercase">
+              ƯU THẾ VƯỢT TRỘI
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+              Tại Sao Hơn 12.000+ Học Viên Tin Chọn TRIEUVY DEUTSCH?
+            </h2>
+            <p className="text-sm font-medium text-[#4b5563]">
+              So sánh hiệu quả học tập giữa phương pháp truyền thống và nền tảng thông minh TRIEUVY DEUTSCH.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Card: Traditional method */}
+            <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 border-2 border-[#111827] flex items-center justify-center font-black">
+                  ✕
+                </div>
+                <h3 className="text-xl font-black text-[#111827] font-heading">
+                  Cách Tự Học Truyền Thống
+                </h3>
+              </div>
+
+              <ul className="space-y-4 text-xs font-bold text-[#4b5563]">
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-black text-[10px] shrink-0 mt-0.5">✕</span>
+                  <span>Thiếu bài thi thử chuẩn cấu trúc TELC thực tế, khó tự chấm điểm Đọc/Nghe.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-black text-[10px] shrink-0 mt-0.5">✕</span>
+                  <span>Bài viết Schreiben không có dàn ý bài mẫu chi tiết, dễ lặp lại lỗi sai ngữ pháp.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-black text-[10px] shrink-0 mt-0.5">✕</span>
+                  <span>Học từ vựng tràn lan không đúng trọng tâm chuyên ngành B2 (Y tế, Điều dưỡng).</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-black text-[10px] shrink-0 mt-0.5">✕</span>
+                  <span>Tốn kém chi phí ôn luyện trung tâm mà không chủ động thời gian.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Right Card: TRIEUVY DEUTSCH solution */}
+            <div className="bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white text-[#2563EB] border-2 border-[#111827] flex items-center justify-center font-black">
+                  ✓
+                </div>
+                <h3 className="text-xl font-black text-white font-heading">
+                  Nền Tảng TRIEUVY DEUTSCH
+                </h3>
+              </div>
+
+              <ul className="space-y-4 text-xs font-extrabold text-blue-50">
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0 mt-0.5" />
+                  <span>Kho đề thi thử phong phú có bấm giờ, chống gian lận và chấm điểm ngay lập tức.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0 mt-0.5" />
+                  <span>Hệ thống bài mẫu Schreiben chuẩn TELC từng câu, gợi ý từ vựng và cấu trúc cao cấp.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0 mt-0.5" />
+                  <span>Bộ từ vựng B2 chuẩn xác kèm thẻ ghi nhớ 3D lật thông minh giúp nhớ nhanh x3 lần.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0 mt-0.5" />
+                  <span>Học mọi lúc mọi nơi 24/7 với chi phí tối ưu nhất cho học viên.</span>
+                </li>
+              </ul>
+
+              <button
+                onClick={onEnterApp}
+                className="w-full py-3.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer uppercase tracking-wider"
+              >
+                Trải nghiệm ngay bây giờ
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          4. ĐÁNH GIÁ HỌC VIÊN SECTION
+      ------------------------------------------------------------- */}
+      <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="px-3 py-1 rounded-md bg-emerald-100 text-emerald-950 text-xs font-black border border-[#111827] uppercase">
+              CẢM NHẬN HỌC VIÊN
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
+              Học Viên Đã Thi Đỗ TELC B2 Nói Gì?
+            </h2>
+            <p className="text-sm font-medium text-[#4b5563]">
+              Hơn 12,000 học viên đã tự tin chinh phục chứng chỉ B2 nhờ TRIEUVY DEUTSCH.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Review 1 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-[#374151] leading-relaxed italic">
+                  "Nhờ kho bài mẫu Schreiben và bộ bẫy đề thi mà điểm viết của mình tăng từ 14 lên 28 điểm. Các cấu trúc Redewendungen được hướng dẫn rất tỉ mỉ!"
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-3 border-t-2 border-[#111827]/10">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                  alt="Student avatar"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                />
+                <div>
+                  <h4 className="text-sm font-black text-[#111827]">Nguyễn Minh Huyền</h4>
+                  <span className="text-[10px] font-bold text-[#059669] block">
+                    ★ Đã đỗ TELC B2 (282/300)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Review 2 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-[#374151] leading-relaxed italic">
+                  "Kho từ vựng flashcard 3D theo từng chủ đề y tế giúp mình thuộc từ vựng cực nhanh. Giao diện mô phỏng phòng thi thì quá sát đề thật luôn!"
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-3 border-t-2 border-[#111827]/10">
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+                  alt="Student avatar"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                />
+                <div>
+                  <h4 className="text-sm font-black text-[#111827]">Trần Hoàng Nam</h4>
+                  <span className="text-[10px] font-bold text-[#059669] block">
+                    ★ Đã đỗ TELC B2 (275/300)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Review 3 */}
+            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-1 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-[#374151] leading-relaxed italic">
+                  "Phần bẫy đề Sprachbausteine cực kỳ hữu ích. Nhờ làm quen với các dạng bẫy trên TRIEUVY DEUTSCH mà khi vào phòng thi thật mình đạt điểm tối đa bài đọc!"
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-3 border-t-2 border-[#111827]/10">
+                <img
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
+                  alt="Student avatar"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                />
+                <div>
+                  <h4 className="text-sm font-black text-[#111827]">Phạm Khánh Linh</h4>
+                  <span className="text-[10px] font-bold text-[#059669] block">
+                    ★ Đã đỗ TELC B2 (290/300)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------
+          FOOTER CTA & FOOTER
+      ------------------------------------------------------------- */}
+      <footer id="contact" className="bg-[#111827] text-white py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow">
+            <h2 className="text-3xl sm:text-5xl font-black font-heading text-white">
+              Sẵn Sàng Chinh Phục Chứng Chỉ B2?
+            </h2>
+            <p className="text-sm sm:text-base font-semibold text-blue-100 max-w-xl mx-auto">
+              Tham gia ngay hôm nay để trải nghiệm phòng thi thử mô phỏng thời gian thực và bộ đề luyện thi chuẩn quốc tế.
+            </p>
+            <button
+              onClick={onEnterApp}
+              className="px-8 py-4 bg-[#F97316] text-white border-2 border-white rounded-2xl text-sm font-black brutal-shadow hover:bg-[#ea580c] transition-all cursor-pointer uppercase tracking-wider inline-flex items-center gap-2"
+            >
+              <span>VÀO PHÒNG THI THỬ NGAY</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-800 text-xs font-medium text-slate-400">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#2563EB] text-white border border-white flex items-center justify-center font-black">
+                TD
+              </div>
+              <span className="font-bold text-white text-sm">TRIEUVY DEUTSCH</span>
+            </div>
+            <p>© 2026 TRIEUVY DEUTSCH. Nền tảng mô phỏng & luyện thi TELC B2 chuẩn quốc tế.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};

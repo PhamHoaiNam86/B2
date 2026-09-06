@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab } from '../../types';
-import { Search, ShieldAlert, Sparkles, UserCheck, Menu, GraduationCap, FileText } from 'lucide-react';
+import { Search, ShieldAlert, Sparkles, UserCheck, Menu, GraduationCap, FileText, Globe } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -11,6 +11,7 @@ interface NavbarProps {
   formattedCountdown?: string;
   onOpenExamRoom?: () => void;
   onToggleMobileMenu: () => void;
+  onGoToLanding?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   formattedCountdown,
   onOpenExamRoom,
   onToggleMobileMenu,
+  onGoToLanding,
 }) => {
   const getTabTitle = () => {
     switch (activeTab) {
@@ -48,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'grammar':
         return 'Chuyên Đề Ngữ Pháp B2 & Bẫy Đề Thi';
       case 'schreiben':
-        return 'Modul Schreiben - Viết Thư Có AI Chấm';
+        return 'Modul Schreiben - Luyện Viết Thư B2 Standard';
       case 'students':
         return 'Quản Lý Học Viên & Bảng Điểm Thi';
       case 'history':
@@ -105,6 +107,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ShieldAlert className="w-4 h-4 text-[#ba1a1a]" />
               <span>Thời gian: {formattedCountdown}</span>
             </div>
+          )}
+
+          {/* Landing Page Button */}
+          {onGoToLanding && (
+            <button
+              onClick={onGoToLanding}
+              className="px-3 py-1.5 rounded-xl border-2 border-[#1c1b1b] bg-white text-[#1c1b1b] text-xs font-bold flex items-center gap-1.5 brutal-shadow-sm hover:bg-[#f8fafc] hover:translate-y-[-1px] transition-all cursor-pointer"
+            >
+              <Globe className="w-4 h-4 text-[#2563EB]" />
+              <span className="hidden sm:inline">Trang Chủ Landing</span>
+            </button>
           )}
 
           {/* Role Toggle Button */}
