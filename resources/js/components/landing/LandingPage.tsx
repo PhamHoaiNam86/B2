@@ -28,8 +28,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const handleOpenAuth = (tab: 'login' | 'register' = 'login') => onGoToAuth(tab);
   const bannerImages = [
-    { src: '/images/banner1.png', alt: 'Bộ đề thi thử TELC Online - Ưu đãi giảm đến 70%' },
-    { src: '/images/banner2.png', alt: 'Luyện thi TELC B2 - Học phí sinh viên chỉ 499k/tháng' },
+    { src: '/images/banner_main.jpg', alt: 'Luyện thi tiếng Đức chứng chỉ GOETHE - TELC - ÖSD tất cả các trình độ A1-C1' },
   ];
 
   // GSAP Animation Refs for Scroll Reveal
@@ -39,11 +38,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
   const testimonialsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (bannerImages.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
     }, 2500);
     return () => clearInterval(timer);
-  }, []);
+  }, [bannerImages.length]);
 
   // GSAP IntersectionObserver Stagger Scroll Effect
   useEffect(() => {
@@ -160,67 +160,70 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
       </header>
 
       {/* -------------------------------------------------------------
-          1. BANNER CAROUSEL SECTION (700px Height)
+          1. BANNER CAROUSEL SECTION
       ------------------------------------------------------------- */}
       <section className="relative w-full border-b-[2.5px] border-[#111827] bg-[#111827]">
-        <div className="relative w-full h-[700px] overflow-hidden group">
+        <div className="relative w-full overflow-hidden group cursor-pointer" onClick={() => handleOpenAuth('login')}>
           {bannerImages.map((slide, index) => (
             <div
               key={index}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer ${
-                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              className={`w-full transition-opacity duration-700 ease-in-out ${
+                index === currentSlide ? 'block opacity-100 z-10' : 'hidden opacity-0 z-0'
               }`}
-              onClick={() => handleOpenAuth('login')}
             >
               <img
                 src={slide.src}
                 alt={slide.alt}
-                className="w-full h-[700px] object-cover object-center"
+                className="w-full h-auto block"
               />
             </div>
           ))}
 
-          {/* Navigation Arrow Buttons */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              prevSlide();
-            }}
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
-            aria-label="Previous Banner"
-          >
-            <ChevronLeft className="w-6 h-6 stroke-[3]" />
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              nextSlide();
-            }}
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
-            aria-label="Next Banner"
-          >
-            <ChevronRight className="w-6 h-6 stroke-[3]" />
-          </button>
-
-          {/* Banner Slide Indicator Dots */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-[#111827]/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-            {bannerImages.map((_, index) => (
+          {bannerImages.length > 1 && (
+            <>
+              {/* Navigation Arrow Buttons */}
               <button
-                key={index}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCurrentSlide(index);
+                  prevSlide();
                 }}
-                className={`transition-all cursor-pointer rounded-full ${
-                  index === currentSlide
-                    ? 'w-8 h-3 bg-[#F97316] border border-white'
-                    : 'w-3 h-3 bg-white/60 hover:bg-white'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+                className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
+                aria-label="Previous Banner"
+              >
+                <ChevronLeft className="w-6 h-6 stroke-[3]" />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextSlide();
+                }}
+                className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
+                aria-label="Next Banner"
+              >
+                <ChevronRight className="w-6 h-6 stroke-[3]" />
+              </button>
+
+              {/* Banner Slide Indicator Dots */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-[#111827]/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+                {bannerImages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentSlide(index);
+                    }}
+                    className={`transition-all cursor-pointer rounded-full ${
+                      index === currentSlide
+                        ? 'w-8 h-3 bg-[#F97316] border border-white'
+                        : 'w-3 h-3 bg-white/60 hover:bg-white'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sub-Banner Highlight Bar */}

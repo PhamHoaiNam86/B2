@@ -47,9 +47,11 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'auth' | 'app'>(initialState.viewMode);
   const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>(initialState.authInitialTab);
   const [activeTab, setActiveTabState] = useState<ActiveTab>(initialState.activeTab);
+  const [showWelcomePopup, setShowWelcomePopup] = useState<boolean>(initialState.viewMode === 'app');
 
   const navigateToLanding = () => {
     setViewMode('landing');
+    setShowWelcomePopup(false);
     if (window.location.pathname !== '/') {
       window.history.pushState({}, '', '/');
     }
@@ -58,6 +60,7 @@ export default function App() {
   const navigateToAuth = (tab: 'login' | 'register' = 'login') => {
     setAuthInitialTab(tab);
     setViewMode('auth');
+    setShowWelcomePopup(false);
     const targetPath = `/${tab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState({}, '', targetPath);
@@ -67,6 +70,7 @@ export default function App() {
   const navigateToApp = (tab: ActiveTab = 'dashboard') => {
     setViewMode('app');
     setActiveTabState(tab);
+    setShowWelcomePopup(true);
     const targetPath = tab === 'dashboard' ? '/dashboard' : `/${tab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState({}, '', targetPath);
@@ -634,6 +638,36 @@ export default function App() {
         onAddExam={handleAddExam}
         onShowToast={showToast}
       />
+
+      {/* WELCOME POPUP MODAL ON LOGIN */}
+      {viewMode === 'app' && showWelcomePopup && (
+        <div
+          className="fixed inset-0 z-50 bg-[#111827]/85 backdrop-blur-md flex items-center justify-center p-[20px] md:p-[50px] lg:p-[100px]"
+          onClick={() => setShowWelcomePopup(false)}
+        >
+          <div
+            className="relative w-full h-full max-w-7xl bg-[#030712] border-[3px] border-[#111827] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setShowWelcomePopup(false)}
+              className="absolute top-4 right-4 z-20 p-2.5 bg-white/90 hover:bg-white text-[#111827] border-2 border-[#111827] rounded-2xl brutal-shadow transition-all cursor-pointer hover:scale-105"
+              aria-label="Close Welcome Popup"
+            >
+              <X className="w-6 h-6 stroke-[3]" />
+            </button>
+
+            {/* Popup Image */}
+            <img
+              src="/images/welcome_popup.png"
+              alt="Welcome to TRIEUVY DEUTSCH Portal"
+              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              onClick={() => setShowWelcomePopup(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* TOAST SYSTEM */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
