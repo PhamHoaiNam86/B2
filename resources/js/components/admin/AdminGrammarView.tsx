@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GrammarTopic } from '../../types';
-import { Plus, Search, Edit3, Trash2, Eye, Brain, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AdminGrammarViewProps {
   topics: GrammarTopic[];
@@ -10,6 +10,8 @@ interface AdminGrammarViewProps {
   onAddNewTopic?: () => void;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
   topics,
   onSelectTopic,
@@ -18,6 +20,12 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
   onAddNewTopic,
 }) => {
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination on search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const filteredTopics = topics.filter((t) => {
     return (
@@ -25,6 +33,11 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
       t.category.toLowerCase().includes(search.toLowerCase())
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredTopics.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTopics = filteredTopics.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleDelete = (id: string, title: string) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa chuyên đề ngữ pháp "${title}"?`)) {
@@ -47,7 +60,7 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
             Quản Lý Chuyên Đề Ngữ Pháp & Bẫy Đề Thi
           </h2>
           <p className="text-xs text-[#4b5563] mt-0.5">
-            Quản lý lý thuyết, câu trúc bẫy đề và bài tập củng cố ngữ pháp chuẩn B2
+            Quản lý lý thuyết, cấu trúc bẫy đề và bài tập củng cố ngữ pháp chuẩn B2 (10 bản ghi / trang)
           </p>
         </div>
 
@@ -93,17 +106,17 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#111827]/10 font-semibold">
-              {filteredTopics.length === 0 ? (
+              {paginatedTopics.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-[#4b5563]">
                     Không tìm thấy chuyên đề ngữ pháp nào phù hợp.
                   </td>
                 </tr>
               ) : (
-                filteredTopics.map((topic, idx) => (
+                paginatedTopics.map((topic, idx) => (
                   <tr key={topic.id} className="hover:bg-[#f8fafc] transition-colors">
                     <td className="p-4 font-black text-[#6b7280]">
-                      #{idx + 1}
+                      #{startIndex + idx + 1}
                     </td>
                     <td className="p-4 font-bold text-[#111827]">
                       <div>
@@ -156,6 +169,51 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        {filteredTopics.length > 0 && (
+          <div className="p-4 bg-[#f8fafc] border-t-2 border-[#111827] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold">
+            <div className="text-[#4b5563]">
+              Hiển thị <span className="font-black text-[#111827]">{startIndex + 1}</span> -{' '}
+              <span className="font-black text-[#111827]">
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredTopics.length)}
+              </span>{' '}
+              trên tổng số <span className="font-black text-[#2563EB]">{filteredTopics.length}</span> chuyên đề
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={validCurrentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                className="p-2 rounded-lg border-2 border-[#111827] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white cursor-pointer transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg border-2 border-[#111827] text-xs font-black cursor-pointer transition-all ${
+                    validCurrentPage === page
+                      ? 'bg-[#2563EB] text-white'
+                      : 'bg-white text-[#111827] hover:bg-slate-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                disabled={validCurrentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                className="p-2 rounded-lg border-2 border-[#111827] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white cursor-pointer transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

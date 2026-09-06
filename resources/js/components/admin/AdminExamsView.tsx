@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExamModel } from '../../types';
-import { Plus, Search, Edit3, Trash2, Eye, FileCheck2, Clock, Award, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AdminExamsViewProps {
   exams: ExamModel[];
@@ -9,6 +9,8 @@ interface AdminExamsViewProps {
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   onDeleteExam?: (id: string) => void;
 }
+
+const ITEMS_PER_PAGE = 10;
 
 export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   exams,
@@ -19,6 +21,12 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedLevel]);
 
   const filteredExams = exams.filter((e) => {
     const matchesSearch =
@@ -27,6 +35,11 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
     const matchesLevel = selectedLevel === 'ALL' || e.level.includes(selectedLevel);
     return matchesSearch && matchesLevel;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredExams.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedExams = filteredExams.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa bộ đề thi "${name}" khỏi hệ thống?`)) {
@@ -49,7 +62,7 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
             Quản Lý Danh Sách Bộ Đề Thi TELC
           </h2>
           <p className="text-xs text-[#4b5563] mt-0.5">
-            Quản lý, tạo mới, chỉnh sửa nội dung và cấu trúc đề thi mô phỏng tiêu chuẩn
+            Quản lý, tạo mới, chỉnh sửa nội dung và cấu trúc đề thi mô phỏng tiêu chuẩn (10 bản ghi / trang)
           </p>
         </div>
 
@@ -108,18 +121,18 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#111827]/10 font-semibold">
-              {filteredExams.length === 0 ? (
+              {paginatedExams.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-[#4b5563]">
                     Không tìm thấy đề thi nào phù hợp với từ khóa tìm kiếm.
                   </td>
                 </tr>
               ) : (
-                filteredExams.map((exam, idx) => (
+                paginatedExams.map((exam, idx) => (
                   <tr key={exam.id} className="hover:bg-[#f8fafc] transition-colors">
                     <td className="p-4 font-black">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#6b7280]">#{idx + 1}</span>
+                        <span className="text-[#6b7280]">#{startIndex + idx + 1}</span>
                         <span className="px-2 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black border border-[#111827]">
                           {exam.examCode}
                         </span>
@@ -176,6 +189,51 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        {filteredExams.length > 0 && (
+          <div className="p-4 bg-[#f8fafc] border-t-2 border-[#111827] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold">
+            <div className="text-[#4b5563]">
+              Hiển thị <span className="font-black text-[#111827]">{startIndex + 1}</span> -{' '}
+              <span className="font-black text-[#111827]">
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredExams.length)}
+              </span>{' '}
+              trên tổng số <span className="font-black text-[#2563EB]">{filteredExams.length}</span> bộ đề thi
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={validCurrentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                className="p-2 rounded-lg border-2 border-[#111827] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white cursor-pointer transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg border-2 border-[#111827] text-xs font-black cursor-pointer transition-all ${
+                    validCurrentPage === page
+                      ? 'bg-[#2563EB] text-white'
+                      : 'bg-white text-[#111827] hover:bg-slate-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                disabled={validCurrentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                className="p-2 rounded-lg border-2 border-[#111827] bg-white hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white cursor-pointer transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
