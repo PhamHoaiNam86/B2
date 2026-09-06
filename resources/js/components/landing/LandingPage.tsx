@@ -176,28 +176,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div className="bg-white border-t-[2.5px] border-[#111827] py-6 px-4 sm:px-8">
           <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
                   <BookOpen className="w-4 h-4 text-emerald-700" />
                 </div>
                 <span>Kho Từ vựng B2</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
                   <Brain className="w-4 h-4 text-sky-700" />
                 </div>
                 <span>Ngữ pháp Bẫy Đề</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
                   <Headphones className="w-4 h-4 text-amber-700" />
                 </div>
                 <span>Luyện nghe TELC</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
                   <Award className="w-4 h-4 text-purple-700" />
                 </div>
@@ -207,7 +207,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             <button
               onClick={onEnterApp}
-              className="px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
+              className="px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
             >
               <span>VÀO PHÒNG THI THỬ NGAY</span>
               <ArrowRight className="w-4 h-4" />
@@ -235,12 +235,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Feature 1 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+            <div
+              onClick={onEnterApp}
+              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer"
+            >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
                   <Play className="w-6 h-6 fill-current" />
                 </div>
-                <h3 className="text-lg font-black text-[#111827] font-heading">
+                <h3 className="text-lg font-black text-[#111827] font-heading group-hover:text-[#2563EB] transition-colors duration-300">
                   Phòng Thi Thử Mô Phỏng TELC
                 </h3>
                 <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
@@ -252,17 +255,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 className="text-xs font-black text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Thi thử ngay</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
               </button>
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+            <div
+              onClick={onEnterApp}
+              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer"
+            >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
                   <PenTool className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black text-[#111827] font-heading">
+                <h3 className="text-lg font-black text-[#111827] font-heading group-hover:text-[#F97316] transition-colors duration-300">
                   Luyện Viết & Nói Schreiben / Sprechen
                 </h3>
                 <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
@@ -274,17 +280,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 className="text-xs font-black text-[#F97316] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Xem bài mẫu Viết/Nói</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
               </button>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+            <div
+              onClick={onEnterApp}
+              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer"
+            >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
                   <BookOpen className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black text-[#111827] font-heading">
+                <h3 className="text-lg font-black text-[#111827] font-heading group-hover:text-[#10B981] transition-colors duration-300">
                   Flashcard 3D & Kho Từ Vựng
                 </h3>
                 <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
@@ -296,17 +305,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 className="text-xs font-black text-[#10B981] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Học từ vựng</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
               </button>
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-3px] transition-all">
+            <div
+              onClick={onEnterApp}
+              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#8B5CF6] hover:bg-white transition-all duration-300 cursor-pointer"
+            >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
                   <Brain className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-black text-[#111827] font-heading">
+                <h3 className="text-lg font-black text-[#111827] font-heading group-hover:text-[#8B5CF6] transition-colors duration-300">
                   Chuyên Đề Bẫy Sprachbausteine
                 </h3>
                 <p className="text-xs font-medium text-[#4b5563] leading-relaxed">
@@ -318,7 +330,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 className="text-xs font-black text-[#8B5CF6] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Luyện bẫy đề thi</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
               </button>
             </div>
           </div>
@@ -344,12 +356,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left Card: Traditional method */}
-            <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6">
+            <div className="group bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:border-rose-500 transition-all duration-300 cursor-pointer">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 border-2 border-[#111827] flex items-center justify-center font-black">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 border-2 border-[#111827] flex items-center justify-center font-black group-hover:scale-110 transition-transform duration-300">
                   ✕
                 </div>
-                <h3 className="text-xl font-black text-[#111827] font-heading">
+                <h3 className="text-xl font-black text-[#111827] font-heading group-hover:text-rose-600 transition-colors">
                   Cách Tự Học Truyền Thống
                 </h3>
               </div>
@@ -375,9 +387,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             {/* Right Card: TRIEUVY DEUTSCH solution */}
-            <div className="bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6">
+            <div
+              onClick={onEnterApp}
+              className="group bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:bg-[#1d4ed8] transition-all duration-300 cursor-pointer"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white text-[#2563EB] border-2 border-[#111827] flex items-center justify-center font-black">
+                <div className="w-10 h-10 rounded-xl bg-white text-[#2563EB] border-2 border-[#111827] flex items-center justify-center font-black group-hover:scale-110 transition-transform duration-300">
                   ✓
                 </div>
                 <h3 className="text-xl font-black text-white font-heading">
@@ -434,9 +449,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Review 1 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
-                <div className="flex items-center gap-1 text-amber-400">
+                <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-current" />
                   ))}
@@ -450,10 +465,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
                   alt="Student avatar"
-                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div>
-                  <h4 className="text-sm font-black text-[#111827]">Nguyễn Minh Huyền</h4>
+                  <h4 className="text-sm font-black text-[#111827] group-hover:text-[#F97316] transition-colors">Nguyễn Minh Huyền</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
                     ★ Đã đỗ TELC B2 (282/300)
                   </span>
@@ -462,9 +477,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             {/* Review 2 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
-                <div className="flex items-center gap-1 text-amber-400">
+                <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-current" />
                   ))}
@@ -478,10 +493,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
                   alt="Student avatar"
-                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div>
-                  <h4 className="text-sm font-black text-[#111827]">Trần Hoàng Nam</h4>
+                  <h4 className="text-sm font-black text-[#111827] group-hover:text-[#2563EB] transition-colors">Trần Hoàng Nam</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
                     ★ Đã đỗ TELC B2 (275/300)
                   </span>
@@ -490,9 +505,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             {/* Review 3 */}
-            <div className="bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between">
+            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
-                <div className="flex items-center gap-1 text-amber-400">
+                <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-current" />
                   ))}
@@ -506,10 +521,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <img
                   src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
                   alt="Student avatar"
-                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover"
+                  className="w-10 h-10 rounded-full border-2 border-[#111827] object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div>
-                  <h4 className="text-sm font-black text-[#111827]">Phạm Khánh Linh</h4>
+                  <h4 className="text-sm font-black text-[#111827] group-hover:text-[#10B981] transition-colors">Phạm Khánh Linh</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
                     ★ Đã đỗ TELC B2 (290/300)
                   </span>
@@ -525,7 +540,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       ------------------------------------------------------------- */}
       <footer id="contact" className="bg-[#111827] text-white py-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-12">
-          <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow">
+          <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow hover:-translate-y-2 hover:shadow-[10px_10px_0px_#ffffff] transition-all duration-300 cursor-pointer" onClick={onEnterApp}>
             <h2 className="text-3xl sm:text-5xl font-black font-heading text-white">
               Sẵn Sàng Chinh Phục Chứng Chỉ B2?
             </h2>

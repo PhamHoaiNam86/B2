@@ -19,6 +19,13 @@
   .brutal-shadow-cta {
     box-shadow: 4px 4px 0px #F97316;
   }
+  .brutal-shadow-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .brutal-shadow-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 8px 8px 0px #111827;
+  }
   .brutal-btn {
     transition: all 0.15s ease-in-out;
   }
