@@ -41,7 +41,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
-    }, 5000);
+    }, 2500);
     return () => clearInterval(timer);
   }, []);
 
