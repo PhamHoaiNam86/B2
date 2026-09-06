@@ -437,7 +437,7 @@ export default function App() {
                 );
               }}
               onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
-              onGoToLanding={() => navigateToLanding()}
+              onLogout={() => navigateToLanding()}
             />
 
             {/* Main Workspace: Full width with 10px padding and left border for 12px visual separation */}
