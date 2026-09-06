@@ -7,7 +7,6 @@ interface NavbarProps {
   searchQuery: string;
   onSearch: (q: string) => void;
   currentUser: 'admin' | 'student';
-  onToggleUser: () => void;
   formattedCountdown?: string;
   onOpenExamRoom?: () => void;
   onToggleMobileMenu: () => void;
@@ -19,7 +18,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
   onSearch,
   currentUser,
-  onToggleUser,
   formattedCountdown,
   onOpenExamRoom,
   onToggleMobileMenu,
@@ -103,8 +101,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right: Countdown & Logout Button */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: Countdown, Account Role Badge & Logout Button */}
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Real-time countdown badge if exam active */}
           {formattedCountdown && (
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#ffe3ea] text-[#800035] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm animate-pulse">
@@ -113,11 +111,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
+
+
           {/* Logout Button */}
           {onLogout && (
             <button
               onClick={onLogout}
-              className="px-3 py-1.5 rounded-xl border-2 border-[#111827] bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] text-xs font-bold flex items-center gap-1.5 brutal-shadow-sm hover:translate-y-[-1px] transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border-2 border-[#111827] bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] text-xs font-bold flex items-center gap-1.5 brutal-shadow-xs hover:translate-y-[-1px] transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Đăng xuất</span>

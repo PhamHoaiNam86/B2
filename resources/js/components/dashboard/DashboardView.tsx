@@ -232,10 +232,138 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       maxScore: 300,
       percent: 86.7,
       badge: 'ĐẠT B2',
-      medal: '10',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
     },
   ];
+
+  if (currentUser === 'admin') {
+    return (
+      <div className="space-y-6 w-full">
+        {/* Admin Overview Header */}
+        <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="px-2.5 py-0.5 rounded-md bg-[#2563EB] text-white text-xs font-black uppercase border border-[#111827]">
+              QUẢN TRỊ VIÊN / ADMIN DASHBOARD
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#111827] mt-1 font-heading">
+              Trung Tâm Quản Lý Hệ Thống & Đào Tạo TELC B2
+            </h2>
+            <p className="text-xs sm:text-sm text-[#4b5563] mt-0.5">
+              Tổng quan thông số hệ thống, quản lý ngân hàng đề thi, tài liệu, ngữ pháp và danh sách học viên
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 bg-[#ffe082] text-[#3e2723] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs">
+              👑 Chế độ Admin (Toàn quyền quản lý)
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Admin Key Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#4b5563] uppercase">Bộ Đề Thi</span>
+              <FileCheck2 className="w-6 h-6 text-[#2563EB]" />
+            </div>
+            <div className="text-3xl font-black text-[#111827]">{exams.length} Bộ đề</div>
+            <p className="text-[11px] text-[#059669] font-bold">● Đề thi thử tiêu chuẩn TELC B2</p>
+          </div>
+
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#4b5563] uppercase">Chuyên Đề Ngữ Pháp</span>
+              <Brain className="w-6 h-6 text-[#F97316]" />
+            </div>
+            <div className="text-3xl font-black text-[#111827]">12 Bài học</div>
+            <p className="text-[11px] text-[#2563EB] font-bold">● Kèm quy tắc bẫy & bài tập</p>
+          </div>
+
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#4b5563] uppercase">Kho Từ Vựng</span>
+              <BookOpen className="w-6 h-6 text-[#059669]" />
+            </div>
+            <div className="text-3xl font-black text-[#111827]">5.000+ Từ</div>
+            <p className="text-[11px] text-[#F97316] font-bold">● Dữ liệu Flashcard 3D B2</p>
+          </div>
+
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#4b5563] uppercase">Học Viên Luyện Thi</span>
+              <Users className="w-6 h-6 text-[#7c3aed]" />
+            </div>
+            <div className="text-3xl font-black text-[#111827]">{students.length} Học viên</div>
+            <p className="text-[11px] text-[#7c3aed] font-bold">● Đang hoạt động trên portal</p>
+          </div>
+        </div>
+
+        {/* Quick Management Shortcuts */}
+        <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4">
+          <h3 className="text-lg font-black text-[#111827] font-heading">
+            Chức Năng Quản Lý Nhanh Dành Cho Admin
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <button
+              onClick={() => onSelectExam(exams[0])}
+              className="p-4 bg-[#eff6ff] border-2 border-[#111827] rounded-xl text-left hover:bg-[#dbeafe] transition-all cursor-pointer brutal-shadow-xs group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-black text-[#1e40af] text-sm">📝 Quản Lý Ngân Hàng Đề Thi</span>
+                <ArrowRight className="w-4 h-4 text-[#1e40af] group-hover:translate-x-1 transition-transform" />
+              </div>
+              <p className="text-xs text-[#4b5563] mt-1">Xem bảng danh sách đề thi, tạo mới bộ đề và chỉnh sửa cấu trúc</p>
+            </button>
+
+            <button
+              onClick={onNavigateToGrammar}
+              className="p-4 bg-[#fff7ed] border-2 border-[#111827] rounded-xl text-left hover:bg-[#ffedd5] transition-all cursor-pointer brutal-shadow-xs group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-black text-[#c2410c] text-sm">📘 Quản Lý Chuyên Đề Ngữ Pháp</span>
+                <ArrowRight className="w-4 h-4 text-[#c2410c] group-hover:translate-x-1 transition-transform" />
+              </div>
+              <p className="text-xs text-[#4b5563] mt-1">Quản lý các chuyên đề bẫy ngữ pháp, ví dụ và bài tập củng cố</p>
+            </button>
+
+            <button
+              onClick={onNavigateToVocab}
+              className="p-4 bg-[#ecfdf5] border-2 border-[#111827] rounded-xl text-left hover:bg-[#d1fae5] transition-all cursor-pointer brutal-shadow-xs group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-black text-[#047857] text-sm">📚 Quản Lý Kho Từ Vựng B2</span>
+                <ArrowRight className="w-4 h-4 text-[#047857] group-hover:translate-x-1 transition-transform" />
+              </div>
+              <p className="text-xs text-[#4b5563] mt-1">Quản lý kho từ vựng tiếng Đức, quán từ, nghĩa Việt và ví dụ</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Feed Exam Submissions */}
+        <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-black text-[#111827] font-heading">
+              Lịch Sử Nộp Bài Thi Thử Mới Nhất
+            </h3>
+            <span className="text-xs font-bold text-[#4b5563]">Cập nhật thời gian thực</span>
+          </div>
+
+          <div className="divide-y divide-[#111827]/10 border-2 border-[#111827] rounded-xl overflow-hidden text-xs">
+            {liveFeed.map((item) => (
+              <div key={item.id} className="p-4 bg-white hover:bg-[#f8fafc] flex items-center justify-between">
+                <div>
+                  <b className="text-[#111827] text-sm">{item.studentName}</b>
+                  <p className="text-[#4b5563] text-xs mt-0.5">{item.description}</p>
+                  <span className="text-[10px] text-[#6b7280]">{item.timeAgo}</span>
+                </div>
+                <span className="text-sm font-black text-[#2563EB]">{item.score} / {item.maxScore}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

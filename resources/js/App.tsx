@@ -95,7 +95,15 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const [currentUser, setCurrentUser] = useState<'admin' | 'student'>('admin');
+  const [currentUser, setCurrentUser] = useState<'admin' | 'student'>(() => {
+    const saved = localStorage.getItem('currentUserRole');
+    return saved === 'admin' || saved === 'student' ? saved : 'student';
+  });
+
+  const handleSetCurrentUser = (role: 'admin' | 'student') => {
+    setCurrentUser(role);
+    localStorage.setItem('currentUserRole', role);
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -389,7 +397,15 @@ export default function App() {
         <AuthPage
           initialTab={authInitialTab}
           onBackToHome={() => navigateToLanding()}
-          onSuccessLogin={() => navigateToApp('dashboard')}
+          onSuccessLogin={(role) => {
+            handleSetCurrentUser(role);
+            navigateToApp('dashboard');
+            showToast(
+              'Đăng nhập thành công',
+              `Chào mừng bạn vào portal với vai trò ${role === 'admin' ? '👑 Quản trị viên (Admin)' : '🎓 Học viên B2'}.`,
+              'success'
+            );
+          }}
         />
       ) : isExamRoomActive ? (
         /* FULL SCREEN EXAM ROOM MODE */
@@ -424,15 +440,6 @@ export default function App() {
               searchQuery={searchQuery}
               onSearch={setSearchQuery}
               currentUser={currentUser}
-              onToggleUser={() => {
-                const nextRole = currentUser === 'admin' ? 'student' : 'admin';
-                setCurrentUser(nextRole);
-                showToast(
-                  'Chuyển đổi giao diện',
-                  `Đã chuyển sang chế độ ${nextRole === 'admin' ? 'Giáo viên / Admin (Toàn quyền)' : 'Học viên B2 (Chỉ học)'}.`,
-                  'info'
-                );
-              }}
               onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
               onLogout={() => navigateToLanding()}
             />

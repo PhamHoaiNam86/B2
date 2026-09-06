@@ -127,8 +127,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Bottom Profile & Logout Action Buttons */}
-        <div className="p-3 border-t-[2.5px] border-[#111827] bg-[#f8fafc] space-y-2">
+        {/* Bottom Profile Action Button */}
+        <div className="p-3 border-t-[2.5px] border-[#111827] bg-[#f8fafc]">
           <button
             type="button"
             onClick={() => {
@@ -143,17 +143,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <User className="w-4 h-4 text-[#2563EB] shrink-0" />
             <span className="font-heading">Hồ Sơ Cá Nhân</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (onLogout) onLogout();
-            }}
-            className="w-full px-3 py-2.5 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl font-bold text-xs flex items-center gap-2.5 brutal-shadow-xs hover:bg-[#ffe4e6] transition-all cursor-pointer"
-          >
-            <LogOut className="w-4 h-4 text-[#e11d48] shrink-0" />
-            <span>Đăng Xuất</span>
           </button>
         </div>
       </aside>
