@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { VocabItem, VocabStatus } from '../../types';
 import { BookOpen, Star, Plus, Volume2, Search, Sparkles, CheckCircle, RotateCcw } from 'lucide-react';
+import { AdminVocabView } from '../admin/AdminVocabView';
 
 interface VocabViewProps {
   vocabs: VocabItem[];
@@ -21,6 +22,15 @@ export const VocabView: React.FC<VocabViewProps> = ({
   onShowToast,
   currentUser = 'admin',
 }) => {
+  if (currentUser === 'admin') {
+    return (
+      <AdminVocabView
+        vocabs={vocabs}
+        onOpenAddModal={onOpenAddModal}
+        onShowToast={onShowToast}
+      />
+    );
+  }
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
 
@@ -57,14 +67,6 @@ export const VocabView: React.FC<VocabViewProps> = ({
           >
             <Sparkles className="w-4 h-4" /> Lật Thẻ Flashcard 3D
           </button>
-          {currentUser === 'admin' && (
-            <button
-              onClick={onOpenAddModal}
-              className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" /> Thêm Từ Mới
-            </button>
-          )}
         </div>
       </div>
 

@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\GrammarTopic;
-use Illuminate\Http\Request;
 
 class GrammarController extends Controller
 {
     public function index()
     {
         $topics = GrammarTopic::orderBy('id', 'asc')->get();
+
         return response()->json([
             'success' => true,
             'data' => $topics,

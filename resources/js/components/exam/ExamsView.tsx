@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExamModel } from '../../types';
 import { FileCheck2, Clock, Plus, ArrowRight, Play, Award } from 'lucide-react';
+import { AdminExamsView } from '../admin/AdminExamsView';
 
 interface ExamsViewProps {
   exams: ExamModel[];
@@ -21,6 +22,16 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onShowToast,
   currentUser = 'admin',
 }) => {
+  if (currentUser === 'admin') {
+    return (
+      <AdminExamsView
+        exams={exams}
+        onSelectExam={onSelectExam}
+        onOpenNewExamModal={onOpenNewExamModal}
+        onShowToast={onShowToast}
+      />
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -36,18 +47,9 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
           </p>
         </div>
 
-        {currentUser === 'admin' ? (
-          <button
-            onClick={onOpenNewExamModal}
-            className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-          >
-            <Plus className="w-4 h-4" /> Tạo Đề Thi Mới
-          </button>
-        ) : (
-          <div className="px-3.5 py-2 bg-slate-100 border-2 border-[#111827] rounded-xl text-xs font-bold text-slate-600 flex items-center gap-1.5 shrink-0">
-            <span>🔒 Quyền Học viên: Chỉ làm bài & xem đáp án</span>
-          </div>
-        )}
+        <div className="px-3.5 py-2 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+          <span>🎓 Chế độ Học viên: Chọn bài thi & Làm bài trực tuyến</span>
+        </div>
       </div>
 
       {/* Grid */}

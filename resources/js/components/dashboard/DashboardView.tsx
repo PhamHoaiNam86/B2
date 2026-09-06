@@ -30,6 +30,7 @@ interface DashboardViewProps {
   onNavigateToVocab: () => void;
   onNavigateToGrammar: () => void;
   onNavigateToSchreiben: () => void;
+  currentUser?: 'admin' | 'student';
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -41,6 +42,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToVocab,
   onNavigateToGrammar,
   onNavigateToSchreiben,
+  currentUser = 'admin',
 }) => {
   const [activeLevelFilter, setActiveLevelFilter] = useState<'ALL' | 'B2' | 'B1' | 'A2' | 'A1'>('B2');
 

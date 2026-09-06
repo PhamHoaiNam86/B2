@@ -450,6 +450,7 @@ export default function App() {
                   onNavigateToVocab={() => setActiveTab('vocab')}
                   onNavigateToGrammar={() => setActiveTab('grammar')}
                   onNavigateToSchreiben={() => setActiveTab('docs-schreiben')}
+                  currentUser={currentUser}
                 />
               )}
 
@@ -586,6 +587,7 @@ export default function App() {
                   onOpenDiagnosticTest={() => handleStartExamRoom()}
                   onOpenTrapQuiz={() => handleStartExamRoom()}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 

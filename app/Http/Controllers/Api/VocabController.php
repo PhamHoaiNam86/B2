@@ -12,6 +12,7 @@ class VocabController extends Controller
     public function index()
     {
         $vocabs = Vocabulary::orderBy('id', 'desc')->get();
+
         return response()->json([
             'success' => true,
             'data' => $vocabs,
@@ -33,7 +34,7 @@ class VocabController extends Controller
         ]);
 
         $vocab = Vocabulary::create([
-            'vocab_id' => 'v-' . Str::lower(Str::random(6)),
+            'vocab_id' => 'v-'.Str::lower(Str::random(6)),
             'word' => $validated['word'],
             'article' => $validated['article'] ?? null,
             'plural' => $validated['plural'] ?? null,
@@ -57,7 +58,7 @@ class VocabController extends Controller
     public function toggleFavorite($id)
     {
         $vocab = Vocabulary::findOrFail($id);
-        $vocab->is_favorite = !$vocab->is_favorite;
+        $vocab->is_favorite = ! $vocab->is_favorite;
         $vocab->save();
 
         return response()->json([

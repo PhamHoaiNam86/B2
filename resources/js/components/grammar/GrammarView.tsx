@@ -1,6 +1,7 @@
 import React from 'react';
 import { GrammarTopic } from '../../types';
 import { Brain, CheckCircle, Play, Sparkles, BookOpen, AlertTriangle } from 'lucide-react';
+import { AdminGrammarView } from '../admin/AdminGrammarView';
 
 interface GrammarViewProps {
   topics: GrammarTopic[];
@@ -8,6 +9,7 @@ interface GrammarViewProps {
   onOpenDiagnosticTest: () => void;
   onOpenTrapQuiz: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
+  currentUser?: 'admin' | 'student';
 }
 
 export const GrammarView: React.FC<GrammarViewProps> = ({
@@ -16,7 +18,17 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
   onOpenDiagnosticTest,
   onOpenTrapQuiz,
   onShowToast,
+  currentUser = 'admin',
 }) => {
+  if (currentUser === 'admin') {
+    return (
+      <AdminGrammarView
+        topics={topics}
+        onSelectTopic={onSelectTopic}
+        onShowToast={onShowToast}
+      />
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Top Banner */}

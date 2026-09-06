@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\Vocabulary;
 use App\Models\GrammarTopic;
 use App\Models\Student;
+use App\Models\Vocabulary;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
