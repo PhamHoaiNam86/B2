@@ -6,18 +6,17 @@ import { Sidebar } from './components/layout/Sidebar';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { ExamRoomScreen } from './components/exam/ExamRoomScreen';
 import { ExamsView } from './components/exam/ExamsView';
-import { ExamDetailModal } from './components/exam/ExamDetailModal';
-import { ExamModal } from './components/exam/ExamModal';
+import { ExamDetailView } from './components/exam/ExamDetailView';
 import { ResultsScreen } from './components/results/ResultsScreen';
 import { VocabView } from './components/vocab/VocabView';
-import { FlashcardsModal } from './components/vocab/FlashcardsModal';
+import { FlashcardsView } from './components/vocab/FlashcardsView';
 import { GrammarView } from './components/grammar/GrammarView';
-import { GrammarLessonModal } from './components/grammar/GrammarLessonModal';
+import { GrammarLessonView } from './components/grammar/GrammarLessonView';
 import { SchreibenView } from './components/schreiben/SchreibenView';
 import { DocumentMaterialView } from './components/docs/DocumentMaterialView';
 import { StudentsView } from './components/students/StudentsView';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
-import { NewItemModal } from './components/common/NewItemModal';
+import { CreateItemView } from './components/common/CreateItemView';
 import { LandingPage } from './components/landing/LandingPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { ProfileView } from './components/profile/ProfileView';
@@ -243,16 +242,10 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Modals
+  // Selected Data States for Page Views
   const [selectedGrammarTopic, setSelectedGrammarTopic] = useState<GrammarTopic | null>(null);
   const [selectedExam, setSelectedExam] = useState<ExamModel | null>(null);
-  const [isExamModalOpen, setIsExamModalOpen] = useState(false);
-  const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false);
-  const [newItemModal, setNewItemModal] = useState<{ isOpen: boolean; type: 'vocab' | 'exam' }>({
-    isOpen: false,
-    type: 'vocab',
-  });
-  const [examModalTitle, setExamModalTitle] = useState('Thi Thử Chuẩn TELC B2 - Mô Phỏng');
+  const [createItemType, setCreateItemType] = useState<'vocab' | 'exam'>('vocab');
 
   // Anti-cheat tab switch monitoring
   useEffect(() => {
@@ -465,9 +458,15 @@ export default function App() {
                 <ExamsView
                   exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
                   levelLabel="B2"
-                  onSelectExam={(exam) => setSelectedExam(exam)}
+                  onSelectExam={(exam) => {
+                    setSelectedExam(exam);
+                    setActiveTab('exam-detail');
+                  }}
                   onStartExam={() => handleStartExamRoom()}
-                  onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
+                  onOpenNewExamModal={() => {
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -477,9 +476,15 @@ export default function App() {
                 <ExamsView
                   exams={exams.filter((e) => e.level.includes('B1'))}
                   levelLabel="B1"
-                  onSelectExam={(exam) => setSelectedExam(exam)}
+                  onSelectExam={(exam) => {
+                    setSelectedExam(exam);
+                    setActiveTab('exam-detail');
+                  }}
                   onStartExam={() => handleStartExamRoom()}
-                  onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
+                  onOpenNewExamModal={() => {
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -489,9 +494,15 @@ export default function App() {
                 <ExamsView
                   exams={exams.filter((e) => e.level.includes('A2'))}
                   levelLabel="A2"
-                  onSelectExam={(exam) => setSelectedExam(exam)}
+                  onSelectExam={(exam) => {
+                    setSelectedExam(exam);
+                    setActiveTab('exam-detail');
+                  }}
                   onStartExam={() => handleStartExamRoom()}
-                  onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
+                  onOpenNewExamModal={() => {
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -501,9 +512,15 @@ export default function App() {
                 <ExamsView
                   exams={exams.filter((e) => e.level.includes('A1'))}
                   levelLabel="A1"
-                  onSelectExam={(exam) => setSelectedExam(exam)}
+                  onSelectExam={(exam) => {
+                    setSelectedExam(exam);
+                    setActiveTab('exam-detail');
+                  }}
                   onStartExam={() => handleStartExamRoom()}
-                  onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
+                  onOpenNewExamModal={() => {
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -539,10 +556,22 @@ export default function App() {
                   vocabs={vocabs}
                   onToggleFavorite={handleToggleFavorite}
                   onChangeStatus={handleChangeVocabStatus}
-                  onOpenAddModal={() => setNewItemModal({ isOpen: true, type: 'vocab' })}
-                  onOpenFlashcardModal={() => setIsFlashcardModalOpen(true)}
+                  onOpenAddModal={() => {
+                    setCreateItemType('vocab');
+                    setActiveTab('create-item');
+                  }}
+                  onOpenFlashcardModal={() => setActiveTab('flashcards')}
                   onShowToast={showToast}
                   currentUser={currentUser}
+                />
+              )}
+
+              {/* PAGE VIEW: TRANG LUYỆN THẺ FLASHCARD 3D */}
+              {activeTab === 'flashcards' && (
+                <FlashcardsView
+                  vocabs={vocabs}
+                  onBack={() => setActiveTab('vocab')}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               )}
 
@@ -550,15 +579,42 @@ export default function App() {
               {activeTab === 'grammar' && (
                 <GrammarView
                   topics={grammarTopics}
-                  onSelectTopic={(topic) => setSelectedGrammarTopic(topic)}
-                  onOpenDiagnosticTest={() => {
-                    setExamModalTitle('Bài Test Chẩn Đoán Ngữ Pháp TELC B2');
-                    setIsExamModalOpen(true);
+                  onSelectTopic={(topic) => {
+                    setSelectedGrammarTopic(topic);
+                    setActiveTab('grammar-lesson');
                   }}
-                  onOpenTrapQuiz={() => {
-                    setExamModalTitle('Luyện Bẫy Đề Thi: indem vs. sodass');
-                    setIsExamModalOpen(true);
-                  }}
+                  onOpenDiagnosticTest={() => handleStartExamRoom()}
+                  onOpenTrapQuiz={() => handleStartExamRoom()}
+                  onShowToast={showToast}
+                />
+              )}
+
+              {/* PAGE VIEW: TRANG BÀI HỌC NGỮ PHÁP CHI TIẾT */}
+              {activeTab === 'grammar-lesson' && selectedGrammarTopic && (
+                <GrammarLessonView
+                  topic={selectedGrammarTopic}
+                  onBack={() => setActiveTab('grammar')}
+                  onCompleteTopic={handleCompleteGrammarTopic}
+                />
+              )}
+
+              {/* PAGE VIEW: TRANG CHI TIẾT BỘ ĐỀ THI */}
+              {activeTab === 'exam-detail' && selectedExam && (
+                <ExamDetailView
+                  exam={selectedExam}
+                  onBack={() => setActiveTab('exam')}
+                  onStartExam={handleStartExamRoom}
+                  onShowToast={showToast}
+                />
+              )}
+
+              {/* PAGE VIEW: TRANG THÊM MỚI TỪ VỰNG / ĐỀ THI */}
+              {activeTab === 'create-item' && (
+                <CreateItemView
+                  type={createItemType}
+                  onBack={() => setActiveTab(createItemType === 'vocab' ? 'vocab' : 'exam')}
+                  onAddVocab={handleAddVocab}
+                  onAddExam={handleAddExam}
                   onShowToast={showToast}
                 />
               )}
@@ -575,7 +631,7 @@ export default function App() {
 
               {/* TAB 8: HISTORY & LEADERBOARDS */}
               {activeTab === 'history' && (
-                <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow space-y-4">
+                <div className="bg-[#ffffff] border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow space-y-4">
                   <h2 className="text-xl font-black text-[#1c1b1b] font-heading">
                     Lịch Sử Làm Bài & Bảng Điểm TELC B2 Toàn Hệ Thống
                   </h2>
@@ -599,72 +655,6 @@ export default function App() {
                 <ProfileView currentUser={currentUser} onShowToast={showToast} />
               )}
             </main>
-          </div>
-        </div>
-      )}
-
-      {/* MODALS */}
-      <GrammarLessonModal
-        topic={selectedGrammarTopic}
-        onClose={() => setSelectedGrammarTopic(null)}
-        onCompleteTopic={handleCompleteGrammarTopic}
-      />
-
-      <FlashcardsModal
-        vocabs={vocabs}
-        isOpen={isFlashcardModalOpen}
-        onClose={() => setIsFlashcardModalOpen(false)}
-        onToggleFavorite={handleToggleFavorite}
-      />
-
-      <ExamModal
-        isOpen={isExamModalOpen}
-        onClose={() => setIsExamModalOpen(false)}
-        title={examModalTitle}
-      />
-
-      <ExamDetailModal
-        exam={selectedExam}
-        onClose={() => setSelectedExam(null)}
-        onStartExam={() => handleStartExamRoom()}
-        onShowToast={showToast}
-      />
-
-      <NewItemModal
-        isOpen={newItemModal.isOpen}
-        type={newItemModal.type}
-        onClose={() => setNewItemModal((prev) => ({ ...prev, isOpen: false }))}
-        onAddVocab={handleAddVocab}
-        onAddExam={handleAddExam}
-        onShowToast={showToast}
-      />
-
-      {/* WELCOME POPUP MODAL ON LOGIN */}
-      {viewMode === 'app' && showWelcomePopup && (
-        <div
-          className="fixed inset-0 z-50 bg-[#111827]/85 backdrop-blur-md flex items-center justify-center p-[20px] md:p-[50px] lg:p-[100px]"
-          onClick={() => setShowWelcomePopup(false)}
-        >
-          <div
-            className="relative w-full h-full max-w-7xl bg-[#030712] border-[3px] border-[#111827] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center p-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setShowWelcomePopup(false)}
-              className="absolute top-4 right-4 z-20 p-2.5 bg-white/90 hover:bg-white text-[#111827] border-2 border-[#111827] rounded-2xl brutal-shadow transition-all cursor-pointer hover:scale-105"
-              aria-label="Close Welcome Popup"
-            >
-              <X className="w-6 h-6 stroke-[3]" />
-            </button>
-
-            {/* Popup Image */}
-            <img
-              src="/images/welcome_popup.png"
-              alt="Welcome to TRIEUVY DEUTSCH Portal"
-              className="w-full h-full object-contain rounded-2xl cursor-pointer"
-              onClick={() => setShowWelcomePopup(false)}
-            />
           </div>
         </div>
       )}

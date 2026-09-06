@@ -19,7 +19,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   const isPassed = estimatedScore >= 180;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Banner */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm text-center space-y-4">
         <div className="w-16 h-16 rounded-2xl bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center mx-auto">

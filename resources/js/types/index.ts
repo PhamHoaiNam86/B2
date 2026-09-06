@@ -13,7 +13,11 @@ export type ActiveTab =
   | 'schreiben'
   | 'students'
   | 'history'
-  | 'profile';
+  | 'profile'
+  | 'flashcards'
+  | 'grammar-lesson'
+  | 'exam-detail'
+  | 'create-item';
 
 export type VocabStatus = 'learning' | 'mastered' | 'reviewing';
 
