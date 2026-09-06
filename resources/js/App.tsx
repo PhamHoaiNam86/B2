@@ -26,6 +26,7 @@ import { StudentsView } from './components/students/StudentsView';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
 import { NewItemModal } from './components/common/NewItemModal';
 import { LandingPage } from './components/landing/LandingPage';
+import { AuthPage } from './components/auth/AuthPage';
 import { AlertTriangle, X } from 'lucide-react';
 
 const getTabFromUrl = (): ActiveTab => {
@@ -42,8 +43,9 @@ const getTabFromUrl = (): ActiveTab => {
 };
 
 export default function App() {
-  // View mode: 'landing' for pre-login public page, 'app' for internal portal
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  // View mode: 'landing' for pre-login public page, 'auth' for full login/register page, 'app' for internal portal
+  const [viewMode, setViewMode] = useState<'landing' | 'auth' | 'app'>('landing');
+  const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>('login');
 
   // Navigation & User role
   const [activeTab, setActiveTabState] = useState<ActiveTab>(getTabFromUrl);
@@ -238,7 +240,21 @@ export default function App() {
 
       {/* VIEW MODES */}
       {viewMode === 'landing' && !isExamRoomActive ? (
-        <LandingPage onEnterApp={() => setViewMode('app')} />
+        <LandingPage
+          onGoToAuth={(tab = 'login') => {
+            setAuthInitialTab(tab);
+            setViewMode('auth');
+          }}
+        />
+      ) : viewMode === 'auth' && !isExamRoomActive ? (
+        <AuthPage
+          initialTab={authInitialTab}
+          onBackToHome={() => setViewMode('landing')}
+          onSuccessLogin={(role) => {
+            setCurrentUser(role);
+            setViewMode('app');
+          }}
+        />
       ) : isExamRoomActive ? (
         /* FULL SCREEN EXAM ROOM MODE */
         <ExamRoomScreen

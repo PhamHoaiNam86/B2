@@ -21,11 +21,12 @@ import {
 } from 'lucide-react';
 
 interface LandingPageProps {
-  onEnterApp: () => void;
+  onGoToAuth: (tab?: 'login' | 'register') => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const handleOpenAuth = (tab: 'login' | 'register' = 'login') => onGoToAuth(tab);
   const bannerImages = [
     { src: '/images/banner1.png', alt: 'Bộ đề thi thử TELC Online - Ưu đãi giảm đến 70%' },
     { src: '/images/banner2.png', alt: 'Luyện thi TELC B2 - Học phí sinh viên chỉ 499k/tháng' },
@@ -148,7 +149,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           {/* Login / Portal Button */}
           <div className="flex items-center gap-3">
             <button
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
               className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] hover:translate-y-[-1px] transition-all cursor-pointer flex items-center gap-2"
             >
               <LogIn className="w-4 h-4" />
@@ -169,7 +170,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer ${
                 index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               }`}
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
             >
               <img
                 src={slide.src}
@@ -226,28 +227,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div ref={subBannerRef} className="bg-white border-t-[2.5px] border-[#111827] py-6 px-4 sm:px-8">
           <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('login')}>
                 <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
                   <BookOpen className="w-4 h-4 text-emerald-700" />
                 </div>
                 <span>Kho Từ vựng B2</span>
               </div>
 
-              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('login')}>
                 <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
                   <Brain className="w-4 h-4 text-sky-700" />
                 </div>
                 <span>Ngữ pháp Bẫy Đề</span>
               </div>
 
-              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('login')}>
                 <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
                   <Headphones className="w-4 h-4 text-amber-700" />
                 </div>
                 <span>Luyện nghe TELC</span>
               </div>
 
-              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('login')}>
                 <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
                   <Award className="w-4 h-4 text-purple-700" />
                 </div>
@@ -256,8 +257,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             <button
-              onClick={onEnterApp}
-              className="gsap-stagger-item px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
+              onClick={() => handleOpenAuth('register')}
+              className="gsap-stagger-item px-6 py-3 bg-[#F97316] text-[#ffffff] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
             >
               <span>VÀO PHÒNG THI THỬ NGAY</span>
               <ArrowRight className="w-4 h-4" />
@@ -286,7 +287,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Feature 1 */}
             <div
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
               className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
@@ -301,7 +302,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </p>
               </div>
               <button
-                onClick={onEnterApp}
+                onClick={() => handleOpenAuth('login')}
                 className="text-xs font-black text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Thi thử ngay</span>
@@ -311,7 +312,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Feature 2 */}
             <div
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
               className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
@@ -326,7 +327,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </p>
               </div>
               <button
-                onClick={onEnterApp}
+                onClick={() => handleOpenAuth('login')}
                 className="text-xs font-black text-[#F97316] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Xem bài mẫu Viết/Nói</span>
@@ -336,7 +337,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Feature 3 */}
             <div
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
               className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
@@ -351,7 +352,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </p>
               </div>
               <button
-                onClick={onEnterApp}
+                onClick={() => handleOpenAuth('login')}
                 className="text-xs font-black text-[#10B981] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Học từ vựng</span>
@@ -361,7 +362,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Feature 4 */}
             <div
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('login')}
               className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#8B5CF6] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
@@ -376,7 +377,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </p>
               </div>
               <button
-                onClick={onEnterApp}
+                onClick={() => handleOpenAuth('login')}
                 className="text-xs font-black text-[#8B5CF6] hover:underline flex items-center gap-1 cursor-pointer pt-2"
               >
                 <span>Luyện bẫy đề thi</span>
@@ -438,7 +439,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Right Card: TRIEUVY DEUTSCH solution */}
             <div
-              onClick={onEnterApp}
+              onClick={() => handleOpenAuth('register')}
               className="gsap-stagger-item group bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:bg-[#1d4ed8] transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -470,7 +471,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </ul>
 
               <button
-                onClick={onEnterApp}
+                onClick={() => handleOpenAuth('register')}
                 className="w-full py-3.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer uppercase tracking-wider"
               >
                 Trải nghiệm ngay bây giờ
@@ -590,7 +591,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       ------------------------------------------------------------- */}
       <footer id="contact" className="bg-[#111827] text-white py-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-12">
-          <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow hover:-translate-y-2 hover:shadow-[10px_10px_0px_#ffffff] transition-all duration-300 cursor-pointer" onClick={onEnterApp}>
+          <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow hover:-translate-y-2 hover:shadow-[10px_10px_0px_#ffffff] transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('register')}>
             <h2 className="text-3xl sm:text-5xl font-black font-heading text-white">
               Sẵn Sàng Chinh Phục Chứng Chỉ B2?
             </h2>
@@ -598,7 +599,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               Tham gia ngay hôm nay để trải nghiệm phòng thi thử mô phỏng thời gian thực và bộ đề luyện thi chuẩn quốc tế.
             </p>
             <button
-              onClick={onEnterApp}
+              onClick={() => onGoToAuth('register')}
               className="px-8 py-4 bg-[#F97316] text-white border-2 border-white rounded-2xl text-sm font-black brutal-shadow hover:bg-[#ea580c] transition-all cursor-pointer uppercase tracking-wider inline-flex items-center gap-2"
             >
               <span>VÀO PHÒNG THI THỬ NGAY</span>
