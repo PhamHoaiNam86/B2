@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
   ArrowRight,
   MessageSquare,
   ChevronRight,
+  ChevronLeft,
   LogIn,
   PenTool,
 } from 'lucide-react';
@@ -23,6 +24,26 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const bannerImages = [
+    { src: '/images/banner1.png', alt: 'Bộ đề thi thử TELC Online - Ưu đãi giảm đến 70%' },
+    { src: '/images/banner2.png', alt: 'Luyện thi TELC B2 - Học phí sinh viên chỉ 499k/tháng' },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length);
+  };
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -88,112 +109,109 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       </header>
 
       {/* -------------------------------------------------------------
-          1. BANNER / HERO SECTION (Strictly matching screenshot design)
+          1. BANNER CAROUSEL SECTION (700px Height)
       ------------------------------------------------------------- */}
-      <section className="relative pt-12 sm:pt-20 pb-16 sm:pb-24 px-4 sm:px-6 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] overflow-hidden border-b-[2.5px] border-[#111827]">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Main Headline */}
-          <div className="space-y-4">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-[#111827] font-heading tracking-tight leading-[1.08]">
-              Học tiếng Đức <br className="hidden sm:inline" />
-              nhẹ nhàng. <br />
-              Chinh phục B2 <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-[#e879f9] via-[#c084fc] to-[#a855f7] bg-clip-text text-transparent italic">
-                dễ dàng.
-              </span>
-            </h1>
+      <section className="relative w-full border-b-[2.5px] border-[#111827] bg-[#111827]">
+        <div className="relative w-full h-[700px] overflow-hidden group">
+          {bannerImages.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer ${
+                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+              onClick={onEnterApp}
+            >
+              <img
+                src={slide.src}
+                alt={slide.alt}
+                className="w-full h-[700px] object-cover object-center"
+              />
+            </div>
+          ))}
 
-            <p className="text-base sm:text-lg font-medium text-[#374151] leading-relaxed max-w-2xl">
-              Nền tảng tối giản tập trung luyện thi TELC: từ vựng, ngữ pháp, luyện nghe và bộ đề thi thử chuẩn cấu trúc.
-            </p>
+          {/* Navigation Arrow Buttons */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
+            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
+            aria-label="Previous Banner"
+          >
+            <ChevronLeft className="w-6 h-6 stroke-[3]" />
+          </button>
 
-            <p className="text-sm font-extrabold text-[#111827]">
-              Sẵn sàng đạt chứng chỉ B2 cùng chúng tôi?
-            </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
+            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/90 text-[#111827] border-2 border-[#111827] rounded-2xl flex items-center justify-center brutal-shadow hover:bg-white hover:scale-105 transition-all cursor-pointer"
+            aria-label="Next Banner"
+          >
+            <ChevronRight className="w-6 h-6 stroke-[3]" />
+          </button>
+
+          {/* Banner Slide Indicator Dots */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-[#111827]/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+            {bannerImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentSlide(index);
+                }}
+                className={`transition-all cursor-pointer rounded-full ${
+                  index === currentSlide
+                    ? 'w-8 h-3 bg-[#F97316] border border-white'
+                    : 'w-3 h-3 bg-white/60 hover:bg-white'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
+        </div>
 
-          {/* Main CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+        {/* Sub-Banner Highlight Bar */}
+        <div className="bg-white border-t-[2.5px] border-[#111827] py-6 px-4 sm:px-8">
+          <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+                <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
+                  <BookOpen className="w-4 h-4 text-emerald-700" />
+                </div>
+                <span>Kho Từ vựng B2</span>
+              </div>
+
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+                <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
+                  <Brain className="w-4 h-4 text-sky-700" />
+                </div>
+                <span>Ngữ pháp Bẫy Đề</span>
+              </div>
+
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+                <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
+                  <Headphones className="w-4 h-4 text-amber-700" />
+                </div>
+                <span>Luyện nghe TELC</span>
+              </div>
+
+              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
+                <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
+                  <Award className="w-4 h-4 text-purple-700" />
+                </div>
+                <span>Đáp án chuẩn TELC</span>
+              </div>
+            </div>
+
             <button
               onClick={onEnterApp}
-              className="px-8 py-4 bg-[#fce7f3] text-[#111827] border-[2.5px] border-[#111827] rounded-2xl text-sm font-black brutal-shadow hover:bg-[#fbcfe8] hover:translate-y-[-2px] active:translate-y-[0px] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide"
+              className="px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
             >
-              <span>BẮT ĐẦU NGAY</span>
+              <span>VÀO PHÒNG THI THỬ NGAY</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-
-            <div className="flex items-center gap-2">
-              <button className="px-4 py-3 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs hover:bg-slate-50 cursor-pointer">
-                VI
-              </button>
-              <button
-                onClick={() => scrollToSection('contact')}
-                className="px-6 py-3 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs hover:bg-slate-50 cursor-pointer"
-              >
-                Liên hệ
-              </button>
-            </div>
-          </div>
-
-          {/* Feature Badges Pills */}
-          <div className="flex flex-wrap items-center gap-3 pt-4">
-            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
-                <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
-              </div>
-              <span>Từ vựng</span>
-            </div>
-
-            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
-                <Brain className="w-3.5 h-3.5 text-sky-700" />
-              </div>
-              <span>Ngữ pháp</span>
-            </div>
-
-            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
-                <Headphones className="w-3.5 h-3.5 text-amber-700" />
-              </div>
-              <span>Luyện nghe</span>
-            </div>
-
-            <div className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2">
-              <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
-                <Award className="w-3.5 h-3.5 text-purple-700" />
-              </div>
-              <span>Chấm điểm chuẩn</span>
-            </div>
-          </div>
-
-          {/* Counters Row */}
-          <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-[#111827]/10 max-w-lg">
-            <div>
-              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
-                100%
-              </div>
-              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
-                ĐỖ B2
-              </div>
-            </div>
-
-            <div>
-              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
-                5000+
-              </div>
-              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
-                VOKABELN
-              </div>
-            </div>
-
-            <div>
-              <div className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
-                TELC B2
-              </div>
-              <div className="text-[11px] font-black text-[#6b7280] uppercase tracking-wider mt-0.5">
-                STANDARD
-              </div>
-            </div>
           </div>
         </div>
       </section>
