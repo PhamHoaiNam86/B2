@@ -29,30 +29,59 @@ import { LandingPage } from './components/landing/LandingPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { AlertTriangle, X } from 'lucide-react';
 
-const getTabFromUrl = (): ActiveTab => {
+const getInitialViewState = () => {
   const path = window.location.pathname.replace(/^\//, '').toLowerCase();
+  if (path === 'login') {
+    return { viewMode: 'auth' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
+  }
+  if (path === 'register') {
+    return { viewMode: 'auth' as const, authInitialTab: 'register' as const, activeTab: 'dashboard' as ActiveTab };
+  }
   const validTabs: ActiveTab[] = [
     'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
     'results', 'vocab', 'grammar', 'students', 'history'
   ];
   if (path && validTabs.includes(path as ActiveTab)) {
-    return path as ActiveTab;
+    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: path as ActiveTab };
   }
-  return 'dashboard';
+  return { viewMode: 'landing' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
 };
 
 export default function App() {
-  // View mode: 'landing' for pre-login public page, 'auth' for full login/register page, 'app' for internal portal
-  const [viewMode, setViewMode] = useState<'landing' | 'auth' | 'app'>('landing');
-  const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>('login');
+  const initialState = getInitialViewState();
+  const [viewMode, setViewMode] = useState<'landing' | 'auth' | 'app'>(initialState.viewMode);
+  const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>(initialState.authInitialTab);
+  const [activeTab, setActiveTabState] = useState<ActiveTab>(initialState.activeTab);
 
-  // Navigation & User role
-  const [activeTab, setActiveTabState] = useState<ActiveTab>(getTabFromUrl);
+  const navigateToLanding = () => {
+    setViewMode('landing');
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  const navigateToAuth = (tab: 'login' | 'register' = 'login') => {
+    setAuthInitialTab(tab);
+    setViewMode('auth');
+    const targetPath = `/${tab}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+  };
+
+  const navigateToApp = (tab: ActiveTab = 'dashboard') => {
+    setViewMode('app');
+    setActiveTabState(tab);
+    const targetPath = tab === 'dashboard' ? '/dashboard' : `/${tab}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+  };
 
   const setActiveTab = (tab: ActiveTab) => {
     setActiveTabState(tab);
-    const targetPath = tab === 'dashboard' ? '/' : `/${tab}`;
+    const targetPath = tab === 'dashboard' ? '/dashboard' : `/${tab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState({ tab }, '', targetPath);
     }
@@ -60,7 +89,10 @@ export default function App() {
 
   useEffect(() => {
     const handlePopState = () => {
-      setActiveTabState(getTabFromUrl());
+      const state = getInitialViewState();
+      setViewMode(state.viewMode);
+      setAuthInitialTab(state.authInitialTab);
+      setActiveTabState(state.activeTab);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -241,16 +273,13 @@ export default function App() {
       {/* VIEW MODES */}
       {viewMode === 'landing' && !isExamRoomActive ? (
         <LandingPage
-          onGoToAuth={(tab = 'login') => {
-            setAuthInitialTab(tab);
-            setViewMode('auth');
-          }}
+          onGoToAuth={(tab = 'login') => navigateToAuth(tab)}
         />
       ) : viewMode === 'auth' && !isExamRoomActive ? (
         <AuthPage
           initialTab={authInitialTab}
-          onBackToHome={() => setViewMode('landing')}
-          onSuccessLogin={() => setViewMode('app')}
+          onBackToHome={() => navigateToLanding()}
+          onSuccessLogin={() => navigateToApp('dashboard')}
         />
       ) : isExamRoomActive ? (
         /* FULL SCREEN EXAM ROOM MODE */
@@ -294,7 +323,7 @@ export default function App() {
                 );
               }}
               onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
-              onGoToLanding={() => setViewMode('landing')}
+              onGoToLanding={() => navigateToLanding()}
             />
 
             {/* Main Workspace */}

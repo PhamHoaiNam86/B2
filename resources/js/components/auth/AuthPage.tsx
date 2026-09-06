@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LogIn, UserPlus, Mail, Lock, User, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { LogIn, UserPlus, Mail, Lock, User, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, KeyRound, RefreshCw } from 'lucide-react';
 
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
@@ -13,6 +13,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   onSuccessLogin,
 }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
+  const [step, setStep] = useState<'form' | 'otp'>('form');
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -21,9 +22,103 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // OTP State (6 digits)
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
+  const [resendTimer, setResendTimer] = useState<number>(60);
+  const [isResendActive, setIsResendActive] = useState<boolean>(false);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Timer countdown effect for OTP resend
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === 'otp' && resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setIsResendActive(true);
+    }
+    return () => clearInterval(timer);
+  }, [step, resendTimer]);
+
+  // Auto focus first OTP input when switching to OTP view
+  useEffect(() => {
+    if (step === 'otp' && otpInputRefs.current[0]) {
+      otpInputRefs.current[0]?.focus();
+    }
+  }, [step]);
+
+  const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeTab === 'login') {
+      // Login goes directly to portal
+      onSuccessLogin();
+    } else {
+      // Register goes to 6-digit OTP verification screen
+      setStep('otp');
+      setResendTimer(60);
+      setIsResendActive(false);
+      setOtp(['', '', '', '', '', '']);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    // Only accept numeric digit
+    const digit = value.replace(/[^0-9]/g, '').slice(-1);
+    const newOtp = [...otp];
+    newOtp[index] = digit;
+    setOtp(newOtp);
+
+    // Auto advance to next input
+    if (digit && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (!pastedData) return;
+
+    const newOtp = ['', '', '', '', '', ''];
+    for (let i = 0; i < pastedData.length; i++) {
+      newOtp[i] = pastedData[i];
+    }
+    setOtp(newOtp);
+
+    const focusIndex = Math.min(pastedData.length, 5);
+    otpInputRefs.current[focusIndex]?.focus();
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    const enteredOtp = otp.join('');
+    if (enteredOtp.length < 6) {
+      alert('Vui lòng nhập đủ 6 chữ số mã OTP xác thực.');
+      return;
+    }
+    // Verify success -> proceed to portal
     onSuccessLogin();
+  };
+
+  const handleResendOtp = () => {
+    if (!isResendActive) return;
+    setResendTimer(60);
+    setIsResendActive(false);
+    setOtp(['', '', '', '', '', '']);
+    alert(`Mã OTP mới đã được gửi lại tới email ${email || 'hocvien@trieuvydeutsch.vn'}`);
   };
 
   return (
@@ -104,7 +199,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </div>
 
         {/* -------------------------------------------------------------
-            RIGHT HALF (1/2 trang): FORM ĐĂNG KÝ / ĐĂNG NHẬP
+            RIGHT HALF (1/2 trang): FORM ĐĂNG KÝ / ĐĂNG NHẬP / NHẬP OTP
         ------------------------------------------------------------- */}
         <div className="flex flex-col justify-between p-6 sm:p-12 lg:p-16 bg-white min-h-screen">
           {/* Top Bar Navigation for Mobile/Desktop */}
@@ -125,160 +220,257 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </button>
           </div>
 
-          {/* Main Form Container */}
-          <div className="max-w-md w-full mx-auto my-auto space-y-6">
-            {/* Title & Description */}
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
-                {activeTab === 'login' ? 'Đăng Nhập Tài Khoản' : 'Đăng Ký Tài Khoản Mới'}
-              </h2>
-              <p className="text-xs sm:text-sm font-medium text-[#4b5563]">
-                {activeTab === 'login'
-                  ? 'Vui lòng nhập email và mật khẩu của bạn để vào portal luyện thi TELC B2.'
-                  : 'Tạo tài khoản học viên để truy cập ngay kho đề thi thử và tài liệu B2.'}
-              </p>
-            </div>
+          {/* -------------------------------------------------------------
+              VIEW 1: FORM ĐĂNG NHẬP / ĐĂNG KÝ
+          ------------------------------------------------------------- */}
+          {step === 'form' ? (
+            <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn">
+              {/* Title & Description */}
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
+                  {activeTab === 'login' ? 'Đăng Nhập Tài Khoản' : 'Đăng Ký Tài Khoản Mới'}
+                </h2>
+                <p className="text-xs sm:text-sm font-medium text-[#4b5563]">
+                  {activeTab === 'login'
+                    ? 'Vui lòng nhập email và mật khẩu của bạn để vào portal luyện thi TELC B2.'
+                    : 'Tạo tài khoản học viên để nhận mã xác thực OTP gửi trực tiếp qua Gmail.'}
+                </p>
+              </div>
 
-            {/* Tab Switcher: Đăng Nhập vs Đăng Ký */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#f1f5f9] border-[2.5px] border-[#111827] rounded-2xl brutal-shadow-xs">
-              <button
-                type="button"
-                onClick={() => setActiveTab('login')}
-                className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  activeTab === 'login'
-                    ? 'bg-[#2563EB] text-white border-2 border-[#111827] brutal-shadow-xs'
-                    : 'text-[#4b5563] hover:text-[#111827]'
-                }`}
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Đăng Nhập</span>
-              </button>
+              {/* Tab Switcher: Đăng Nhập vs Đăng Ký */}
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#f1f5f9] border-[2.5px] border-[#111827] rounded-2xl brutal-shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('login');
+                    if (window.location.pathname !== '/login') {
+                      window.history.pushState({ tab: 'login' }, '', '/login');
+                    }
+                  }}
+                  className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    activeTab === 'login'
+                      ? 'bg-[#2563EB] text-white border-2 border-[#111827] brutal-shadow-xs'
+                      : 'text-[#4b5563] hover:text-[#111827]'
+                  }`}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Đăng Nhập</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('register')}
-                className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  activeTab === 'register'
-                    ? 'bg-[#F97316] text-white border-2 border-[#111827] brutal-shadow-xs'
-                    : 'text-[#4b5563] hover:text-[#111827]'
-                }`}
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Đăng Ký</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('register');
+                    if (window.location.pathname !== '/register') {
+                      window.history.pushState({ tab: 'register' }, '', '/register');
+                    }
+                  }}
+                  className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    activeTab === 'register'
+                      ? 'bg-[#F97316] text-white border-2 border-[#111827] brutal-shadow-xs'
+                      : 'text-[#4b5563] hover:text-[#111827]'
+                  }`}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Đăng Ký</span>
+                </button>
+              </div>
 
-            {/* FORM */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name field (Register mode) */}
-              {activeTab === 'register' && (
+              {/* FORM */}
+              <form onSubmit={handleSubmitForm} className="space-y-4">
+                {/* Full Name field (Register mode) */}
+                {activeTab === 'register' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-[#111827] block">Họ và Tên</label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ví dụ: Nguyễn Minh Huyền"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Email / Username field */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-[#111827] block">Họ và Tên</label>
+                  <label className="text-xs font-black text-[#111827] block">
+                    {activeTab === 'login' ? 'Email hoặc Tên đăng nhập' : 'Địa chỉ Email'}
+                  </label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
                     <input
-                      type="text"
+                      type="email"
                       required
-                      placeholder="Ví dụ: Nguyễn Minh Huyền"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="hocvien@trieuvydeutsch.vn"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
                     />
                   </div>
                 </div>
-              )}
 
-              {/* Email / Username field */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-[#111827] block">
-                  {activeTab === 'login' ? 'Email hoặc Tên đăng nhập' : 'Địa chỉ Email'}
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="hocvien@trieuvydeutsch.vn"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-              </div>
-
-              {/* Password field */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-[#111827] block">Mật khẩu</label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-              </div>
-
-              {/* Confirm Password (Register mode) */}
-              {activeTab === 'register' && (
+                {/* Password field */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-[#111827] block">Xác nhận mật khẩu</label>
+                  <label className="text-xs font-black text-[#111827] block">Mật khẩu</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
                     <input
                       type="password"
                       required
                       placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
                     />
                   </div>
                 </div>
-              )}
 
+                {/* Confirm Password (Register mode) */}
+                {activeTab === 'register' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-[#111827] block">Xác nhận mật khẩu</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+                )}
 
+                {/* Remember me & Forgot Password (Login mode) */}
+                {activeTab === 'login' && (
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4b5563]">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded border-2 border-[#111827] text-[#2563EB] focus:ring-0 cursor-pointer"
+                      />
+                      <span>Ghi nhớ đăng nhập</span>
+                    </label>
 
-              {/* Remember me & Forgot Password (Login mode) */}
-              {activeTab === 'login' && (
-                <div className="flex items-center justify-between pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4b5563]">
+                    <button
+                      type="button"
+                      onClick={() => alert('Vui lòng liên hệ Admin qua hotline để hỗ trợ khôi phục mật khẩu.')}
+                      className="text-xs font-black text-[#2563EB] hover:underline cursor-pointer"
+                    >
+                      Quên mật khẩu?
+                    </button>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className={`w-full py-3.5 px-4 border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider mt-6 ${
+                    activeTab === 'login'
+                      ? 'bg-[#2563EB] hover:bg-[#1d4ed8]'
+                      : 'bg-[#F97316] hover:bg-[#ea580c]'
+                  }`}
+                >
+                  <span>{activeTab === 'login' ? 'ĐĂNG NHẬP VÀO PORTAL' : 'ĐĂNG KÝ & NHẬP MÃ OTP'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* -------------------------------------------------------------
+                VIEW 2: TRANG NHẬP MÃ OTP 6 SỐ
+            ------------------------------------------------------------- */
+            <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn">
+              {/* Header OTP */}
+              <div className="space-y-3 text-center sm:text-left">
+                <div className="w-12 h-12 rounded-2xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm mx-auto sm:mx-0">
+                  <KeyRound className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
+                    Xác Thực Mã OTP 6 Số
+                  </h2>
+                  <p className="text-xs sm:text-sm font-medium text-[#4b5563] mt-1 leading-relaxed">
+                    Hệ thống đã tự động gửi mã OTP xác thực 6 chữ số đến địa chỉ Gmail:
+                  </p>
+                  <div className="mt-2 inline-block px-3 py-1 bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/30 rounded-lg text-xs font-black font-mono">
+                    {email || 'hocvien@trieuvydeutsch.vn'}
+                  </div>
+                </div>
+              </div>
+
+              {/* OTP 6-Digit Inputs */}
+              <form onSubmit={handleVerifyOtp} className="space-y-6 pt-2">
+                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                  {otp.map((digit, idx) => (
                     <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-2 border-[#111827] text-[#2563EB] focus:ring-0 cursor-pointer"
+                      key={idx}
+                      ref={(el) => {
+                        otpInputRefs.current[idx] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                      onPaste={handleOtpPaste}
+                      className="w-11 h-14 sm:w-13 sm:h-16 text-center text-xl sm:text-2xl font-black text-[#111827] bg-[#f8fafc] border-[2.5px] border-[#111827] rounded-xl brutal-shadow-xs focus:bg-white focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 focus:outline-none transition-all"
                     />
-                    <span>Ghi nhớ đăng nhập</span>
-                  </label>
+                  ))}
+                </div>
 
+                {/* Resend OTP Timer & Button */}
+                <div className="flex items-center justify-between text-xs font-bold text-[#4b5563] pt-1">
+                  <span>Chưa nhận được mã OTP?</span>
+                  {isResendActive ? (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      className="text-[#2563EB] hover:underline font-black flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Gửi lại mã OTP</span>
+                    </button>
+                  ) : (
+                    <span className="text-[#F97316] font-black font-mono">
+                      Gửi lại sau {resendTimer}s
+                    </span>
+                  )}
+                </div>
+
+                {/* Submit OTP Button */}
+                <button
+                  type="submit"
+                  className="w-full py-3.5 px-4 bg-[#F97316] hover:bg-[#ea580c] border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider"
+                >
+                  <span>XÁC NHẬN MÃ OTP & VÀO PORTAL</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                {/* Back to Edit Email */}
+                <div className="text-center pt-2">
                   <button
                     type="button"
-                    onClick={() => alert('Vui lòng liên hệ Admin qua hotline để hỗ trợ khôi phục mật khẩu.')}
-                    className="text-xs font-black text-[#2563EB] hover:underline cursor-pointer"
+                    onClick={() => setStep('form')}
+                    className="text-xs font-bold text-[#6b7280] hover:text-[#111827] hover:underline cursor-pointer inline-flex items-center gap-1"
                   >
-                    Quên mật khẩu?
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Thay đổi thông tin đăng ký</span>
                   </button>
                 </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className={`w-full py-3.5 px-4 border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider mt-6 ${
-                  activeTab === 'login'
-                    ? 'bg-[#2563EB] hover:bg-[#1d4ed8]'
-                    : 'bg-[#F97316] hover:bg-[#ea580c]'
-                }`}
-              >
-                <span>{activeTab === 'login' ? 'ĐĂNG NHẬP VÀO PORTAL' : 'TẠO TÀI KHOẢN & VÀO PHÒNG THI'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
+              </form>
+            </div>
+          )}
 
           {/* Bottom Terms & Policy */}
           <div className="pt-6 border-t border-[#111827]/10 text-center max-w-md w-full mx-auto">
