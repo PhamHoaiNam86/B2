@@ -33,7 +33,8 @@ const getInitialViewState = () => {
   const validTabs: ActiveTab[] = [
     'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
-    'results', 'vocab', 'grammar', 'students', 'history', 'profile'
+    'results', 'vocab', 'grammar', 'schreiben', 'students', 'history', 'profile',
+    'flashcards', 'grammar-lesson', 'exam-detail', 'create-item'
   ];
   if (path && validTabs.includes(path as ActiveTab)) {
     return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: path as ActiveTab };
@@ -78,6 +79,9 @@ export default function App() {
 
   const setActiveTab = (tab: ActiveTab) => {
     setActiveTabState(tab);
+    if (viewMode !== 'app') {
+      setViewMode('app');
+    }
     const targetPath = tab === 'dashboard' ? '/dashboard' : `/${tab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState({ tab }, '', targetPath);
@@ -253,7 +257,8 @@ export default function App() {
   // Selected Data States for Page Views
   const [selectedGrammarTopic, setSelectedGrammarTopic] = useState<GrammarTopic | null>(null);
   const [selectedExam, setSelectedExam] = useState<ExamModel | null>(null);
-  const [createItemType, setCreateItemType] = useState<'vocab' | 'exam'>('vocab');
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [createItemType, setCreateItemType] = useState<'vocab' | 'exam' | 'grammar'>('vocab');
 
   // Anti-cheat tab switch monitoring
   useEffect(() => {
@@ -318,9 +323,38 @@ export default function App() {
     setVocabs((prev) => [newVocab, ...prev]);
   };
 
+  const handleUpdateVocab = (updatedVocab: VocabItem) => {
+    setVocabs((prev) => prev.map((v) => (v.id === updatedVocab.id ? updatedVocab : v)));
+  };
+
+  const handleDeleteVocab = (id: string) => {
+    setVocabs((prev) => prev.filter((v) => v.id !== id));
+  };
+
   // Handlers for Exams
   const handleAddExam = (newExam: ExamModel) => {
     setExams((prev) => [newExam, ...prev]);
+  };
+
+  const handleUpdateExam = (updatedExam: ExamModel) => {
+    setExams((prev) => prev.map((e) => (e.id === updatedExam.id ? updatedExam : e)));
+  };
+
+  const handleDeleteExam = (id: string) => {
+    setExams((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  // Handlers for Grammar
+  const handleAddGrammar = (newTopic: GrammarTopic) => {
+    setGrammarTopics((prev) => [newTopic, ...prev]);
+  };
+
+  const handleUpdateGrammar = (updatedTopic: GrammarTopic) => {
+    setGrammarTopics((prev) => prev.map((t) => (t.id === updatedTopic.id ? updatedTopic : t)));
+  };
+
+  const handleDeleteGrammar = (id: string) => {
+    setGrammarTopics((prev) => prev.filter((t) => t.id !== id));
   };
 
   const handleAnswerChange = (questionId: number, optionId: string) => {
@@ -472,9 +506,16 @@ export default function App() {
                   }}
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => {
+                    setEditingItem(null);
                     setCreateItemType('exam');
                     setActiveTab('create-item');
                   }}
+                  onEditExam={(exam) => {
+                    setEditingItem(exam);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -490,9 +531,16 @@ export default function App() {
                   }}
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => {
+                    setEditingItem(null);
                     setCreateItemType('exam');
                     setActiveTab('create-item');
                   }}
+                  onEditExam={(exam) => {
+                    setEditingItem(exam);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -508,9 +556,16 @@ export default function App() {
                   }}
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => {
+                    setEditingItem(null);
                     setCreateItemType('exam');
                     setActiveTab('create-item');
                   }}
+                  onEditExam={(exam) => {
+                    setEditingItem(exam);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -526,9 +581,16 @@ export default function App() {
                   }}
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => {
+                    setEditingItem(null);
                     setCreateItemType('exam');
                     setActiveTab('create-item');
                   }}
+                  onEditExam={(exam) => {
+                    setEditingItem(exam);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
                 />
@@ -565,9 +627,16 @@ export default function App() {
                   onToggleFavorite={handleToggleFavorite}
                   onChangeStatus={handleChangeVocabStatus}
                   onOpenAddModal={() => {
+                    setEditingItem(null);
                     setCreateItemType('vocab');
                     setActiveTab('create-item');
                   }}
+                  onEditVocab={(vocab) => {
+                    setEditingItem(vocab);
+                    setCreateItemType('vocab');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteVocab={handleDeleteVocab}
                   onOpenFlashcardModal={() => setActiveTab('flashcards')}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -591,6 +660,17 @@ export default function App() {
                     setSelectedGrammarTopic(topic);
                     setActiveTab('grammar-lesson');
                   }}
+                  onAddNewTopic={() => {
+                    setEditingItem(null);
+                    setCreateItemType('grammar');
+                    setActiveTab('create-item');
+                  }}
+                  onEditTopic={(topic) => {
+                    setEditingItem(topic);
+                    setCreateItemType('grammar');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteTopic={handleDeleteGrammar}
                   onOpenDiagnosticTest={() => handleStartExamRoom()}
                   onOpenTrapQuiz={() => handleStartExamRoom()}
                   onShowToast={showToast}
@@ -617,13 +697,22 @@ export default function App() {
                 />
               )}
 
-              {/* PAGE VIEW: TRANG THÊM MỚI TỪ VỰNG / ĐỀ THI */}
+              {/* PAGE VIEW: TRANG THÊM MỚI & CHỈNH SỬA TỪ VỰNG / ĐỀ THI / NGỮ PHÁP */}
               {activeTab === 'create-item' && (
                 <CreateItemView
                   type={createItemType}
-                  onBack={() => setActiveTab(createItemType === 'vocab' ? 'vocab' : 'exam')}
+                  editingItem={editingItem}
+                  onBack={() => {
+                    const backTab = createItemType === 'vocab' ? 'vocab' : createItemType === 'grammar' ? 'grammar' : 'exam';
+                    setEditingItem(null);
+                    setActiveTab(backTab);
+                  }}
                   onAddVocab={handleAddVocab}
                   onAddExam={handleAddExam}
+                  onAddGrammar={handleAddGrammar}
+                  onUpdateVocab={handleUpdateVocab}
+                  onUpdateExam={handleUpdateExam}
+                  onUpdateGrammar={handleUpdateGrammar}
                   onShowToast={showToast}
                 />
               )}

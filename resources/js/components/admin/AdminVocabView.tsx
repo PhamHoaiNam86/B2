@@ -7,6 +7,7 @@ interface AdminVocabViewProps {
   onOpenAddModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   onDeleteVocab?: (id: string) => void;
+  onEditVocab?: (vocab: VocabItem) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -16,6 +17,7 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
   onOpenAddModal,
   onShowToast,
   onDeleteVocab,
+  onEditVocab,
 }) => {
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
@@ -176,7 +178,9 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => onOpenAddModal()}
+                          onClick={() => {
+                            if (onEditVocab) onEditVocab(v);
+                          }}
                           className="px-3 py-1.5 bg-[#fef3c7] text-[#92400e] border border-[#111827] rounded-lg font-bold hover:bg-[#fde68a] flex items-center gap-1 cursor-pointer"
                           title="Sửa từ vựng"
                         >

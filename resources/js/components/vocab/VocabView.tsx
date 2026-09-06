@@ -11,6 +11,8 @@ interface VocabViewProps {
   onOpenFlashcardModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   currentUser?: 'admin' | 'student';
+  onEditVocab?: (vocab: VocabItem) => void;
+  onDeleteVocab?: (id: string) => void;
 }
 
 export const VocabView: React.FC<VocabViewProps> = ({
@@ -21,6 +23,8 @@ export const VocabView: React.FC<VocabViewProps> = ({
   onOpenFlashcardModal,
   onShowToast,
   currentUser = 'admin',
+  onEditVocab,
+  onDeleteVocab,
 }) => {
   if (currentUser === 'admin') {
     return (
@@ -28,6 +32,8 @@ export const VocabView: React.FC<VocabViewProps> = ({
         vocabs={vocabs}
         onOpenAddModal={onOpenAddModal}
         onShowToast={onShowToast}
+        onEditVocab={onEditVocab}
+        onDeleteVocab={onDeleteVocab}
       />
     );
   }

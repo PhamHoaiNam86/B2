@@ -8,6 +8,7 @@ interface AdminGrammarViewProps {
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   onDeleteTopic?: (id: string) => void;
   onAddNewTopic?: () => void;
+  onEditTopic?: (topic: GrammarTopic) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -18,6 +19,7 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
   onShowToast,
   onDeleteTopic,
   onAddNewTopic,
+  onEditTopic,
 }) => {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -148,7 +150,9 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
                           <Eye className="w-3.5 h-3.5" /> Xem
                         </button>
                         <button
-                          onClick={() => onSelectTopic(topic)}
+                          onClick={() => {
+                            if (onEditTopic) onEditTopic(topic);
+                          }}
                           className="px-3 py-1.5 bg-[#fef3c7] text-[#92400e] border border-[#111827] rounded-lg font-bold hover:bg-[#fde68a] flex items-center gap-1 cursor-pointer"
                           title="Sửa chuyên đề"
                         >

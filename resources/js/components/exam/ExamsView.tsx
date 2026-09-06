@@ -11,6 +11,8 @@ interface ExamsViewProps {
   onOpenNewExamModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   currentUser?: 'admin' | 'student';
+  onEditExam?: (exam: ExamModel) => void;
+  onDeleteExam?: (id: string) => void;
 }
 
 export const ExamsView: React.FC<ExamsViewProps> = ({
@@ -21,6 +23,8 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onOpenNewExamModal,
   onShowToast,
   currentUser = 'admin',
+  onEditExam,
+  onDeleteExam,
 }) => {
   if (currentUser === 'admin') {
     return (
@@ -29,6 +33,8 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
         onSelectExam={onSelectExam}
         onOpenNewExamModal={onOpenNewExamModal}
         onShowToast={onShowToast}
+        onEditExam={onEditExam}
+        onDeleteExam={onDeleteExam}
       />
     );
   }

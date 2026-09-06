@@ -8,6 +8,7 @@ interface AdminExamsViewProps {
   onOpenNewExamModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   onDeleteExam?: (id: string) => void;
+  onEditExam?: (exam: ExamModel) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -18,6 +19,7 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   onOpenNewExamModal,
   onShowToast,
   onDeleteExam,
+  onEditExam,
 }) => {
   const [search, setSearch] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
@@ -168,7 +170,9 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
                           <Eye className="w-3.5 h-3.5" /> Xem
                         </button>
                         <button
-                          onClick={() => onSelectExam(exam)}
+                          onClick={() => {
+                            if (onEditExam) onEditExam(exam);
+                          }}
                           className="px-3 py-1.5 bg-[#fef3c7] text-[#92400e] border border-[#111827] rounded-lg font-bold hover:bg-[#fde68a] flex items-center gap-1 cursor-pointer"
                           title="Chỉnh sửa đề thi"
                         >

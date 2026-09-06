@@ -10,6 +10,9 @@ interface GrammarViewProps {
   onOpenTrapQuiz: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   currentUser?: 'admin' | 'student';
+  onAddNewTopic?: () => void;
+  onEditTopic?: (topic: GrammarTopic) => void;
+  onDeleteTopic?: (id: string) => void;
 }
 
 export const GrammarView: React.FC<GrammarViewProps> = ({
@@ -19,6 +22,9 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
   onOpenTrapQuiz,
   onShowToast,
   currentUser = 'admin',
+  onAddNewTopic,
+  onEditTopic,
+  onDeleteTopic,
 }) => {
   if (currentUser === 'admin') {
     return (
@@ -26,6 +32,9 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
         topics={topics}
         onSelectTopic={onSelectTopic}
         onShowToast={onShowToast}
+        onAddNewTopic={onAddNewTopic}
+        onEditTopic={onEditTopic}
+        onDeleteTopic={onDeleteTopic}
       />
     );
   }
