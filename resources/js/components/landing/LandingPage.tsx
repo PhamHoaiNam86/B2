@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import {
   Sparkles,
   CheckCircle2,
@@ -30,11 +31,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     { src: '/images/banner2.png', alt: 'Luyện thi TELC B2 - Học phí sinh viên chỉ 499k/tháng' },
   ];
 
+  // GSAP Animation Refs for Scroll Reveal
+  const subBannerRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const whyChooseRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  // GSAP IntersectionObserver Stagger Scroll Effect
+  useEffect(() => {
+    const sections = [subBannerRef, featuresRef, whyChooseRef, testimonialsRef];
+    const observers: IntersectionObserver[] = [];
+
+    sections.forEach((ref) => {
+      if (!ref.current) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const items = entry.target.querySelectorAll('.gsap-stagger-item');
+              if (items.length > 0) {
+                gsap.fromTo(
+                  items,
+                  { opacity: 0, y: 35 },
+                  {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.75,
+                    stagger: 0.12,
+                    ease: 'power2.out',
+                    overwrite: 'auto',
+                  }
+                );
+              }
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      );
+
+      observer.observe(ref.current);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((obs) => obs.disconnect());
+    };
   }, []);
 
   const nextSlide = () => {
@@ -173,31 +223,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         </div>
 
         {/* Sub-Banner Highlight Bar */}
-        <div className="bg-white border-t-[2.5px] border-[#111827] py-6 px-4 sm:px-8">
+        <div ref={subBannerRef} className="bg-white border-t-[2.5px] border-[#111827] py-6 px-4 sm:px-8">
           <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-emerald-100 border border-[#111827]">
                   <BookOpen className="w-4 h-4 text-emerald-700" />
                 </div>
                 <span>Kho Từ vựng B2</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-sky-100 border border-[#111827]">
                   <Brain className="w-4 h-4 text-sky-700" />
                 </div>
                 <span>Ngữ pháp Bẫy Đề</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-amber-100 border border-[#111827]">
                   <Headphones className="w-4 h-4 text-amber-700" />
                 </div>
                 <span>Luyện nghe TELC</span>
               </div>
 
-              <div className="px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+              <div className="gsap-stagger-item px-4 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-xs flex items-center gap-2 hover:-translate-y-1.5 hover:shadow-[4px_4px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
                 <div className="p-1 rounded-lg bg-purple-100 border border-[#111827]">
                   <Award className="w-4 h-4 text-purple-700" />
                 </div>
@@ -207,7 +257,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             <button
               onClick={onEnterApp}
-              className="px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
+              className="gsap-stagger-item px-6 py-3 bg-[#F97316] text-white border-2 border-[#111827] rounded-2xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center gap-2 uppercase tracking-wide shrink-0"
             >
               <span>VÀO PHÒNG THI THỬ NGAY</span>
               <ArrowRight className="w-4 h-4" />
@@ -219,7 +269,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* -------------------------------------------------------------
           2. THÔNG TIN & TÍNH NĂNG NỔI BẬT SECTION
       ------------------------------------------------------------- */}
-      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
+      <section id="features" ref={featuresRef} className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="px-3 py-1 rounded-md bg-[#2563EB]/10 text-[#2563EB] text-xs font-black border border-[#2563EB]/30 uppercase">
@@ -237,7 +287,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Feature 1 */}
             <div
               onClick={onEnterApp}
-              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer"
+              className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
@@ -262,7 +312,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Feature 2 */}
             <div
               onClick={onEnterApp}
-              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer"
+              className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
@@ -287,7 +337,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Feature 3 */}
             <div
               onClick={onEnterApp}
-              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer"
+              className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
@@ -312,7 +362,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Feature 4 */}
             <div
               onClick={onEnterApp}
-              className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#8B5CF6] hover:bg-white transition-all duration-300 cursor-pointer"
+              className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#8B5CF6] hover:bg-white transition-all duration-300 cursor-pointer"
             >
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-xs group-hover:scale-110 transition-transform duration-300">
@@ -340,7 +390,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* -------------------------------------------------------------
           3. TẠI SAO NÊN CHỌN TRIEUVY DEUTSCH SECTION
       ------------------------------------------------------------- */}
-      <section id="why-choose" className="py-16 sm:py-24 px-4 sm:px-6 bg-[#fff8e7] border-b-[2.5px] border-[#111827]">
+      <section id="why-choose" ref={whyChooseRef} className="py-16 sm:py-24 px-4 sm:px-6 bg-[#fff8e7] border-b-[2.5px] border-[#111827]">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="px-3 py-1 rounded-md bg-[#ffe082] text-[#3e2723] text-xs font-black border border-[#111827] uppercase">
@@ -356,7 +406,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left Card: Traditional method */}
-            <div className="group bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:border-rose-500 transition-all duration-300 cursor-pointer">
+            <div className="gsap-stagger-item group bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:border-rose-500 transition-all duration-300 cursor-pointer">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 border-2 border-[#111827] flex items-center justify-center font-black group-hover:scale-110 transition-transform duration-300">
                   ✕
@@ -389,7 +439,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Right Card: TRIEUVY DEUTSCH solution */}
             <div
               onClick={onEnterApp}
-              className="group bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:bg-[#1d4ed8] transition-all duration-300 cursor-pointer"
+              className="gsap-stagger-item group bg-[#2563EB] text-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6 hover:-translate-y-2 hover:shadow-[8px_8px_0px_#111827] hover:bg-[#1d4ed8] transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white text-[#2563EB] border-2 border-[#111827] flex items-center justify-center font-black group-hover:scale-110 transition-transform duration-300">
@@ -433,7 +483,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* -------------------------------------------------------------
           4. ĐÁNH GIÁ HỌC VIÊN SECTION
       ------------------------------------------------------------- */}
-      <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
+      <section id="testimonials" ref={testimonialsRef} className="py-16 sm:py-24 px-4 sm:px-6 bg-white border-b-[2.5px] border-[#111827]">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="px-3 py-1 rounded-md bg-emerald-100 text-emerald-950 text-xs font-black border border-[#111827] uppercase">
@@ -449,7 +499,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Review 1 */}
-            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer">
+            <div className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#F97316] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
                 <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
@@ -477,7 +527,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             {/* Review 2 */}
-            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
+            <div className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#2563EB] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
                 <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
@@ -505,7 +555,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
 
             {/* Review 3 */}
-            <div className="group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer">
+            <div className="gsap-stagger-item group bg-[#fcf9f8] border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:-translate-y-2.5 hover:shadow-[8px_8px_0px_#111827] hover:border-[#10B981] hover:bg-white transition-all duration-300 cursor-pointer">
               <div className="space-y-3">
                 <div className="flex items-center gap-1 text-amber-400 group-hover:scale-105 transition-transform duration-300">
                   {[...Array(5)].map((_, i) => (
