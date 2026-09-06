@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'history':
         return 'Lịch Sử Làm Bài & Bảng Xếp Hạng';
       default:
-        return 'DeutschMitPN TELC B2 Portal';
+        return 'TRIEUVY DEUTSCH TELC B2 Portal';
     }
   };
 
@@ -80,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </h1>
             </div>
             <p className="text-[11px] text-[#4b5563] hidden sm:block">
-              Hệ thống luyện thi & mô phỏng phòng thi chuẩn quốc tế DeutschMitPN
+              Hệ thống luyện thi & mô phỏng phòng thi chuẩn quốc tế TRIEUVY DEUTSCH
             </p>
           </div>
         </div>

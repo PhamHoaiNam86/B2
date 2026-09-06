@@ -64,11 +64,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-5 border-b-[2.5px] border-[#111827] flex items-center justify-between bg-[#f8fafc]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm">
-              DE
+              TD
             </div>
             <div>
               <h2 className="text-base font-black text-[#111827] font-heading leading-tight">
-                DeutschMitPN
+                TRIEUVY DEUTSCH
               </h2>
               <span className="text-[10px] font-bold text-[#4b5563]">
                 TELC B2 Prep & Exam Portal
