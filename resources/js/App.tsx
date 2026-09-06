@@ -459,6 +459,7 @@ export default function App() {
           {/* Left Sidebar */}
           <Sidebar
             activeTab={activeTab}
+            createItemType={createItemType}
             onSelectTab={setActiveTab}
             isOpenMobile={isMobileMenuOpen}
             onCloseMobile={() => setIsMobileMenuOpen(false)}

@@ -17,6 +17,7 @@ import {
 
 interface SidebarProps {
   activeTab: ActiveTab;
+  createItemType?: 'vocab' | 'exam' | 'grammar';
   onSelectTab: (tab: ActiveTab) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
@@ -25,21 +26,25 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-const isItemActive = (itemId: ActiveTab, currentTab: ActiveTab) => {
+const isItemActive = (
+  itemId: ActiveTab,
+  currentTab: ActiveTab,
+  createItemType?: 'vocab' | 'exam' | 'grammar'
+) => {
   if (itemId === currentTab) return true;
 
   // Sub-views for Exam repository
-  if (itemId === 'exam' && (currentTab === 'exam-detail' || currentTab === 'create-item')) {
+  if (itemId === 'exam' && (currentTab === 'exam-detail' || (currentTab === 'create-item' && createItemType === 'exam'))) {
     return true;
   }
 
   // Sub-views for Grammar hub
-  if (itemId === 'grammar' && currentTab === 'grammar-lesson') {
+  if (itemId === 'grammar' && (currentTab === 'grammar-lesson' || (currentTab === 'create-item' && createItemType === 'grammar'))) {
     return true;
   }
 
   // Sub-views for Vocabulary bank
-  if (itemId === 'vocab' && (currentTab === 'flashcards' || currentTab === 'create-item')) {
+  if (itemId === 'vocab' && (currentTab === 'flashcards' || (currentTab === 'create-item' && createItemType === 'vocab'))) {
     return true;
   }
 
@@ -48,6 +53,7 @@ const isItemActive = (itemId: ActiveTab, currentTab: ActiveTab) => {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
+  createItemType,
   onSelectTab,
   isOpenMobile,
   onCloseMobile,
@@ -113,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = isItemActive(item.id, activeTab);
+            const isActive = isItemActive(item.id, activeTab, createItemType);
             const href = item.id === 'dashboard' ? '/' : `/${item.id}`;
             const isLockedForStudent = currentUser === 'student' && item.isAdminOnly;
 
