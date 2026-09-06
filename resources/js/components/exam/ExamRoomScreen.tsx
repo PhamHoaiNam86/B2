@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserExamState } from '../../types';
 import { SAMPLE_QUESTIONS } from '../../data/mockData';
 import { ShieldAlert, ArrowLeft, ArrowRight, CheckCircle2, Clock, FileText, AlertTriangle, Send } from 'lucide-react';
@@ -18,10 +18,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   onBackToDashboard,
   formattedCountdown,
 }) => {
+  const [questions, setQuestions] = useState(SAMPLE_QUESTIONS);
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
   const [draftNote, setDraftNote] = useState<string>('');
 
-  const currentQuestion = SAMPLE_QUESTIONS.find((q) => q.id === activeQuestionId) || SAMPLE_QUESTIONS[0];
+  useEffect(() => {
+    fetch(`/api/v1/questions/${examState.examCode}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((q: any) => ({
+            id: q.question_number || q.id,
+            section: q.section,
+            subSection: q.sub_section || '',
+            title: q.title,
+            contextText: q.context_text || '',
+            options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
+          }));
+          setQuestions(mapped);
+        }
+      })
+      .catch(() => {});
+  }, [examState.examCode]);
+
+  const currentQuestion = questions.find((q) => q.id === activeQuestionId) || questions[0] || SAMPLE_QUESTIONS[0];
   const answeredCount = Object.keys(examState.answers).length;
 
   return (
@@ -87,7 +107,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               </h3>
             </div>
             <span className="text-xs font-bold text-[#564145]">
-              {activeQuestionId} / {SAMPLE_QUESTIONS.length}
+              {activeQuestionId} / {questions.length}
             </span>
           </div>
 

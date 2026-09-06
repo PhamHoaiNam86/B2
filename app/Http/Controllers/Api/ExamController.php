@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\ExamResult;
+use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,9 +17,27 @@ class ExamController extends Controller
     public function index()
     {
         $exams = Exam::where('is_active', true)->orderBy('id', 'asc')->get();
+
         return response()->json([
             'success' => true,
             'data' => $exams,
+        ]);
+    }
+
+    /**
+     * Get questions for an exam or all questions.
+     */
+    public function getQuestions(Request $request, $examCode = null)
+    {
+        $query = Question::query();
+        if ($examCode) {
+            $query->where('exam_code', $examCode);
+        }
+        $questions = $query->orderBy('question_number', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $questions,
         ]);
     }
 
@@ -28,6 +47,7 @@ class ExamController extends Controller
     public function getResults()
     {
         $results = ExamResult::orderBy('submitted_at', 'desc')->get();
+
         return response()->json([
             'success' => true,
             'data' => $results,
@@ -55,7 +75,7 @@ class ExamController extends Controller
         ]);
 
         $result = ExamResult::create([
-            'result_id' => 'RES-' . Str::upper(Str::random(6)),
+            'result_id' => 'RES-'.Str::upper(Str::random(6)),
             'exam_code' => $validated['exam_code'],
             'student_name' => $validated['student_name'],
             'score' => $validated['score'],

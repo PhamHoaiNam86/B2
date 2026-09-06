@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState } from './types';
+import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem } from './types';
 import {
   INITIAL_EXAM_STATE,
   INITIAL_VOCABS,
@@ -119,12 +119,131 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Core Data States
+  // Core Data States (Dynamic DB Data from Laravel Backend API)
   const [vocabs, setVocabs] = useState<VocabItem[]>(INITIAL_VOCABS);
   const [grammarTopics, setGrammarTopics] = useState<GrammarTopic[]>(GRAMMAR_TOPICS);
   const [exams, setExams] = useState<ExamModel[]>(EXAM_MODELS);
-  const [students] = useState(RECENT_STUDENTS);
-  const [liveFeed, setLiveFeed] = useState(LIVE_EXAM_FEED);
+  const [students, setStudents] = useState<Student[]>(RECENT_STUDENTS);
+  const [liveFeed, setLiveFeed] = useState<ExamFeedItem[]>(LIVE_EXAM_FEED);
+
+  // Fetch real data from Laravel MySQL / SQLite Database API
+  useEffect(() => {
+    // 1. Fetch Exams
+    fetch('/api/v1/exams')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mappedExams: ExamModel[] = res.data.map((item: any) => ({
+            id: String(item.id || item.exam_code),
+            name: item.name || item.title,
+            examCode: item.exam_code,
+            level: item.level || 'TELC B2',
+            durationMinutes: item.duration_minutes || 90,
+            totalQuestions: item.total_questions || 45,
+            description: item.description || '',
+            sections: item.sections_json ? (typeof item.sections_json === 'string' ? JSON.parse(item.sections_json) : item.sections_json) : [
+              { name: 'Leseverstehen', questionCount: 20, duration: '45 phút' },
+              { name: 'Sprachbausteine', questionCount: 10, duration: '15 phút' },
+              { name: 'Hörverstehen', questionCount: 10, duration: '20 phút' },
+              { name: 'Schriftlicher Ausdruck', questionCount: 1, duration: '30 phút' },
+            ],
+            targetScore: item.target_score || 225,
+            passRate: item.pass_rate || '88%',
+          }));
+          setExams(mappedExams);
+        }
+      })
+      .catch(() => {});
+
+    // 2. Fetch Vocabularies
+    fetch('/api/v1/vocabs')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mappedVocabs: VocabItem[] = res.data.map((item: any) => ({
+            id: String(item.id || item.vocab_id),
+            word: item.word,
+            article: item.article || '',
+            plural: item.plural || '',
+            pos: item.pos || 'Nomen',
+            phonetic: item.phonetic || '',
+            meaningVi: item.meaning_vi,
+            exampleDe: item.example_de || '',
+            exampleVi: item.example_vi || '',
+            topic: item.topic || 'Arbeit & Beruf',
+            status: item.status || 'learning',
+            isFavorite: Boolean(item.is_favorite),
+          }));
+          setVocabs(mappedVocabs);
+        }
+      })
+      .catch(() => {});
+
+    // 3. Fetch Grammar Topics
+    fetch('/api/v1/grammar')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mappedGrammar: GrammarTopic[] = res.data.map((item: any) => ({
+            id: String(item.id || item.topic_id),
+            title: item.title,
+            level: item.level || 'B2',
+            category: item.category || 'Verben & Modi',
+            summary: item.summary || '',
+            content: item.content || '',
+            rulePoints: item.rule_points ? (typeof item.rule_points === 'string' ? JSON.parse(item.rule_points) : item.rule_points) : [],
+            examples: item.examples ? (typeof item.examples === 'string' ? JSON.parse(item.examples) : item.examples) : [],
+            status: item.status || 'in_progress',
+            progress: item.progress || 0,
+            score: item.score || 0,
+            badgeLabel: item.badge_label || 'CẦN LUYỆN',
+          }));
+          setGrammarTopics(mappedGrammar);
+        }
+      })
+      .catch(() => {});
+
+    // 4. Fetch Students
+    fetch('/api/v1/students')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mappedStudents: Student[] = res.data.map((item: any) => ({
+            id: String(item.id || item.student_id),
+            name: item.name,
+            email: item.email || '',
+            avatarUrl: item.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+            currentScore: item.current_score || 0,
+            targetScore: item.target_score || 270,
+            className: item.class_name || 'B2-K38',
+            targetExamDate: item.target_exam_date || '15/10/2026',
+            status: item.status || 'Đang Học',
+          }));
+          setStudents(mappedStudents);
+        }
+      })
+      .catch(() => {});
+
+    // 5. Fetch Exam Results / Live Feed
+    fetch('/api/v1/results')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mappedFeed: ExamFeedItem[] = res.data.map((item: any) => ({
+            id: String(item.id || item.result_id),
+            studentName: item.student_name,
+            examCode: item.exam_code,
+            score: item.score,
+            maxScore: item.max_score || 300,
+            statusText: item.status_text || 'Đạt chuẩn TELC B2',
+            timeAgo: item.time_ago || 'Vừa xong',
+            description: item.description || '',
+          }));
+          setLiveFeed(mappedFeed);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Modals
   const [selectedGrammarTopic, setSelectedGrammarTopic] = useState<GrammarTopic | null>(null);

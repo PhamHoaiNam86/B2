@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Flame, Trophy, Lock, Send, Smile, UserCheck, AlertTriangle, FileText, CheckCircle, RefreshCw } from 'lucide-react';
 
 interface ChatMessage {
@@ -35,6 +35,20 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
   const [userExp, setUserExp] = useState(1);
   const [completedCount, setCompletedCount] = useState(0);
   const [studyMinutes, setStudyMinutes] = useState(0);
+
+  // Dynamic Docs from Database API
+  const [apiDocs, setApiDocs] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/v1/docs?type=${type}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setApiDocs(res.data);
+        }
+      })
+      .catch(() => {});
+  }, [type]);
 
   const b2LibraryDocs = [
     {
@@ -191,7 +205,16 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
     },
   ];
 
-  const currentDocs = type === 'b2' ? b2LibraryDocs : type === 'schreiben' ? schreibenDocs : sprechenDocs;
+  const defaultDocs = type === 'b2' ? b2LibraryDocs : type === 'schreiben' ? schreibenDocs : sprechenDocs;
+  const currentDocs = apiDocs.length > 0
+    ? apiDocs.map((d) => ({
+        id: String(d.doc_id || d.id),
+        title: d.title,
+        description: d.description || '',
+        isPremium: Boolean(d.is_premium),
+        badge: d.badge || (d.is_premium ? 'PREMIUM' : 'MIỄN PHÍ'),
+      }))
+    : defaultDocs;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
