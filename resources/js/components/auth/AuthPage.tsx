@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogIn, UserPlus, Mail, Lock, User, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, KeyRound, RefreshCw } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, User, UserCheck, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, KeyRound, RefreshCw } from 'lucide-react';
 
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
@@ -17,6 +17,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   // Form fields
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -278,22 +279,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
               {/* FORM */}
               <form onSubmit={handleSubmitForm} className="space-y-4">
-                {/* Full Name field (Register mode) */}
+                {/* Full Name & Username fields (Register mode) */}
                 {activeTab === 'register' && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-black text-[#111827] block">Họ và Tên</label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ví dụ: Nguyễn Minh Huyền"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
-                      />
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-[#111827] block">Họ và Tên</label>
+                      <div className="relative">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ví dụ: Nguyễn Minh Huyền"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
+                        />
+                      </div>
                     </div>
-                  </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-[#111827] block">Tên đăng nhập</label>
+                      <div className="relative">
+                        <UserCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ví dụ: minhhuyen_b2"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {/* Email / Username field */}
@@ -304,9 +322,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
                     <input
-                      type="email"
+                      type={activeTab === 'login' ? 'text' : 'email'}
                       required
-                      placeholder="hocvien@trieuvydeutsch.vn"
+                      placeholder={activeTab === 'login' ? 'hocvien@trieuvydeutsch.vn hoặc hocvien' : 'hocvien@trieuvydeutsch.vn'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:bg-white focus:border-[#2563EB]"

@@ -91,6 +91,32 @@ return new class extends Migration
             $table->timestamp('submitted_at')->useCurrent();
             $table->timestamps();
         });
+
+        Schema::create('questions', function (Blueprint $table) {
+            $table->id();
+            $table->string('exam_code');
+            $table->string('section');
+            $table->string('sub_section')->nullable();
+            $table->integer('question_number');
+            $table->string('title');
+            $table->text('context_text')->nullable();
+            $table->json('options_json')->nullable();
+            $table->string('correct_option_id')->nullable();
+            $table->text('explanation')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('document_materials', function (Blueprint $table) {
+            $table->id();
+            $table->string('doc_id')->unique();
+            $table->string('title');
+            $table->string('type'); // b2, schreiben, sprechen
+            $table->text('description')->nullable();
+            $table->boolean('is_premium')->default(true);
+            $table->string('badge')->default('PREMIUM');
+            $table->string('download_url')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -98,6 +124,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('document_materials');
+        Schema::dropIfExists('questions');
         Schema::dropIfExists('exam_results');
         Schema::dropIfExists('students');
         Schema::dropIfExists('grammar_topics');

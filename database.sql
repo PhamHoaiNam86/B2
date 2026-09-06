@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `username` varchar(100) NOT NULL COMMENT 'Tên đăng nhập',
   `email` varchar(255) NOT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) NOT NULL,
@@ -24,16 +25,17 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `users_email_unique` (`email`)
+  UNIQUE KEY `users_email_unique` (`email`),
+  UNIQUE KEY `users_username_unique` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `users`
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `avatar`, `created_at`, `updated_at`) VALUES
-(1, 'Admin TrieuVy', 'admin@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$K.1Xj7cTqGgX2rQY8h/5e.mQ4z2F0fX1y/uW/4g1h5j6k7l8m9n0o', 1, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(2, 'Học Viên B2', 'hocvien@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$K.1Xj7cTqGgX2rQY8h/5e.mQ4z2F0fX1y/uW/4g1h5j6k7l8m9n0o', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(3, 'Nguyễn Minh Huyền', 'huyen.nguyen@gmail.com', '2026-09-06 00:00:00', '$2y$12$K.1Xj7cTqGgX2rQY8h/5e.mQ4z2F0fX1y/uW/4g1h5j6k7l8m9n0o', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(4, 'Trần Hoàng Nam', 'nam.tran@yahoo.com', '2026-09-06 00:00:00', '$2y$12$K.1Xj7cTqGgX2rQY8h/5e.mQ4z2F0fX1y/uW/4g1h5j6k7l8m9n0o', 0, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(5, 'Phạm Khánh Linh', 'linh.pham@hotmail.com', '2026-09-06 00:00:00', '$2y$12$K.1Xj7cTqGgX2rQY8h/5e.mQ4z2F0fX1y/uW/4g1h5j6k7l8m9n0o', 0, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
+INSERT INTO `users` (`id`, `name`, `username`, `email`, `email_verified_at`, `password`, `is_admin`, `avatar`, `created_at`, `updated_at`) VALUES
+(1, 'Admin TrieuVy', 'admin', 'admin@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 1, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(2, 'Học Viên B2', 'hocvien', 'hocvien@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(3, 'Nguyễn Minh Huyền', 'minhhuyen', 'huyen.nguyen@gmail.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(4, 'Trần Hoàng Nam', 'hoangnam', 'nam.tran@yahoo.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(5, 'Phạm Khánh Linh', 'khanhlinh', 'linh.pham@hotmail.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
 
 -- -------------------------------------------------------------
 -- 2. Table structure for `vocabularies`
@@ -110,6 +112,7 @@ CREATE TABLE `exams` (
   `description` text DEFAULT NULL,
   `target_score` int(11) NOT NULL DEFAULT 225,
   `pass_rate` varchar(20) NOT NULL DEFAULT '85%',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `sections_json` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -117,13 +120,13 @@ CREATE TABLE `exams` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `exams`
-INSERT INTO `exams` (`id`, `exam_code`, `name`, `level`, `duration_minutes`, `total_questions`, `description`, `target_score`, `pass_rate`, `sections_json`, `created_at`, `updated_at`) VALUES
-(1, 'TELC-B2-MOCK-01', 'Đề Thi Thử TELC B2 Tổng Hợp - Mô Phỏng Chuẩn Quốc Tế', 'TELC B2', 90, 45, 'Bộ đề thi thử đầy đủ 4 kỹ năng: Đọc, Nghe, Viết, Nói với đếm ngược thời gian thực và tự động phát hiện chuyển tab gian lận.', 225, '88%', '[{"name": "Leseverstehen", "duration": "45 phút", "questionCount": 20}, {"name": "Sprachbausteine", "duration": "15 phút", "questionCount": 10}, {"name": "Hörverstehen", "duration": "20 phút", "questionCount": 10}, {"name": "Schriftlicher Ausdruck", "duration": "30 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(2, 'TELC-B2-READING-ONLY', 'Chuyên Đề Luyện Đọc B2 - Leseverstehen & Sprachbausteine', 'TELC B2', 45, 30, 'Luyện tập chuyên sâu phần đọc hiểu 3 phần và ngữ pháp điền từ Sprachbausteine 1 & 2.', 60, '92%', '[{"name": "Leseverstehen Teil 1, 2, 3", "duration": "30 phút", "questionCount": 20}, {"name": "Sprachbausteine Teil 1, 2", "duration": "15 phút", "questionCount": 10}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(3, 'TELC-B2-WRITING-AI', 'Luyện Viết B2 (Beschwerdebrief & Bitte um Information) + Chấm Điểm', 'TELC B2', 30, 2, 'Luyện tập kỹ năng Schriftlicher Ausdruck bài viết thư khiếu nại Beschwerdebrief theo tiêu chuẩn TELC.', 35, '85%', '[{"name": "Beschwerdebrief", "duration": "30 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(4, 'GOETHE-B1-MOCK-01', 'Đề Thi Thử B1 Tổng Hợp - Mô Phỏng Chuẩn Goethe / TELC B1', 'Goethe / TELC B1', 65, 35, 'Đề thi thử trình độ B1 tổng hợp 4 kỹ năng: Đọc hiểu thông báo, Nghe thoại ngắn, Viết thư cá nhân & Bài nói hội thoại.', 180, '90%', '[{"name": "Lesen (Đọc hiểu B1)", "duration": "25 phút", "questionCount": 15}, {"name": "Hören (Nghe hiểu B1)", "duration": "20 phút", "questionCount": 10}, {"name": "Schreiben (Viết thư B1)", "duration": "20 phút", "questionCount": 2}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(5, 'GOETHE-A2-MOCK-01', 'Đề Thi Thử A2 Sơ Cấp - Mô Phỏng Chuẩn Goethe / TELC A2', 'Goethe / TELC A2', 50, 25, 'Bộ đề thi thử A2 chuẩn mực dành cho học viên trình độ sơ cấp: từ vựng đời sống, công sở và giao tiếp thường ngày.', 70, '94%', '[{"name": "Lesen (Đọc hiểu A2)", "duration": "20 phút", "questionCount": 10}, {"name": "Hören (Nghe hiểu A2)", "duration": "15 phút", "questionCount": 10}, {"name": "Schreiben (Viết A2)", "duration": "15 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(6, 'GOETHE-A1-MOCK-01', 'Đề Thi Thử A1 Cho Người Mới Bắt Đầu - Start Deutsch 1', 'Start Deutsch A1', 45, 20, 'Đề thi thử A1 cơ bản Start Deutsch 1 giúp làm quen với các mẫu biểu, điền form, đọc bảng thông báo và viết tin nhắn ngắn.', 60, '96%', '[{"name": "Lesen (Đọc hiểu A1)", "duration": "20 phút", "questionCount": 10}, {"name": "Hören (Nghe hiểu A1)", "duration": "15 phút", "questionCount": 5}, {"name": "Schreiben (Điền Form & Viết tin nhắn A1)", "duration": "10 phút", "questionCount": 2}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
+INSERT INTO `exams` (`id`, `exam_code`, `name`, `level`, `duration_minutes`, `total_questions`, `description`, `target_score`, `pass_rate`, `is_active`, `sections_json`, `created_at`, `updated_at`) VALUES
+(1, 'TELC-B2-MOCK-01', 'Đề Thi Thử TELC B2 Tổng Hợp - Mô Phỏng Chuẩn Quốc Tế', 'TELC B2', 90, 45, 'Bộ đề thi thử đầy đủ 4 kỹ năng: Đọc, Nghe, Viết, Nói với đếm ngược thời gian thực và tự động phát hiện chuyển tab gian lận.', 225, '88%', 1, '[{"name": "Leseverstehen", "duration": "45 phút", "questionCount": 20}, {"name": "Sprachbausteine", "duration": "15 phút", "questionCount": 10}, {"name": "Hörverstehen", "duration": "20 phút", "questionCount": 10}, {"name": "Schriftlicher Ausdruck", "duration": "30 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(2, 'TELC-B2-READING-ONLY', 'Chuyên Đề Luyện Đọc B2 - Leseverstehen & Sprachbausteine', 'TELC B2', 45, 30, 'Luyện tập chuyên sâu phần đọc hiểu 3 phần và ngữ pháp điền từ Sprachbausteine 1 & 2.', 60, '92%', 1, '[{"name": "Leseverstehen Teil 1, 2, 3", "duration": "30 phút", "questionCount": 20}, {"name": "Sprachbausteine Teil 1, 2", "duration": "15 phút", "questionCount": 10}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(3, 'TELC-B2-WRITING-AI', 'Luyện Viết B2 (Beschwerdebrief & Bitte um Information) + Chấm Điểm', 'TELC B2', 30, 2, 'Luyện tập kỹ năng Schriftlicher Ausdruck bài viết thư khiếu nại Beschwerdebrief theo tiêu chuẩn TELC.', 35, '85%', 1, '[{"name": "Beschwerdebrief", "duration": "30 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(4, 'GOETHE-B1-MOCK-01', 'Đề Thi Thử B1 Tổng Hợp - Mô Phỏng Chuẩn Goethe / TELC B1', 'Goethe / TELC B1', 65, 35, 'Đề thi thử trình độ B1 tổng hợp 4 kỹ năng: Đọc hiểu thông báo, Nghe thoại ngắn, Viết thư cá nhân & Bài nói hội thoại.', 180, '90%', 1, '[{"name": "Lesen (Đọc hiểu B1)", "duration": "25 phút", "questionCount": 15}, {"name": "Hören (Nghe hiểu B1)", "duration": "20 phút", "questionCount": 10}, {"name": "Schreiben (Viết thư B1)", "duration": "20 phút", "questionCount": 2}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(5, 'GOETHE-A2-MOCK-01', 'Đề Thi Thử A2 Sơ Cấp - Mô Phỏng Chuẩn Goethe / TELC A2', 'Goethe / TELC A2', 50, 25, 'Bộ đề thi thử A2 chuẩn mực dành cho học viên trình độ sơ cấp: từ vựng đời sống, công sở và giao tiếp thường ngày.', 70, '94%', 1, '[{"name": "Lesen (Đọc hiểu A2)", "duration": "20 phút", "questionCount": 10}, {"name": "Hören (Nghe hiểu A2)", "duration": "15 phút", "questionCount": 10}, {"name": "Schreiben (Viết A2)", "duration": "15 phút", "questionCount": 1}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(6, 'GOETHE-A1-MOCK-01', 'Đề Thi Thử A1 Cho Người Mới Bắt Đầu - Start Deutsch 1', 'Start Deutsch A1', 45, 20, 'Đề thi thử A1 cơ bản Start Deutsch 1 giúp làm quen với các mẫu biểu, điền form, đọc bảng thông báo và viết tin nhắn ngắn.', 60, '96%', 1, '[{"name": "Lesen (Đọc hiểu A1)", "duration": "20 phút", "questionCount": 10}, {"name": "Hören (Nghe hiểu A1)", "duration": "15 phút", "questionCount": 5}, {"name": "Schreiben (Điền Form & Viết tin nhắn A1)", "duration": "10 phút", "questionCount": 2}]', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
 
 -- -------------------------------------------------------------
 -- 5. Table structure for `questions`
