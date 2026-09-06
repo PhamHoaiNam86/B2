@@ -217,7 +217,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
     : defaultDocs;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* 1. TOP HEADER & MAIN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT 8 COLS: Title, Stats Row, Material Cards */}

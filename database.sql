@@ -17,6 +17,8 @@ CREATE TABLE `users` (
   `name` varchar(255) NOT NULL,
   `username` varchar(100) NOT NULL COMMENT 'Tên đăng nhập',
   `email` varchar(255) NOT NULL,
+  `phone` varchar(50) DEFAULT NULL COMMENT 'Số điện thoại',
+  `address` text DEFAULT NULL COMMENT 'Địa chỉ',
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `is_admin` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = Admin (Toàn quyền), 0 = Học viên (Chỉ học)',
@@ -30,12 +32,12 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `users`
-INSERT INTO `users` (`id`, `name`, `username`, `email`, `email_verified_at`, `password`, `is_admin`, `avatar`, `created_at`, `updated_at`) VALUES
-(1, 'Admin TrieuVy', 'admin', 'admin@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 1, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(2, 'Học Viên B2', 'hocvien', 'hocvien@trieuvydeutsch.vn', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(3, 'Nguyễn Minh Huyền', 'minhhuyen', 'huyen.nguyen@gmail.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(4, 'Trần Hoàng Nam', 'hoangnam', 'nam.tran@yahoo.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
-(5, 'Phạm Khánh Linh', 'khanhlinh', 'linh.pham@hotmail.com', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
+INSERT INTO `users` (`id`, `name`, `username`, `email`, `phone`, `address`, `email_verified_at`, `password`, `is_admin`, `avatar`, `created_at`, `updated_at`) VALUES
+(1, 'Admin TrieuVy', 'admin', 'admin@trieuvydeutsch.vn', '0901234567', 'Số 1 Phạm Văn Đồng, Cầu Giấy, Hà Nội', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 1, 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(2, 'Học Viên B2', 'hocvien', 'hocvien@trieuvydeutsch.vn', '0987654321', '123 Đường Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(3, 'Nguyễn Minh Huyền', 'minhhuyen', 'huyen.nguyen@gmail.com', '0912345678', '45 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(4, 'Trần Hoàng Nam', 'hoangnam', 'nam.tran@yahoo.com', '0923456789', '88 Nguyễn Trãi, Thanh Xuân, Hà Nội', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00'),
+(5, 'Phạm Khánh Linh', 'khanhlinh', 'linh.pham@hotmail.com', '0934567890', '15 Trần Phú, Hà Đông, Hà Nội', '2026-09-06 00:00:00', '$2y$12$VVpXqR297AX78wI.20ZuS.NgaBciDtfBr3KonJ/hcZJ9iaGD/CJeO', 0, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', '2026-09-06 00:00:00', '2026-09-06 00:00:00');
 
 -- -------------------------------------------------------------
 -- 2. Table structure for `vocabularies`

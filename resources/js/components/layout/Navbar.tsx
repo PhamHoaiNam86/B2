@@ -55,14 +55,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'Quản Lý Học Viên & Bảng Điểm Thi';
       case 'history':
         return 'Lịch Sử Làm Bài & Bảng Xếp Hạng';
+      case 'profile':
+        return 'Hồ Sơ Cá Nhân Học Viên & Cài Đặt';
       default:
         return 'TRIEUVY DEUTSCH TELC B2 Portal';
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] md:border-l-[2.5px] border-[#111827] px-4 sm:px-6 py-3 shadow-xs">
-      <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+    <header className="sticky top-0 z-30 bg-white border-b-[2.5px] md:border-l-[2.5px] border-[#111827] px-[10px] py-2.5 shadow-xs">
+      <div className="flex items-center justify-between gap-4 w-full">
         {/* Left: Mobile Menu Toggle & Title */}
         <div className="flex items-center gap-3">
           <button

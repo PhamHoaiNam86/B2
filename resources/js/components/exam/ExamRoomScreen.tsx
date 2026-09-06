@@ -48,7 +48,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     <div className="min-h-screen bg-[#fcf9f8] flex flex-col font-sans">
       {/* 1. EXAM ROOM HEADER */}
       <header className="sticky top-0 z-40 bg-[#111827] text-white px-4 sm:px-6 py-3 border-b-4 border-[#2563EB]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="w-full px-[10px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToDashboard}
@@ -93,7 +93,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       </header>
 
       {/* 2. MAIN EXAM CONTENT */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 w-full p-[10px] grid grid-cols-1 lg:grid-cols-12 gap-6">
         {!currentQuestion ? (
           <div className="lg:col-span-8 p-8 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl font-bold text-center text-sm">
             Đang tải dữ liệu câu hỏi từ Database...

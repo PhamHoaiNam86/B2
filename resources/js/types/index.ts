@@ -12,7 +12,8 @@ export type ActiveTab =
   | 'grammar'
   | 'schreiben'
   | 'students'
-  | 'history';
+  | 'history'
+  | 'profile';
 
 export type VocabStatus = 'learning' | 'mastered' | 'reviewing';
 

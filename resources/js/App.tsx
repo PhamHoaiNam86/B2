@@ -20,6 +20,7 @@ import { ToastContainer, ToastMessage } from './components/common/Toast';
 import { NewItemModal } from './components/common/NewItemModal';
 import { LandingPage } from './components/landing/LandingPage';
 import { AuthPage } from './components/auth/AuthPage';
+import { ProfileView } from './components/profile/ProfileView';
 import { AlertTriangle, X } from 'lucide-react';
 
 const getInitialViewState = () => {
@@ -33,7 +34,7 @@ const getInitialViewState = () => {
   const validTabs: ActiveTab[] = [
     'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
-    'results', 'vocab', 'grammar', 'students', 'history'
+    'results', 'vocab', 'grammar', 'students', 'history', 'profile'
   ];
   if (path && validTabs.includes(path as ActiveTab)) {
     return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: path as ActiveTab };
@@ -406,8 +407,8 @@ export default function App() {
           formattedCountdown={formatCountdown(examState.timeRemainingSeconds)}
         />
       ) : (
-        /* STANDARD PORTAL LAYOUT: FIXED SIDEBAR + TOP NAVBAR + MAIN CONTENT */
-        <div className="min-h-screen flex flex-col">
+        /* STANDARD PORTAL LAYOUT: FIXED SIDEBAR (256px) + 7px GAP + TOP NAVBAR + MAIN CONTENT (p-5px) */
+        <div className="min-h-screen flex flex-col bg-[#e2e8f0]">
           {/* Left Sidebar */}
           <Sidebar
             activeTab={activeTab}
@@ -416,10 +417,11 @@ export default function App() {
             onCloseMobile={() => setIsMobileMenuOpen(false)}
             tabSwitchCount={examState.tabSwitchCount}
             currentUser={currentUser}
+            onLogout={() => navigateToAuth('login')}
           />
 
-          {/* Main Wrapper Offset for Desktop Sidebar with 5px gap */}
-          <div className="pl-0 md:pl-[261px] flex-1 flex flex-col min-w-0">
+          {/* Main Wrapper Offset for Desktop Sidebar with exact 12px gap (256px + 12px = 268px) */}
+          <div className="pl-0 md:pl-[268px] flex-1 flex flex-col min-w-0">
             <Navbar
               activeTab={activeTab}
               searchQuery={searchQuery}
@@ -438,8 +440,8 @@ export default function App() {
               onGoToLanding={() => navigateToLanding()}
             />
 
-            {/* Main Workspace */}
-            <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
+            {/* Main Workspace: Full width with 10px padding and left border for 12px visual separation */}
+            <main className="flex-1 p-[10px] w-full bg-white border-l-[2.5px] border-[#111827] shadow-xs">
               {/* TAB 1: DASHBOARD */}
               {activeTab === 'dashboard' && (
                 <DashboardView
@@ -586,6 +588,11 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+              )}
+
+              {/* TAB 9: DEDICATED PROFILE VIEW */}
+              {activeTab === 'profile' && (
+                <ProfileView currentUser={currentUser} onShowToast={showToast} />
               )}
             </main>
           </div>

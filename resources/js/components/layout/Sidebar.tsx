@@ -11,7 +11,8 @@ import {
   History,
   Sparkles,
   X,
-  ShieldCheck,
+  User,
+  LogOut,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,6 +22,7 @@ interface SidebarProps {
   onCloseMobile: () => void;
   tabSwitchCount?: number;
   currentUser?: 'admin' | 'student';
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   tabSwitchCount = 0,
   currentUser = 'admin',
+  onLogout,
 }) => {
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
@@ -124,22 +127,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Bottom Anti-Cheat & System Status Widget */}
-        <div className="p-4 border-t-[2.5px] border-[#1c1b1b] bg-[#fcf9f8] space-y-2">
-          <div className="p-3 bg-white border-2 border-[#1c1b1b] rounded-xl brutal-shadow-sm space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] font-bold">
-              <span className="flex items-center gap-1.5 text-[#0d5225]">
-                <ShieldCheck className="w-4 h-4 text-[#0d5225]" />
-                Giám sát thi TELC
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-black">
-                BẬT
-              </span>
-            </div>
-            <p className="text-[10px] text-[#564145]">
-              Cảnh báo chuyển tab: <b className="text-[#ba1a1a]">{tabSwitchCount} lần</b>
-            </p>
-          </div>
+        {/* Bottom Profile & Logout Action Buttons */}
+        <div className="p-3 border-t-[2.5px] border-[#111827] bg-[#f8fafc] space-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              onSelectTab('profile');
+              onCloseMobile();
+            }}
+            className={`w-full px-3 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center gap-2.5 transition-all cursor-pointer ${
+              activeTab === 'profile'
+                ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs font-black'
+                : 'bg-white text-[#111827] border-[#111827] brutal-shadow-xs hover:bg-[#eff6ff] hover:text-[#2563EB]'
+            }`}
+          >
+            <User className="w-4 h-4 text-[#2563EB] shrink-0" />
+            <span className="font-heading">Hồ Sơ Cá Nhân</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (onLogout) onLogout();
+            }}
+            className="w-full px-3 py-2.5 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl font-bold text-xs flex items-center gap-2.5 brutal-shadow-xs hover:bg-[#ffe4e6] transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4 text-[#e11d48] shrink-0" />
+            <span>Đăng Xuất</span>
+          </button>
         </div>
       </aside>
     </>
