@@ -46,7 +46,7 @@ class ExamController extends Controller
      */
     public function getResults()
     {
-        $results = ExamResult::orderBy('submitted_at', 'desc')->get();
+        $results = ExamResult::orderBy('id', 'desc')->get();
 
         return response()->json([
             'success' => true,

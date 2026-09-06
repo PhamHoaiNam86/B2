@@ -24,6 +24,6 @@ class Student extends Model
     protected $casts = [
         'target_score' => 'float',
         'current_score' => 'float',
-        'target_exam_date' => 'date',
+        'target_exam_date' => 'string',
     ];
 }
