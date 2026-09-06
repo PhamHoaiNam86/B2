@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = isItemActive(item.id, activeTab, createItemType);
-            const href = item.id === 'dashboard' ? '/' : `/${item.id}`;
+            const href = item.id === 'dashboard' ? '/dashboard' : `/${item.id}`;
             const isLockedForStudent = currentUser === 'student' && item.isAdminOnly;
 
             return (
