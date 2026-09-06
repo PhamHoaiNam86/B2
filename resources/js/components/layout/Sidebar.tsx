@@ -25,6 +25,27 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
+const isItemActive = (itemId: ActiveTab, currentTab: ActiveTab) => {
+  if (itemId === currentTab) return true;
+
+  // Sub-views for Exam repository
+  if (itemId === 'exam' && (currentTab === 'exam-detail' || currentTab === 'create-item')) {
+    return true;
+  }
+
+  // Sub-views for Grammar hub
+  if (itemId === 'grammar' && currentTab === 'grammar-lesson') {
+    return true;
+  }
+
+  // Sub-views for Vocabulary bank
+  if (itemId === 'vocab' && (currentTab === 'flashcards' || currentTab === 'create-item')) {
+    return true;
+  }
+
+  return false;
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onSelectTab,
@@ -92,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = isItemActive(item.id, activeTab);
             const href = item.id === 'dashboard' ? '/' : `/${item.id}`;
             const isLockedForStudent = currentUser === 'student' && item.isAdminOnly;
 

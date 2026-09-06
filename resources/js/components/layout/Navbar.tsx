@@ -55,6 +55,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'Lịch Sử Làm Bài & Bảng Xếp Hạng';
       case 'profile':
         return 'Hồ Sơ Cá Nhân Học Viên & Cài Đặt';
+      case 'flashcards':
+        return 'Luyện Thẻ Ghi Nhớ Flashcard 3D';
+      case 'grammar-lesson':
+        return 'Chi Tiết Bài Học & Bài Tập Ngữ Pháp';
+      case 'exam-detail':
+        return 'Chi Tiết & Cấu Trúc Bộ Đề Thi';
+      case 'create-item':
+        return 'Form Tạo Mới & Chỉnh Sửa Dữ Liệu';
       default:
         return 'TRIEUVY DEUTSCH TELC B2 Portal';
     }
