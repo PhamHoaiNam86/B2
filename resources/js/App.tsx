@@ -250,10 +250,7 @@ export default function App() {
         <AuthPage
           initialTab={authInitialTab}
           onBackToHome={() => setViewMode('landing')}
-          onSuccessLogin={(role) => {
-            setCurrentUser(role);
-            setViewMode('app');
-          }}
+          onSuccessLogin={() => setViewMode('app')}
         />
       ) : isExamRoomActive ? (
         /* FULL SCREEN EXAM ROOM MODE */

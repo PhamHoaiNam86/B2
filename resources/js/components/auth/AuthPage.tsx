@@ -4,7 +4,7 @@ import { LogIn, UserPlus, Mail, Lock, User, ShieldCheck, CheckCircle2, ArrowRigh
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
   onBackToHome: () => void;
-  onSuccessLogin: (role: 'admin' | 'student') => void;
+  onSuccessLogin: () => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
@@ -19,12 +19,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'admin' | 'student'>('student');
   const [rememberMe, setRememberMe] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSuccessLogin(role);
+    onSuccessLogin();
   };
 
   return (
@@ -61,14 +60,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </span>
               </div>
             </div>
-
-            <button
-              onClick={onBackToHome}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-xl text-xs font-bold backdrop-blur-md transition-all cursor-pointer flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Về Trang Chủ</span>
-            </button>
           </div>
 
           {/* Middle / Bottom Feature Callout */}
@@ -249,47 +240,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               )}
 
-              {/* User Role Selection */}
-              <div className="space-y-1.5 pt-1">
-                <label className="text-xs font-black text-[#111827] block">Chọn Vai Trò Truy Cập</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label
-                    className={`p-3 border-2 border-[#111827] rounded-xl text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                      role === 'student'
-                        ? 'bg-emerald-100 text-emerald-950 border-emerald-600 brutal-shadow-xs'
-                        : 'bg-[#f8fafc] text-[#4b5563] hover:bg-white'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="roleSelect"
-                      value="student"
-                      checked={role === 'student'}
-                      onChange={() => setRole('student')}
-                      className="sr-only"
-                    />
-                    <span>🎓 Học viên (Chỉ học)</span>
-                  </label>
 
-                  <label
-                    className={`p-3 border-2 border-[#111827] rounded-xl text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                      role === 'admin'
-                        ? 'bg-purple-100 text-purple-950 border-purple-600 brutal-shadow-xs'
-                        : 'bg-[#f8fafc] text-[#4b5563] hover:bg-white'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="roleSelect"
-                      value="admin"
-                      checked={role === 'admin'}
-                      onChange={() => setRole('admin')}
-                      className="sr-only"
-                    />
-                    <span>👑 Admin (Toàn quyền)</span>
-                  </label>
-                </div>
-              </div>
 
               {/* Remember me & Forgot Password (Login mode) */}
               {activeTab === 'login' && (
