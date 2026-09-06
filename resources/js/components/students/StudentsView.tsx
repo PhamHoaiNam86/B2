@@ -1,15 +1,23 @@
 import React from 'react';
 import { Student } from '../../types';
-import { Users, Award, Calendar, Search, Mail, Plus } from 'lucide-react';
+import { Users, Award, Calendar, Search, Mail, Plus, ShieldAlert } from 'lucide-react';
 
 interface StudentsViewProps {
   students: Student[];
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
+  currentUser?: 'admin' | 'student';
 }
 
-export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToast }) => {
+export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToast, currentUser = 'admin' }) => {
   return (
     <div className="space-y-6">
+      {currentUser === 'student' && (
+        <div className="p-4 bg-[#fff8e7] border-2 border-[#1c1b1b] rounded-xl brutal-shadow-sm flex items-center gap-3 text-xs font-bold text-[#3e2723]">
+          <ShieldAlert className="w-5 h-5 text-[#d97706] shrink-0" />
+          <span>Bạn đang ở chế độ <b>Học Viên B2 (Chỉ xem)</b>. Bạn không có quyền Thêm, Sửa hoặc Xóa dữ liệu học viên.</span>
+        </div>
+      )}
+
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="px-2.5 py-0.5 rounded-md bg-[#2563EB]/10 text-[#2563EB] text-xs font-bold border border-[#2563EB]/20">
@@ -23,12 +31,14 @@ export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToas
           </p>
         </div>
 
-        <button
-          onClick={() => onShowToast('Thêm học viên', 'Tính năng thêm học viên mới đã sẵn sàng.', 'info')}
-          className="px-4 py-2.5 bg-[#F97316] text-white rounded-xl text-xs font-bold hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md shadow-orange-500/20"
-        >
-          <Plus className="w-4 h-4" /> Thêm Học Viên Mới
-        </button>
+        {currentUser === 'admin' && (
+          <button
+            onClick={() => onShowToast('Thêm học viên', 'Tính năng thêm học viên mới đã sẵn sàng.', 'info')}
+            className="px-4 py-2.5 bg-[#F97316] text-white rounded-xl text-xs font-bold hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md shadow-orange-500/20"
+          >
+            <Plus className="w-4 h-4" /> Thêm Học Viên Mới
+          </button>
+        )}
       </div>
 
       {/* Table */}

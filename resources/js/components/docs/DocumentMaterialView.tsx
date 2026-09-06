@@ -13,9 +13,10 @@ interface ChatMessage {
 interface DocumentMaterialViewProps {
   type: 'b2' | 'schreiben' | 'sprechen';
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
+  currentUser?: 'admin' | 'student';
 }
 
-export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type, onShowToast }) => {
+export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type, onShowToast, currentUser = 'admin' }) => {
   // Leaderboard state
   const [lbTab, setLbTab] = useState<'exp' | 'streak' | 'done'>('exp');
   const [lbFilter, setLbFilter] = useState<'all' | 'week' | 'month'>('all');

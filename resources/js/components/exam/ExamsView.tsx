@@ -9,6 +9,7 @@ interface ExamsViewProps {
   onStartExam: (exam: ExamModel) => void;
   onOpenNewExamModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
+  currentUser?: 'admin' | 'student';
 }
 
 export const ExamsView: React.FC<ExamsViewProps> = ({
@@ -18,6 +19,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onStartExam,
   onOpenNewExamModal,
   onShowToast,
+  currentUser = 'admin',
 }) => {
   return (
     <div className="space-y-6">
@@ -34,12 +36,18 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenNewExamModal}
-          className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Tạo Đề Thi Mới
-        </button>
+        {currentUser === 'admin' ? (
+          <button
+            onClick={onOpenNewExamModal}
+            className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Tạo Đề Thi Mới
+          </button>
+        ) : (
+          <div className="px-3.5 py-2 bg-slate-100 border-2 border-[#111827] rounded-xl text-xs font-bold text-slate-600 flex items-center gap-1.5 shrink-0">
+            <span>🔒 Quyền Học viên: Chỉ làm bài & xem đáp án</span>
+          </div>
+        )}
       </div>
 
       {/* Grid */}

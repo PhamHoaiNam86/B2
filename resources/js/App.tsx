@@ -254,6 +254,7 @@ export default function App() {
             isOpenMobile={isMobileMenuOpen}
             onCloseMobile={() => setIsMobileMenuOpen(false)}
             tabSwitchCount={examState.tabSwitchCount}
+            currentUser={currentUser}
           />
 
           {/* Main Wrapper Offset for Desktop Sidebar with 5px gap */}
@@ -268,7 +269,7 @@ export default function App() {
                 setCurrentUser(nextRole);
                 showToast(
                   'Chuyển đổi giao diện',
-                  `Đã chuyển sang chế độ ${nextRole === 'admin' ? 'Giáo viên / Admin' : 'Học viên B2'}.`,
+                  `Đã chuyển sang chế độ ${nextRole === 'admin' ? 'Giáo viên / Admin (Toàn quyền)' : 'Học viên B2 (Chỉ học)'}.`,
                   'info'
                 );
               }}
@@ -300,6 +301,7 @@ export default function App() {
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 
@@ -311,6 +313,7 @@ export default function App() {
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 
@@ -322,6 +325,7 @@ export default function App() {
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 
@@ -333,22 +337,23 @@ export default function App() {
                   onStartExam={() => handleStartExamRoom()}
                   onOpenNewExamModal={() => setNewItemModal({ isOpen: true, type: 'exam' })}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 
               {/* THƯ VIỆN TÀI LIỆU B2 */}
               {activeTab === 'docs-b2' && (
-                <DocumentMaterialView type="b2" onShowToast={showToast} />
+                <DocumentMaterialView type="b2" onShowToast={showToast} currentUser={currentUser} />
               )}
 
               {/* TÀI LIỆU SCHREIBEN */}
               {activeTab === 'docs-schreiben' && (
-                <DocumentMaterialView type="schreiben" onShowToast={showToast} />
+                <DocumentMaterialView type="schreiben" onShowToast={showToast} currentUser={currentUser} />
               )}
 
               {/* TÀI LIỆU SPRECHEN */}
               {activeTab === 'docs-sprechen' && (
-                <DocumentMaterialView type="sprechen" onShowToast={showToast} />
+                <DocumentMaterialView type="sprechen" onShowToast={showToast} currentUser={currentUser} />
               )}
 
               {/* TAB 3: EXAM RESULTS */}
@@ -369,6 +374,7 @@ export default function App() {
                   onOpenAddModal={() => setNewItemModal({ isOpen: true, type: 'vocab' })}
                   onOpenFlashcardModal={() => setIsFlashcardModalOpen(true)}
                   onShowToast={showToast}
+                  currentUser={currentUser}
                 />
               )}
 
@@ -396,7 +402,7 @@ export default function App() {
 
               {/* TAB 7: STUDENT MANAGEMENT */}
               {activeTab === 'students' && (
-                <StudentsView students={students} onShowToast={showToast} />
+                <StudentsView students={students} onShowToast={showToast} currentUser={currentUser} />
               )}
 
               {/* TAB 8: HISTORY & LEADERBOARDS */}

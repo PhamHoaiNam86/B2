@@ -20,6 +20,7 @@ interface SidebarProps {
   isOpenMobile: boolean;
   onCloseMobile: () => void;
   tabSwitchCount?: number;
+  currentUser?: 'admin' | 'student';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile,
   onCloseMobile,
   tabSwitchCount = 0,
+  currentUser = 'admin',
 }) => {
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
@@ -41,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'results' as ActiveTab, label: 'Kết quả & Bằng', icon: Award },
     { id: 'vocab' as ActiveTab, label: 'Kho Từ vựng', icon: BookOpen },
     { id: 'grammar' as ActiveTab, label: 'Ngữ pháp', icon: Brain },
-    { id: 'students' as ActiveTab, label: 'Quản lý Học viên', icon: Users },
+    { id: 'students' as ActiveTab, label: 'Quản lý Học viên', icon: Users, isAdminOnly: true },
     { id: 'history' as ActiveTab, label: 'Lịch sử & Bảng điểm', icon: History },
   ];
 
@@ -89,6 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             const href = item.id === 'dashboard' ? '/' : `/${item.id}`;
+            const isLockedForStudent = currentUser === 'student' && item.isAdminOnly;
 
             return (
               <a
@@ -99,16 +102,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSelectTab(item.id);
                   onCloseMobile();
                 }}
-                className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-start transition-all cursor-pointer ${
+                className={`w-full px-3.5 py-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-between transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-sm font-black'
+                    : isLockedForStudent
+                    ? 'bg-slate-50 text-slate-400 border-transparent hover:border-slate-300'
                     : 'bg-transparent text-[#111827] border-transparent hover:border-[#111827] hover:bg-[#f8fafc]'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#4b5563]'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLockedForStudent ? 'text-slate-400' : 'text-[#4b5563]'}`} />
                   <span>{item.label}</span>
                 </div>
+                {isLockedForStudent && (
+                  <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+                    🔒 Admin
+                  </span>
+                )}
               </a>
             );
           })}

@@ -9,6 +9,7 @@ interface VocabViewProps {
   onOpenAddModal: () => void;
   onOpenFlashcardModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
+  currentUser?: 'admin' | 'student';
 }
 
 export const VocabView: React.FC<VocabViewProps> = ({
@@ -18,6 +19,7 @@ export const VocabView: React.FC<VocabViewProps> = ({
   onOpenAddModal,
   onOpenFlashcardModal,
   onShowToast,
+  currentUser = 'admin',
 }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
@@ -55,12 +57,14 @@ export const VocabView: React.FC<VocabViewProps> = ({
           >
             <Sparkles className="w-4 h-4" /> Lật Thẻ Flashcard 3D
           </button>
-          <button
-            onClick={onOpenAddModal}
-            className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" /> Thêm Từ Mới
-          </button>
+          {currentUser === 'admin' && (
+            <button
+              onClick={onOpenAddModal}
+              className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" /> Thêm Từ Mới
+            </button>
+          )}
         </div>
       </div>
 
