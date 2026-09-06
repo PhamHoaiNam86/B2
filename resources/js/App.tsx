@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem } from './types';
-import {
-  INITIAL_EXAM_STATE,
-  INITIAL_VOCABS,
-  GRAMMAR_TOPICS,
-  EXAM_MODELS,
-  RECENT_STUDENTS,
-  LIVE_EXAM_FEED,
-} from './data/mockData';
+import { INITIAL_EXAM_STATE } from './data/mockData';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -120,11 +113,11 @@ export default function App() {
   };
 
   // Core Data States (Dynamic DB Data from Laravel Backend API)
-  const [vocabs, setVocabs] = useState<VocabItem[]>(INITIAL_VOCABS);
-  const [grammarTopics, setGrammarTopics] = useState<GrammarTopic[]>(GRAMMAR_TOPICS);
-  const [exams, setExams] = useState<ExamModel[]>(EXAM_MODELS);
-  const [students, setStudents] = useState<Student[]>(RECENT_STUDENTS);
-  const [liveFeed, setLiveFeed] = useState<ExamFeedItem[]>(LIVE_EXAM_FEED);
+  const [vocabs, setVocabs] = useState<VocabItem[]>([]);
+  const [grammarTopics, setGrammarTopics] = useState<GrammarTopic[]>([]);
+  const [exams, setExams] = useState<ExamModel[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [liveFeed, setLiveFeed] = useState<ExamFeedItem[]>([]);
 
   // Fetch real data from Laravel MySQL / SQLite Database API
   useEffect(() => {
@@ -132,7 +125,7 @@ export default function App() {
     fetch('/api/v1/exams')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mappedExams: ExamModel[] = res.data.map((item: any) => ({
             id: String(item.id || item.exam_code),
             name: item.name || item.title,
@@ -159,7 +152,7 @@ export default function App() {
     fetch('/api/v1/vocabs')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mappedVocabs: VocabItem[] = res.data.map((item: any) => ({
             id: String(item.id || item.vocab_id),
             word: item.word,
@@ -183,7 +176,7 @@ export default function App() {
     fetch('/api/v1/grammar')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mappedGrammar: GrammarTopic[] = res.data.map((item: any) => ({
             id: String(item.id || item.topic_id),
             title: item.title,
@@ -207,7 +200,7 @@ export default function App() {
     fetch('/api/v1/students')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mappedStudents: Student[] = res.data.map((item: any) => ({
             id: String(item.id || item.student_id),
             name: item.name,
@@ -228,7 +221,7 @@ export default function App() {
     fetch('/api/v1/results')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mappedFeed: ExamFeedItem[] = res.data.map((item: any) => ({
             id: String(item.id || item.result_id),
             studentName: item.student_name,

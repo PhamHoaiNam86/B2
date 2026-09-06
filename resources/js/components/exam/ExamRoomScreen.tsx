@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserExamState } from '../../types';
-import { SAMPLE_QUESTIONS } from '../../data/mockData';
+import { UserExamState, Question } from '../../types';
 import { ShieldAlert, ArrowLeft, ArrowRight, CheckCircle2, Clock, FileText, AlertTriangle, Send } from 'lucide-react';
 
 interface ExamRoomScreenProps {
@@ -18,7 +17,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   onBackToDashboard,
   formattedCountdown,
 }) => {
-  const [questions, setQuestions] = useState(SAMPLE_QUESTIONS);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
   const [draftNote, setDraftNote] = useState<string>('');
 
@@ -26,7 +25,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     fetch(`/api/v1/questions/${examState.examCode}`)
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           const mapped = res.data.map((q: any) => ({
             id: q.question_number || q.id,
             section: q.section,
@@ -34,6 +33,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             title: q.title,
             contextText: q.context_text || '',
             options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
+            correctOptionId: q.correct_option_id || 'A',
           }));
           setQuestions(mapped);
         }
@@ -41,7 +41,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       .catch(() => {});
   }, [examState.examCode]);
 
-  const currentQuestion = questions.find((q) => q.id === activeQuestionId) || questions[0] || SAMPLE_QUESTIONS[0];
+  const currentQuestion = questions.find((q) => q.id === activeQuestionId) || questions[0];
   const answeredCount = Object.keys(examState.answers).length;
 
   return (
@@ -94,22 +94,27 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
       {/* 2. MAIN EXAM CONTENT */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT 8 COLS: Context & Question Panel */}
-        <div className="lg:col-span-8 space-y-5">
-          {/* Question Banner */}
-          <div className="p-4 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow flex items-center justify-between">
-            <div>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-xs font-black border border-[#1c1b1b]">
-                {currentQuestion.section} - {currentQuestion.subSection}
-              </span>
-              <h3 className="text-lg font-black text-[#1c1b1b] mt-1">
-                {currentQuestion.title}
-              </h3>
-            </div>
-            <span className="text-xs font-bold text-[#564145]">
-              {activeQuestionId} / {questions.length}
-            </span>
+        {!currentQuestion ? (
+          <div className="lg:col-span-8 p-8 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl font-bold text-center text-sm">
+            Đang tải dữ liệu câu hỏi từ Database...
           </div>
+        ) : (
+          /* LEFT 8 COLS: Context & Question Panel */
+          <div className="lg:col-span-8 space-y-5">
+            {/* Question Banner */}
+            <div className="p-4 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow flex items-center justify-between">
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-xs font-black border border-[#1c1b1b]">
+                  {currentQuestion.section} - {currentQuestion.subSection}
+                </span>
+                <h3 className="text-lg font-black text-[#1c1b1b] mt-1">
+                  {currentQuestion.title}
+                </h3>
+              </div>
+              <span className="text-xs font-bold text-[#564145]">
+                {activeQuestionId} / {questions.length}
+              </span>
+            </div>
 
           {/* Context Text Box */}
           {currentQuestion.contextText && (
@@ -152,14 +157,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               <ArrowLeft className="w-4 h-4" /> Câu trước
             </button>
             <button
-              disabled={activeQuestionId === SAMPLE_QUESTIONS.length}
-              onClick={() => setActiveQuestionId((prev) => Math.min(SAMPLE_QUESTIONS.length, prev + 1))}
+              disabled={activeQuestionId === questions.length}
+              onClick={() => setActiveQuestionId((prev) => Math.min(questions.length, prev + 1))}
               className="px-4 py-2 bg-[#1c1b1b] text-white border-2 border-[#1c1b1b] rounded-xl text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1"
             >
               Câu tiếp theo <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
+        )}
 
         {/* RIGHT 4 COLS: Question Grid & Scratchpad */}
         <div className="lg:col-span-4 space-y-5">
@@ -167,7 +173,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
           <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-[#1c1b1b] font-heading">
-                Danh Sách Câu Hỏi ({answeredCount}/{SAMPLE_QUESTIONS.length})
+                Danh Sách Câu Hỏi ({answeredCount}/{questions.length})
               </h3>
               <span className="text-[10px] font-bold text-[#0d5225] bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
                 Đã trả lời {answeredCount}
@@ -175,7 +181,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             </div>
 
             <div className="grid grid-cols-5 gap-2">
-              {SAMPLE_QUESTIONS.map((q) => {
+              {questions.map((q) => {
                 const isAnswered = Boolean(examState.answers[q.id]);
                 const isCurrent = q.id === activeQuestionId;
 
