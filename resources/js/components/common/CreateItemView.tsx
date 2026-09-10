@@ -729,76 +729,17 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                     </div>
                   </div>
 
-                  {/* DETAILED EXPLANATION & ANALYSIS (RICH TEXT / CKEDITOR STYLE) */}
-                  <div className="pt-3 border-t-2 border-[#111827]/10 space-y-2 mt-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                      <label className="text-xs font-black text-[#111827] flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#F97316]" />
-                        <span>Giải Thích Chi Tiết & Phân Tích Đáp Án (CKEditor Style):</span>
-                      </label>
-                      <span className="text-[10px] text-[#4b5563] font-bold">Nhập văn bản dài, lý thuyết & ví dụ minh họa</span>
-                    </div>
-
-                    {/* CKEditor Quick Formatting Toolbar */}
-                    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white border-2 border-[#111827] rounded-t-xl border-b-0 text-xs font-bold brutal-shadow-xs">
-                      <span className="text-[10px] uppercase font-black text-[#6b7280] mr-1">Thanh công cụ:</span>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '💡 **Giải thích đáp án:** ')}
-                        className="px-2.5 py-1 bg-[#f8fafc] hover:bg-[#2563EB] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer"
-                        title="Thêm nhãn Giải thích"
-                      >
-                        💡 Giải thích
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '⚠️ **Bẫy đề thi B2:** ')}
-                        className="px-2.5 py-1 bg-[#fff7ed] hover:bg-[#F97316] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer text-[#c2410c]"
-                        title="Thêm Bẫy đề thi B2"
-                      >
-                        ⚠️ Bẫy đề thi
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '📌 **Quy tắc ngữ pháp:** ')}
-                        className="px-2.5 py-1 bg-[#eff6ff] hover:bg-[#2563EB] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer text-[#1e40af]"
-                        title="Thêm Quy tắc ngữ pháp"
-                      >
-                        📌 Quy tắc
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '🇩🇪 **Ví dụ minh họa:** ')}
-                        className="px-2.5 py-1 bg-[#ecfdf5] hover:bg-[#059669] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer text-[#047857]"
-                        title="Thêm Ví dụ tiếng Đức"
-                      >
-                        🇩🇪 Ví dụ B2
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '**[In đậm]**')}
-                        className="px-2 py-1 bg-[#f1f5f9] hover:bg-[#111827] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer"
-                        title="In đậm văn bản"
-                      >
-                        <b>B</b>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleInsertSnippet(q.id, '*[In nghiêng]*')}
-                        className="px-2 py-1 bg-[#f1f5f9] hover:bg-[#111827] hover:text-white border border-[#111827] rounded-lg text-[11px] font-black transition-all cursor-pointer italic"
-                        title="In nghiêng văn bản"
-                      >
-                        <i>I</i>
-                      </button>
-                    </div>
-
-                    {/* Rich Text Area */}
+                  {/* DETAILED EXPLANATION SECTION */}
+                  <div className="pt-3 border-t-2 border-[#111827]/10 space-y-1.5 mt-3">
+                    <label className="block text-xs font-black text-[#111827]">
+                      Giải Thích Chi Tiết Đáp Án
+                    </label>
                     <textarea
-                      rows={4}
+                      rows={3}
                       value={q.explanation || ''}
                       onChange={(e) => handleExplanationChange(q.id, e.target.value)}
-                      placeholder="Nhập nội dung giải thích chi tiết đáp án đúng, phân tích ngữ cảnh, từ vựng và các bẫy đề thi trong câu hỏi này (Có thể nhập đoạn văn bản dài)..."
-                      className="w-full p-3 bg-white border-2 border-[#111827] rounded-b-xl text-xs font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      placeholder="Nhập nội dung giải thích chi tiết đáp án đúng cho câu hỏi này..."
+                      className="w-full p-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                     />
                   </div>
                 </div>
