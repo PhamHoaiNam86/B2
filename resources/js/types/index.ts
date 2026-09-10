@@ -62,6 +62,7 @@ export interface ExamModel {
   sections: Array<{ name: string; questionCount: number; duration: string }>;
   targetScore: number;
   passRate: string;
+  questions?: any[];
 }
 
 export interface Student {
