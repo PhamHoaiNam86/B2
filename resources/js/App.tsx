@@ -23,22 +23,31 @@ import { ProfileView } from './components/profile/ProfileView';
 import { AlertTriangle, X } from 'lucide-react';
 
 const getInitialViewState = () => {
-  const path = window.location.pathname.replace(/^\//, '').toLowerCase();
-  if (path === 'login') {
+  const rawPath = window.location.pathname.split('?')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+  if (rawPath === 'login') {
     return { viewMode: 'auth' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
   }
-  if (path === 'register') {
+  if (rawPath === 'register') {
     return { viewMode: 'auth' as const, authInitialTab: 'register' as const, activeTab: 'dashboard' as ActiveTab };
   }
+
   const validTabs: ActiveTab[] = [
     'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
     'results', 'vocab', 'grammar', 'schreiben', 'students', 'history', 'profile',
     'flashcards', 'grammar-lesson', 'exam-detail', 'create-item'
   ];
-  if (path && validTabs.includes(path as ActiveTab)) {
-    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: path as ActiveTab };
+
+  if (rawPath && validTabs.includes(rawPath as ActiveTab)) {
+    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: rawPath as ActiveTab };
   }
+
+  if (isLoggedIn) {
+    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
+  }
+
   return { viewMode: 'landing' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
 };
 
@@ -50,6 +59,11 @@ export default function App() {
   const [showWelcomePopup, setShowWelcomePopup] = useState<boolean>(initialState.viewMode === 'app');
 
   const navigateToLanding = () => {
+    localStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('selectedExam');
+    sessionStorage.removeItem('selectedGrammarTopic');
+    sessionStorage.removeItem('editingItem');
+    sessionStorage.removeItem('createItemType');
     setViewMode('landing');
     setShowWelcomePopup(false);
     if (window.location.pathname !== '/') {
@@ -254,11 +268,70 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Selected Data States for Page Views
-  const [selectedGrammarTopic, setSelectedGrammarTopic] = useState<GrammarTopic | null>(null);
-  const [selectedExam, setSelectedExam] = useState<ExamModel | null>(null);
-  const [editingItem, setEditingItem] = useState<any | null>(null);
-  const [createItemType, setCreateItemType] = useState<'vocab' | 'exam' | 'grammar'>('vocab');
+  // Selected Data States for Page Views (persisted in sessionStorage across browser reloads)
+  const [selectedGrammarTopic, setSelectedGrammarTopicState] = useState<GrammarTopic | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('selectedGrammarTopic');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const setSelectedGrammarTopic = (topic: GrammarTopic | null) => {
+    if (topic) {
+      sessionStorage.setItem('selectedGrammarTopic', JSON.stringify(topic));
+    } else {
+      sessionStorage.removeItem('selectedGrammarTopic');
+    }
+    setSelectedGrammarTopicState(topic);
+  };
+
+  const [selectedExam, setSelectedExamState] = useState<ExamModel | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('selectedExam');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const setSelectedExam = (exam: ExamModel | null) => {
+    if (exam) {
+      sessionStorage.setItem('selectedExam', JSON.stringify(exam));
+    } else {
+      sessionStorage.removeItem('selectedExam');
+    }
+    setSelectedExamState(exam);
+  };
+
+  const [editingItem, setEditingItemState] = useState<any | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('editingItem');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const setEditingItem = (item: any | null) => {
+    if (item) {
+      sessionStorage.setItem('editingItem', JSON.stringify(item));
+    } else {
+      sessionStorage.removeItem('editingItem');
+    }
+    setEditingItemState(item);
+  };
+
+  const [createItemType, setCreateItemTypeState] = useState<'vocab' | 'exam' | 'grammar'>(() => {
+    const saved = sessionStorage.getItem('createItemType');
+    return saved === 'vocab' || saved === 'exam' || saved === 'grammar' ? saved : 'vocab';
+  });
+
+  const setCreateItemType = (type: 'vocab' | 'exam' | 'grammar') => {
+    sessionStorage.setItem('createItemType', type);
+    setCreateItemTypeState(type);
+  };
 
   // Anti-cheat tab switch monitoring
   useEffect(() => {
@@ -433,6 +506,7 @@ export default function App() {
           onBackToHome={() => navigateToLanding()}
           onSuccessLogin={(role) => {
             handleSetCurrentUser(role);
+            localStorage.setItem('isLoggedIn', 'true');
             navigateToApp('dashboard');
             showToast(
               'Đăng nhập thành công',
@@ -680,22 +754,72 @@ export default function App() {
               )}
 
               {/* PAGE VIEW: TRANG BÀI HỌC NGỮ PHÁP CHI TIẾT */}
-              {activeTab === 'grammar-lesson' && selectedGrammarTopic && (
-                <GrammarLessonView
-                  topic={selectedGrammarTopic}
-                  onBack={() => setActiveTab('grammar')}
-                  onCompleteTopic={handleCompleteGrammarTopic}
-                />
+              {activeTab === 'grammar-lesson' && (
+                selectedGrammarTopic ? (
+                  <GrammarLessonView
+                    topic={selectedGrammarTopic}
+                    onBack={() => setActiveTab('grammar')}
+                    onCompleteTopic={handleCompleteGrammarTopic}
+                  />
+                ) : (
+                  <GrammarView
+                    topics={grammarTopics}
+                    onSelectTopic={(topic) => {
+                      setSelectedGrammarTopic(topic);
+                      setActiveTab('grammar-lesson');
+                    }}
+                    onAddNewTopic={() => {
+                      setEditingItem(null);
+                      setCreateItemType('grammar');
+                      setActiveTab('create-item');
+                    }}
+                    onEditTopic={(topic) => {
+                      setEditingItem(topic);
+                      setCreateItemType('grammar');
+                      setActiveTab('create-item');
+                    }}
+                    onDeleteTopic={handleDeleteGrammar}
+                    onOpenDiagnosticTest={() => handleStartExamRoom()}
+                    onOpenTrapQuiz={() => handleStartExamRoom()}
+                    onShowToast={showToast}
+                    currentUser={currentUser}
+                  />
+                )
               )}
 
               {/* PAGE VIEW: TRANG CHI TIẾT BỘ ĐỀ THI */}
-              {activeTab === 'exam-detail' && selectedExam && (
-                <ExamDetailView
-                  exam={selectedExam}
-                  onBack={() => setActiveTab('exam')}
-                  onStartExam={handleStartExamRoom}
-                  onShowToast={showToast}
-                />
+              {activeTab === 'exam-detail' && (
+                selectedExam ? (
+                  <ExamDetailView
+                    exam={selectedExam}
+                    onBack={() => setActiveTab('exam')}
+                    onStartExam={handleStartExamRoom}
+                    onShowToast={showToast}
+                  />
+                ) : (
+                  <ExamsView
+                    exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
+                    levelLabel="B2"
+                    onSelectExam={(exam) => {
+                      setSelectedExam(exam);
+                      setActiveTab('exam-detail');
+                    }}
+                    onStartExam={() => handleStartExamRoom()}
+                    onOpenNewExamModal={() => {
+                      setEditingItem(null);
+                      setCreateItemType('exam');
+                      setActiveTab('create-item');
+                    }}
+                    onEditExam={(exam) => {
+                      setEditingItem(exam);
+                      setCreateItemType('exam');
+                      setActiveTab('create-item');
+                    }}
+                    onDeleteExam={handleDeleteExam}
+                    onShowToast={showToast}
+                    currentUser={currentUser}
+                  />
+                )
               )}
 
               {/* PAGE VIEW: TRANG THÊM MỚI & CHỈNH SỬA TỪ VỰNG / ĐỀ THI / NGỮ PHÁP */}
