@@ -98,4 +98,127 @@ class ExamController extends Controller
             'data' => $result,
         ]);
     }
+
+    /**
+     * Store a newly created exam and its questions in SQL DB.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'exam_code' => 'required|string',
+            'name' => 'required|string',
+            'level' => 'nullable|string',
+            'duration_minutes' => 'nullable|integer',
+            'description' => 'nullable|string',
+            'total_questions' => 'nullable|integer',
+            'questions' => 'nullable|array',
+        ]);
+
+        $exam = Exam::create([
+            'exam_code' => $validated['exam_code'],
+            'title' => $validated['name'],
+            'level' => $validated['level'] ?? 'TELC B2',
+            'duration_minutes' => $validated['duration_minutes'] ?? 90,
+            'description' => $validated['description'] ?? '',
+            'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+            'total_score' => 300,
+            'is_active' => true,
+        ]);
+
+        if (! empty($validated['questions'])) {
+            foreach ($validated['questions'] as $index => $q) {
+                $options = isset($q['options']) ? array_map(function ($opt) {
+                    return [
+                        'id' => $opt['id'] ?? Str::random(4),
+                        'text' => $opt['text'] ?? '',
+                        'isCorrect' => ! empty($opt['isCorrect']),
+                    ];
+                }, $q['options']) : [];
+
+                $correctOpt = null;
+                foreach ($options as $opt) {
+                    if (! empty($opt['isCorrect'])) {
+                        $correctOpt = $opt['id'];
+                        break;
+                    }
+                }
+
+                Question::create([
+                    'exam_code' => $exam->exam_code,
+                    'section' => $q['section'] ?? 'Leseverstehen',
+                    'sub_section' => $q['subSection'] ?? 'Teil 1',
+                    'question_number' => $index + 1,
+                    'title' => $q['title'] ?? $q['questionText'] ?? ('Câu '.($index + 1)),
+                    'context_text' => $q['contextText'] ?? null,
+                    'options_json' => $options,
+                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? 'a'),
+                    'explanation' => $q['explanation'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tạo bộ đề thi thành công trong CSDL!',
+            'data' => $exam,
+        ]);
+    }
+
+    /**
+     * Update an existing exam in SQL DB.
+     */
+    public function update(Request $request, $id)
+    {
+        $exam = Exam::where('id', $id)->orWhere('exam_code', $id)->firstOrFail();
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string',
+            'level' => 'nullable|string',
+            'duration_minutes' => 'nullable|integer',
+            'description' => 'nullable|string',
+            'total_questions' => 'nullable|integer',
+        ]);
+
+        if (isset($validated['name'])) {
+            $exam->title = $validated['name'];
+        }
+        if (isset($validated['level'])) {
+            $exam->level = $validated['level'];
+        }
+        if (isset($validated['duration_minutes'])) {
+            $exam->duration_minutes = $validated['duration_minutes'];
+        }
+        if (isset($validated['description'])) {
+            $exam->description = $validated['description'];
+        }
+        if (isset($validated['total_questions'])) {
+            $exam->total_questions = $validated['total_questions'];
+        }
+
+        $exam->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật đề thi thành công!',
+            'data' => $exam,
+        ]);
+    }
+
+    /**
+     * Delete an exam and its questions from SQL DB.
+     */
+    public function destroy($id)
+    {
+        $exam = Exam::where('id', $id)->orWhere('exam_code', $id)->first();
+
+        if ($exam) {
+            Question::where('exam_code', $exam->exam_code)->delete();
+            $exam->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa bộ đề thi khỏi CSDL SQL!',
+        ]);
+    }
 }

@@ -66,4 +66,43 @@ class VocabController extends Controller
             'data' => $vocab,
         ]);
     }
+
+    public function update(Request $request, $id)
+    {
+        $vocab = Vocabulary::where('id', $id)->orWhere('vocab_id', $id)->firstOrFail();
+
+        $validated = $request->validate([
+            'word' => 'sometimes|required|string',
+            'article' => 'nullable|string',
+            'plural' => 'nullable|string',
+            'pos' => 'sometimes|required|string',
+            'phonetic' => 'nullable|string',
+            'meaning_vi' => 'sometimes|required|string',
+            'example_de' => 'sometimes|required|string',
+            'example_vi' => 'sometimes|required|string',
+            'topic' => 'sometimes|required|string',
+            'status' => 'nullable|string',
+        ]);
+
+        $vocab->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật từ vựng thành công!',
+            'data' => $vocab,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $vocab = Vocabulary::where('id', $id)->orWhere('vocab_id', $id)->first();
+        if ($vocab) {
+            $vocab->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa từ vựng khỏi CSDL!',
+        ]);
+    }
 }

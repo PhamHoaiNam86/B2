@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\GrammarTopic;
+use App\Models\Question;
 use App\Models\Student;
 use App\Models\Vocabulary;
 use Illuminate\Database\Seeder;
@@ -16,62 +17,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Seed Exams
+        // 1. Seed Exams (Start empty as requested by admin)
         Exam::truncate();
-        Exam::create([
-            'exam_code' => 'TELC-B2-MOCK-01',
-            'title' => 'Đề Thi Thử TELC B2 Tổng Hợp - Mô Phỏng Chuẩn Quốc Tế',
-            'duration_minutes' => 90,
-            'level' => 'TELC B2',
-            'description' => 'Bộ đề thi thử đầy đủ 4 kỹ năng: Đọc, Nghe, Viết, Nói với đếm ngược thời gian thực và tự động phát hiện chuyển tab gian lận.',
-            'total_questions' => 45,
-            'total_score' => 300,
-            'is_active' => true,
-        ]);
-
-        Exam::create([
-            'exam_code' => 'TELC-B2-READING-ONLY',
-            'title' => 'Chuyên Đề Luyện Đọc B2 - Leseverstehen & Sprachbausteine',
-            'duration_minutes' => 45,
-            'level' => 'TELC B2',
-            'description' => 'Luyện tập chuyên sâu phần đọc hiểu 3 phần và ngữ pháp điền từ Sprachbausteine 1 & 2.',
-            'total_questions' => 30,
-            'total_score' => 75,
-            'is_active' => true,
-        ]);
-
-        Exam::create([
-            'exam_code' => 'GOETHE-B1-MOCK-01',
-            'title' => 'Đề Thi Thử B1 Tổng Hợp - Mô Phỏng Chuẩn Goethe / TELC B1',
-            'duration_minutes' => 65,
-            'level' => 'Goethe / TELC B1',
-            'description' => 'Đề thi thử trình độ B1 tổng hợp 4 kỹ năng: Đọc hiểu thông báo, Nghe thoại ngắn, Viết thư cá nhân & Bài nói hội thoại.',
-            'total_questions' => 35,
-            'total_score' => 240,
-            'is_active' => true,
-        ]);
-
-        Exam::create([
-            'exam_code' => 'GOETHE-A2-MOCK-01',
-            'title' => 'Đề Thi Thử A2 Sơ Cấp - Mô Phỏng Chuẩn Goethe / TELC A2',
-            'duration_minutes' => 50,
-            'level' => 'Goethe / TELC A2',
-            'description' => 'Bộ đề thi thử A2 chuẩn mực dành cho học viên trình độ sơ cấp: từ vựng đời sống, công sở và giao tiếp thường ngày.',
-            'total_questions' => 25,
-            'total_score' => 100,
-            'is_active' => true,
-        ]);
-
-        Exam::create([
-            'exam_code' => 'GOETHE-A1-MOCK-01',
-            'title' => 'Đề Thi Thử A1 Cho Người Mới Bắt Đầu - Start Deutsch 1',
-            'duration_minutes' => 45,
-            'level' => 'Start Deutsch A1',
-            'description' => 'Đề thi thử A1 cơ bản Start Deutsch 1 giúp làm quen với các mẫu biểu, điền form, đọc bảng thông báo và viết tin nhắn ngắn.',
-            'total_questions' => 20,
-            'total_score' => 100,
-            'is_active' => true,
-        ]);
+        Question::truncate();
 
         // 2. Seed Vocabularies
         Vocabulary::truncate();

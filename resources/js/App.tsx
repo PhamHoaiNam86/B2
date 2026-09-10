@@ -392,42 +392,187 @@ export default function App() {
     );
   };
 
+  // Handlers for Vocabs (Persisted to SQL DB)
   const handleAddVocab = (newVocab: VocabItem) => {
     setVocabs((prev) => [newVocab, ...prev]);
+    fetch('/api/v1/vocabs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        word: newVocab.word,
+        article: newVocab.article,
+        plural: newVocab.plural,
+        pos: newVocab.pos,
+        phonetic: newVocab.phonetic,
+        meaning_vi: newVocab.meaningVi,
+        example_de: newVocab.exampleDe,
+        example_vi: newVocab.exampleVi,
+        topic: newVocab.topic,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const created: VocabItem = {
+            id: String(res.data.id || res.data.vocab_id),
+            word: res.data.word,
+            article: res.data.article || '',
+            plural: res.data.plural || '',
+            pos: res.data.pos || 'Nomen',
+            phonetic: res.data.phonetic || '',
+            meaningVi: res.data.meaning_vi,
+            exampleDe: res.data.example_de || '',
+            exampleVi: res.data.example_vi || '',
+            topic: res.data.topic || 'Arbeit & Beruf',
+            status: res.data.status || 'learning',
+            isFavorite: Boolean(res.data.is_favorite),
+          };
+          setVocabs((prev) => prev.map((v) => (v.id === newVocab.id ? created : v)));
+        }
+      })
+      .catch(() => {});
   };
 
   const handleUpdateVocab = (updatedVocab: VocabItem) => {
     setVocabs((prev) => prev.map((v) => (v.id === updatedVocab.id ? updatedVocab : v)));
+    fetch(`/api/v1/vocabs/${updatedVocab.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        word: updatedVocab.word,
+        article: updatedVocab.article,
+        plural: updatedVocab.plural,
+        pos: updatedVocab.pos,
+        phonetic: updatedVocab.phonetic,
+        meaning_vi: updatedVocab.meaningVi,
+        example_de: updatedVocab.exampleDe,
+        example_vi: updatedVocab.exampleVi,
+        topic: updatedVocab.topic,
+      }),
+    }).catch(() => {});
   };
 
   const handleDeleteVocab = (id: string) => {
     setVocabs((prev) => prev.filter((v) => v.id !== id));
+    fetch(`/api/v1/vocabs/${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
-  // Handlers for Exams
+  // Handlers for Exams (Persisted to SQL DB)
   const handleAddExam = (newExam: ExamModel) => {
     setExams((prev) => [newExam, ...prev]);
+    fetch('/api/v1/exams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exam_code: newExam.examCode,
+        name: newExam.name,
+        level: newExam.level,
+        duration_minutes: newExam.durationMinutes,
+        description: newExam.description,
+        total_questions: newExam.totalQuestions,
+        questions: newExam.questions || [],
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const created: ExamModel = {
+            id: String(res.data.id || res.data.exam_code),
+            name: res.data.title || res.data.name,
+            examCode: res.data.exam_code,
+            level: res.data.level || 'TELC B2',
+            durationMinutes: res.data.duration_minutes || 90,
+            totalQuestions: res.data.total_questions || 45,
+            description: res.data.description || '',
+            sections: newExam.sections,
+            targetScore: res.data.total_score || 300,
+            passRate: '88%',
+          };
+          setExams((prev) => prev.map((e) => (e.id === newExam.id ? created : e)));
+        }
+      })
+      .catch(() => {});
   };
 
   const handleUpdateExam = (updatedExam: ExamModel) => {
     setExams((prev) => prev.map((e) => (e.id === updatedExam.id ? updatedExam : e)));
+    fetch(`/api/v1/exams/${updatedExam.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: updatedExam.name,
+        level: updatedExam.level,
+        duration_minutes: updatedExam.durationMinutes,
+        description: updatedExam.description,
+        total_questions: updatedExam.totalQuestions,
+      }),
+    }).catch(() => {});
   };
 
   const handleDeleteExam = (id: string) => {
     setExams((prev) => prev.filter((e) => e.id !== id));
+    fetch(`/api/v1/exams/${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
-  // Handlers for Grammar
+  // Handlers for Grammar (Persisted to SQL DB)
   const handleAddGrammar = (newTopic: GrammarTopic) => {
     setGrammarTopics((prev) => [newTopic, ...prev]);
+    fetch('/api/v1/grammar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: newTopic.title,
+        level: newTopic.level,
+        category: newTopic.category,
+        summary: newTopic.summary,
+        content: newTopic.content,
+        rule_points: newTopic.rulePoints,
+        examples: newTopic.examples,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const created: GrammarTopic = {
+            id: String(res.data.id || res.data.topic_id),
+            title: res.data.title,
+            level: res.data.level || 'B2',
+            category: res.data.category,
+            summary: res.data.summary,
+            content: res.data.content,
+            rulePoints: res.data.rule_points || [],
+            examples: res.data.examples || [],
+            status: res.data.status || 'in_progress',
+            progress: res.data.progress || 0,
+            score: res.data.score || 0,
+            badgeLabel: res.data.badge_label || 'CẦN LUYỆN',
+          };
+          setGrammarTopics((prev) => prev.map((t) => (t.id === newTopic.id ? created : t)));
+        }
+      })
+      .catch(() => {});
   };
 
   const handleUpdateGrammar = (updatedTopic: GrammarTopic) => {
     setGrammarTopics((prev) => prev.map((t) => (t.id === updatedTopic.id ? updatedTopic : t)));
+    fetch(`/api/v1/grammar/${updatedTopic.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: updatedTopic.title,
+        level: updatedTopic.level,
+        category: updatedTopic.category,
+        summary: updatedTopic.summary,
+        content: updatedTopic.content,
+        rule_points: updatedTopic.rulePoints,
+        examples: updatedTopic.examples,
+      }),
+    }).catch(() => {});
   };
 
   const handleDeleteGrammar = (id: string) => {
     setGrammarTopics((prev) => prev.filter((t) => t.id !== id));
+    fetch(`/api/v1/grammar/${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
   const handleAnswerChange = (questionId: number, optionId: string) => {

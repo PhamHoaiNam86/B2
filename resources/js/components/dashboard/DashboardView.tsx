@@ -305,7 +305,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
-              onClick={() => onSelectExam(exams[0])}
+              onClick={() => exams.length > 0 && onSelectExam(exams[0])}
               className="p-4 bg-[#eff6ff] border-2 border-[#111827] rounded-xl text-left hover:bg-[#dbeafe] transition-all cursor-pointer brutal-shadow-xs group"
             >
               <div className="flex items-center justify-between">

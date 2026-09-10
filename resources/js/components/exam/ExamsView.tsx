@@ -59,49 +59,69 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {exams.map((exam) => (
-          <div
-            key={exam.id}
-            className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-2px] transition-all"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black border border-[#111827]">
-                  {exam.examCode}
-                </span>
-                <span className="px-2.5 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] text-[10px] font-black border border-[#111827] flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {exam.durationMinutes} phút
-                </span>
-              </div>
-              <h3 className="text-lg font-black text-[#111827] font-heading">{exam.name}</h3>
-              <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3">{exam.description}</p>
-            </div>
-
-            <div className="space-y-3 pt-3 border-t-2 border-[#111827]/10">
-              <div className="flex items-center justify-between text-xs font-bold text-[#4b5563]">
-                <span>Tỉ lệ học viên đỗ: <b className="text-[#059669]">{exam.passRate}</b></span>
-                <span>Mục tiêu: <b className="text-[#2563EB]">{exam.targetScore}/300 điểm</b></span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onSelectExam(exam)}
-                  className="flex-1 py-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold hover:bg-[#f1f5f9] brutal-shadow-xs cursor-pointer"
-                >
-                  Xem Cấu Trúc Đề
-                </button>
-                <button
-                  onClick={() => onStartExam(exam)}
-                  className="flex-1 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-1 uppercase"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" /> Vào Thi Ngay
-                </button>
-              </div>
-            </div>
+      {exams.length === 0 ? (
+        <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-12 text-center brutal-shadow space-y-4">
+          <div className="w-16 h-16 bg-[#eff6ff] border-2 border-[#111827] rounded-2xl flex items-center justify-center mx-auto text-3xl">
+            📝
           </div>
-        ))}
-      </div>
+          <h3 className="text-xl font-black text-[#111827] font-heading">Chưa có bộ đề thi nào</h3>
+          <p className="text-xs text-[#4b5563] max-w-md mx-auto leading-relaxed">
+            Ngân hàng đề thi hiện đang trống. Vui lòng quay lại sau hoặc đăng nhập tài khoản Admin để bắt đầu tạo bộ đề thi mới!
+          </p>
+          {onOpenNewExamModal && (
+            <button
+              onClick={onOpenNewExamModal}
+              className="px-5 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow hover:bg-[#ea580c] transition-all cursor-pointer inline-flex items-center gap-2 uppercase font-heading"
+            >
+              + Tạo Bộ Đề Thi Mới
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {exams.map((exam) => (
+            <div
+              key={exam.id}
+              className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4 flex flex-col justify-between hover:translate-y-[-2px] transition-all"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black border border-[#111827]">
+                    {exam.examCode}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] text-[10px] font-black border border-[#111827] flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {exam.durationMinutes} phút
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-[#111827] font-heading">{exam.name}</h3>
+                <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3">{exam.description}</p>
+              </div>
+
+              <div className="space-y-3 pt-3 border-t-2 border-[#111827]/10">
+                <div className="flex items-center justify-between text-xs font-bold text-[#4b5563]">
+                  <span>Tỉ lệ học viên đỗ: <b className="text-[#059669]">{exam.passRate}</b></span>
+                  <span>Mục tiêu: <b className="text-[#2563EB]">{exam.targetScore}/300 điểm</b></span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onSelectExam(exam)}
+                    className="flex-1 py-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold hover:bg-[#f1f5f9] brutal-shadow-xs cursor-pointer"
+                  >
+                    Xem Cấu Trúc Đề
+                  </button>
+                  <button
+                    onClick={() => onStartExam(exam)}
+                    className="flex-1 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-1 uppercase"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" /> Vào Thi Ngay
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

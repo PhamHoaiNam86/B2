@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     // Exams & Results & Questions
     Route::get('/exams', [ExamController::class, 'index']);
+    Route::post('/exams', [ExamController::class, 'store']);
+    Route::put('/exams/{id}', [ExamController::class, 'update']);
+    Route::delete('/exams/{id}', [ExamController::class, 'destroy']);
     Route::get('/questions', [ExamController::class, 'getQuestions']);
     Route::get('/questions/{examCode}', [ExamController::class, 'getQuestions']);
     Route::get('/results', [ExamController::class, 'getResults']);
@@ -18,10 +21,15 @@ Route::prefix('v1')->group(function () {
     // Vocabularies
     Route::get('/vocabs', [VocabController::class, 'index']);
     Route::post('/vocabs', [VocabController::class, 'store']);
+    Route::put('/vocabs/{id}', [VocabController::class, 'update']);
+    Route::delete('/vocabs/{id}', [VocabController::class, 'destroy']);
     Route::patch('/vocabs/{id}/favorite', [VocabController::class, 'toggleFavorite']);
 
     // Grammar
     Route::get('/grammar', [GrammarController::class, 'index']);
+    Route::post('/grammar', [GrammarController::class, 'store']);
+    Route::put('/grammar/{id}', [GrammarController::class, 'update']);
+    Route::delete('/grammar/{id}', [GrammarController::class, 'destroy']);
     Route::post('/grammar/{id}/complete', [GrammarController::class, 'completeTopic']);
 
     // Students & Documents
