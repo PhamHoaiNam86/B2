@@ -339,6 +339,180 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
+        {/* BIỂU ĐỒ THÔNG SỐ CÁC PHẦN THI & LEADERBOARD FOR ADMIN */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Chart Section (2 cols) */}
+          <div className="lg:col-span-2 bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#111827]/10 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-[#2563EB]" />
+                  <h3 className="text-lg font-black text-[#111827] font-heading">
+                    Biểu Đồ Thông Số Các Phần Thi Theo Mức % Điểm
+                  </h3>
+                </div>
+                <p className="text-xs text-[#4b5563] mt-0.5">
+                  Phân tích chi tiết tỉ lệ % điểm trung bình theo 5 Modul kỹ năng thi chuẩn TELC
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-[#eff6ff] text-[#1e40af] border border-[#111827] rounded-xl text-xs font-bold">
+                Thống kê toàn hệ thống
+              </span>
+            </div>
+
+            {/* Vertical Column Bar Chart */}
+            <div className="bg-[#f8fafc] border-2 border-[#111827] rounded-2xl p-4 sm:p-6 space-y-4 brutal-shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-extrabold text-[#111827] flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-[#F97316]" />
+                  Mức % điểm 5 Kỹ Năng Thi TELC B2:
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#dbeafe] text-[#1e40af] font-black border border-[#2563EB] text-[10px]">
+                  🎯 Ngưỡng đỗ TELC B2: 75%
+                </span>
+              </div>
+
+              <div className="relative h-64 sm:h-72 w-full pt-8 pb-4 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-6 border-b-2 border-l-2 border-[#111827]">
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[10px] text-[#94a3b8] font-bold pr-2">
+                  <div className="border-b border-dashed border-slate-300 w-full flex justify-end">
+                    <span className="bg-[#f8fafc] px-1 -mt-2">100%</span>
+                  </div>
+                  <div className="border-b border-dashed border-[#F97316]/40 w-full flex justify-between items-center text-[#F97316]">
+                    <span className="bg-[#f8fafc] px-1 -mt-2 font-black text-[9px]">TARGET TELC (75%)</span>
+                    <span className="bg-[#f8fafc] px-1 -mt-2 font-black">75%</span>
+                  </div>
+                  <div className="border-b border-dashed border-slate-300 w-full flex justify-end">
+                    <span className="bg-[#f8fafc] px-1 -mt-2">50%</span>
+                  </div>
+                  <div className="border-b border-dashed border-slate-300 w-full flex justify-end">
+                    <span className="bg-[#f8fafc] px-1 -mt-2">25%</span>
+                  </div>
+                  <div className="w-full flex justify-end">
+                    <span className="bg-[#f8fafc] px-1 -mt-2">0%</span>
+                  </div>
+                </div>
+
+                {sectionStats.map((sec) => {
+                  const IconComp = sec.icon;
+                  return (
+                    <div key={sec.id} className="relative z-10 flex-1 flex flex-col items-center h-full justify-end group">
+                      <div className="mb-2 opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all">
+                        <span className="px-2 py-0.5 rounded-md bg-[#111827] text-white text-[11px] font-black brutal-shadow-xs">
+                          {sec.scorePercent}%
+                        </span>
+                      </div>
+
+                      <div className="relative w-full max-w-[48px] bg-slate-200 border-2 border-[#111827] rounded-t-xl overflow-hidden flex items-end justify-center h-full brutal-shadow-xs transition-all duration-300 group-hover:-translate-y-1">
+                        <div
+                          className={`w-full ${sec.barColor} border-t-2 border-[#111827] transition-all duration-1000 ease-out`}
+                          style={{ height: `${sec.scorePercent}%` }}
+                        />
+                      </div>
+
+                      <div className="mt-3 flex flex-col items-center text-center">
+                        <div className={`p-1.5 rounded-lg border border-[#111827] ${sec.bgColor} mb-1 group-hover:scale-110 transition-transform`}>
+                          <IconComp className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-black text-[#111827] line-clamp-1 max-w-[80px]">
+                          {sec.name.split(' ')[0]}
+                        </span>
+                        <span className="text-[9px] text-[#4b5563] font-semibold hidden sm:block">
+                          {sec.correctQuestions}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t-2 border-[#111827]/10">
+              <h4 className="text-xs font-black text-[#111827] uppercase tracking-wider mb-3">
+                Tỉ lệ % hoàn thành đề thi theo cấp độ:
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {levelStats.map((lvl) => (
+                  <div key={lvl.level} className="p-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl brutal-shadow-xs space-y-1 text-center">
+                    <span className="text-[11px] font-black text-[#111827]">{lvl.level}</span>
+                    <div className="text-xl font-black text-[#2563EB] font-heading">{lvl.percent}%</div>
+                    <span className="text-[10px] text-[#4b5563] font-semibold block">{lvl.examsDone}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Top 10 Student Leaderboard (1 col) */}
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-4">
+            <div className="flex items-center justify-between border-b-2 border-[#111827] pb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-[#F97316]" />
+                <div>
+                  <h3 className="text-base font-black text-[#111827] font-heading">
+                    Top 10 Học Viên Xuất Sắc
+                  </h3>
+                  <p className="text-[10px] text-[#4b5563]">Bảng xếp hạng điểm thi TELC B2</p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-md bg-[#ffe8d6] text-[#c2410c] text-[10px] font-black border border-[#111827]">
+                HỆ THỐNG
+              </span>
+            </div>
+
+            <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+              {top10Students.map((st) => (
+                <div
+                  key={st.rank}
+                  className={`p-2.5 border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3 transition-all ${
+                    st.rank === 1
+                      ? 'bg-[#fffbe6] brutal-shadow-xs border-[#b45309]'
+                      : st.rank === 2
+                      ? 'bg-[#f8fafc] border-slate-400'
+                      : st.rank === 3
+                      ? 'bg-[#fff7ed] border-amber-700/40'
+                      : 'bg-white hover:bg-[#f8fafc]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-7 h-7 shrink-0 rounded-lg border-2 border-[#111827] font-black text-xs flex items-center justify-center ${st.medalBg}`}
+                    >
+                      {st.medal}
+                    </div>
+
+                    <img
+                      src={st.avatar}
+                      alt={st.name}
+                      className="w-8 h-8 rounded-full border border-[#111827] object-cover shrink-0"
+                    />
+
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-black text-[#111827] truncate leading-tight">
+                        {st.name}
+                      </h4>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#f1f5f9] text-[#4b5563] border border-[#111827]/20">
+                          {st.className}
+                        </span>
+                        <span className="text-[9px] font-bold text-[#2563EB]">{st.badge}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-black text-[#111827]">
+                      {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold text-[#059669]">
+                      {st.percent}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Live Feed Exam Submissions */}
         <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 brutal-shadow space-y-4">
           <div className="flex items-center justify-between">

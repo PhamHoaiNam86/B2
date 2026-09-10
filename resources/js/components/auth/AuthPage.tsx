@@ -14,7 +14,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
   const [step, setStep] = useState<'form' | 'otp'>('form');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'student'>('student');
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -55,8 +54,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     // Auto detect role from account credentials / is_admin field
     const isUserAdmin =
       email.toLowerCase().includes('admin') ||
-      username.toLowerCase().includes('admin') ||
-      selectedRole === 'admin';
+      username.toLowerCase().includes('admin');
     const roleToSet: 'admin' | 'student' = isUserAdmin ? 'admin' : 'student';
 
     if (activeTab === 'login') {
@@ -118,8 +116,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       alert('Vui lòng nhập đủ 6 chữ số mã OTP xác thực.');
       return;
     }
+    const isUserAdmin =
+      email.toLowerCase().includes('admin') ||
+      username.toLowerCase().includes('admin');
+    const roleToSet: 'admin' | 'student' = isUserAdmin ? 'admin' : 'student';
     // Verify success -> proceed to portal
-    onSuccessLogin(selectedRole);
+    onSuccessLogin(roleToSet);
   };
 
   const handleResendOtp = () => {
@@ -287,43 +289,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
               {/* FORM */}
               <form onSubmit={handleSubmitForm} className="space-y-4">
-                {/* Select Login Role based on DB is_admin field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black text-[#111827] block">
-                    Đăng Nhập Tài Khoản (Phân quyền theo trường <code className="text-[#2563EB]">is_admin</code> trong CSDL)
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedRole('student');
-                        if (!email) setEmail('hocvien@trieuvydeutsch.vn');
-                      }}
-                      className={`py-2.5 px-3 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                        selectedRole === 'student'
-                          ? 'bg-[#e0f2fe] text-[#0369a1] border-[#111827] brutal-shadow-xs'
-                          : 'bg-[#f8fafc] text-[#4b5563] border-[#111827]/30 hover:border-[#111827]'
-                      }`}
-                    >
-                      <span>🎓 Học Viên (is_admin = false)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedRole('admin');
-                        setEmail('admin@trieuvydeutsch.vn');
-                      }}
-                      className={`py-2.5 px-3 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                        selectedRole === 'admin'
-                          ? 'bg-[#ffe082] text-[#3e2723] border-[#111827] brutal-shadow-xs'
-                          : 'bg-[#f8fafc] text-[#4b5563] border-[#111827]/30 hover:border-[#111827]'
-                      }`}
-                    >
-                      <span>👑 Admin (is_admin = true)</span>
-                    </button>
-                  </div>
-                </div>
 
                 {/* Full Name & Username fields (Register mode) */}
                 {activeTab === 'register' && (
