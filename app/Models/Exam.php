@@ -11,16 +11,19 @@ class Exam extends Model
 
     protected $fillable = [
         'exam_code',
-        'title',
+        'name',
         'duration_minutes',
         'level',
         'description',
         'total_questions',
-        'total_score',
+        'target_score',
+        'pass_rate',
         'is_active',
+        'sections_json',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'sections_json' => 'array',
     ];
 }

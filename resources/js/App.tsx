@@ -585,11 +585,22 @@ export default function App() {
     }));
   };
 
-  const handleStartExamRoom = () => {
+  const handleStartExamRoom = (exam?: ExamModel) => {
+    if (exam) {
+      setExamState((prev) => ({
+        ...prev,
+        examCode: exam.examCode,
+        timeRemainingSeconds: (exam.durationMinutes || 90) * 60,
+        timeElapsedSeconds: 0,
+        tabSwitchCount: 0,
+        answers: {},
+        isSubmitted: false,
+      }));
+    }
     setIsExamRoomActive(true);
     setActiveTab('exam');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Vào phòng thi', 'Đã bắt đầu phiên thi thử TELC B2 với bộ đếm thời gian.', 'info');
+    showToast('Vào phòng thi', `Đã bắt đầu phiên thi thử ${exam ? exam.name : 'TELC B2'} với bộ đếm thời gian.`, 'info');
   };
 
   const handleFinishExamSubmit = () => {
@@ -724,7 +735,7 @@ export default function App() {
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
-                  onStartExam={() => handleStartExamRoom()}
+                  onStartExam={(exam) => handleStartExamRoom(exam)}
                   onOpenNewExamModal={() => {
                     setEditingItem(null);
                     setCreateItemType('exam');
@@ -749,7 +760,7 @@ export default function App() {
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
-                  onStartExam={() => handleStartExamRoom()}
+                  onStartExam={(exam) => handleStartExamRoom(exam)}
                   onOpenNewExamModal={() => {
                     setEditingItem(null);
                     setCreateItemType('exam');
@@ -774,7 +785,7 @@ export default function App() {
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
-                  onStartExam={() => handleStartExamRoom()}
+                  onStartExam={(exam) => handleStartExamRoom(exam)}
                   onOpenNewExamModal={() => {
                     setEditingItem(null);
                     setCreateItemType('exam');
@@ -799,7 +810,7 @@ export default function App() {
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
-                  onStartExam={() => handleStartExamRoom()}
+                  onStartExam={(exam) => handleStartExamRoom(exam)}
                   onOpenNewExamModal={() => {
                     setEditingItem(null);
                     setCreateItemType('exam');
@@ -938,7 +949,7 @@ export default function App() {
                   <ExamDetailView
                     exam={selectedExam}
                     onBack={() => setActiveTab('exam')}
-                    onStartExam={handleStartExamRoom}
+                    onStartExam={() => handleStartExamRoom(selectedExam)}
                     onShowToast={showToast}
                   />
                 ) : (
@@ -949,7 +960,7 @@ export default function App() {
                       setSelectedExam(exam);
                       setActiveTab('exam-detail');
                     }}
-                    onStartExam={() => handleStartExamRoom()}
+                    onStartExam={(exam) => handleStartExamRoom(exam)}
                     onOpenNewExamModal={() => {
                       setEditingItem(null);
                       setCreateItemType('exam');

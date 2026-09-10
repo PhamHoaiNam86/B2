@@ -116,12 +116,13 @@ class ExamController extends Controller
 
         $exam = Exam::create([
             'exam_code' => $validated['exam_code'],
-            'title' => $validated['name'],
+            'name' => $validated['name'],
             'level' => $validated['level'] ?? 'TELC B2',
             'duration_minutes' => $validated['duration_minutes'] ?? 90,
             'description' => $validated['description'] ?? '',
             'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
-            'total_score' => 300,
+            'target_score' => 225,
+            'pass_rate' => '88%',
             'is_active' => true,
         ]);
 
