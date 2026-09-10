@@ -22,20 +22,18 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   onEditExam,
 }) => {
   const [search, setSearch] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedLevel]);
+  }, [search]);
 
   const filteredExams = exams.filter((e) => {
-    const matchesSearch =
+    return (
       e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.examCode.toLowerCase().includes(search.toLowerCase());
-    const matchesLevel = selectedLevel === 'ALL' || e.level.includes(selectedLevel);
-    return matchesSearch && matchesLevel;
+      e.examCode.toLowerCase().includes(search.toLowerCase())
+    );
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredExams.length / ITEMS_PER_PAGE));
@@ -77,9 +75,9 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
         </button>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
+      {/* Search Bar */}
+      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs">
+        <div className="relative w-full">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
           <input
             type="text"
@@ -88,22 +86,6 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
             placeholder="Tìm kiếm mã đề thi, tên bộ đề..."
             className="w-full pl-9 pr-3 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
           />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {['ALL', 'B2', 'B1', 'A2', 'A1'].map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
-              className={`px-3 py-1.5 rounded-xl border-2 text-xs font-black cursor-pointer transition-all ${
-                selectedLevel === lvl
-                  ? 'bg-[#111827] text-white border-[#111827]'
-                  : 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]'
-              }`}
-            >
-              {lvl === 'ALL' ? 'Tất cả cấp độ' : `Cấp độ ${lvl}`}
-            </button>
-          ))}
         </div>
       </div>
 
