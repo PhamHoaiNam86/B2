@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VocabItem, ExamModel, GrammarTopic } from '../../types';
 import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText } from 'lucide-react';
 
@@ -214,6 +214,62 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [grammarRules, setGrammarRules] = useState(
     editingItem?.rulePoints ? editingItem.rulePoints.join('\n') : ''
   );
+
+  useEffect(() => {
+    if (!editingItem) return;
+
+    if (type === 'vocab') {
+      setWord(editingItem.word || '');
+      setArticle(editingItem.article || 'der');
+      setPlural(editingItem.plural || '');
+      setPos(editingItem.pos || 'Nomen');
+      setPhonetic(editingItem.phonetic || '');
+      setMeaningVi(editingItem.meaningVi || '');
+      setExampleDe(editingItem.exampleDe || '');
+      setExampleVi(editingItem.exampleVi || '');
+      setTopic(editingItem.topic || 'Arbeit & Beruf');
+    } else if (type === 'exam') {
+      setExamName(editingItem.name || '');
+      setExamCode(editingItem.examCode || '');
+      setLevel(editingItem.level || 'TELC B2');
+      setDurationMinutes(editingItem.durationMinutes || 90);
+      setDescription(editingItem.description || '');
+
+      if (editingItem.examCode) {
+        fetch(`/api/v1/questions/${editingItem.examCode}`)
+          .then((res) => res.json())
+          .then((res) => {
+            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+              const mappedQuestions: ExamQuestion[] = res.data.map((q: any, idx: number) => ({
+                id: String(q.id || `q-${idx + 1}`),
+                questionText: q.title || `Câu ${idx + 1}: `,
+                contextText: q.context_text || '',
+                explanation: q.explanation || '',
+                options: q.options_json
+                  ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
+                  : [
+                      { id: `opt-${idx}-1`, text: 'Đáp án A: ', isCorrect: true },
+                      { id: `opt-${idx}-2`, text: 'Đáp án B: ', isCorrect: false },
+                    ],
+              }));
+              setQuestions(mappedQuestions);
+              setTotalQuestions(mappedQuestions.length);
+            } else if (editingItem.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
+              setQuestions(editingItem.questions);
+              setTotalQuestions(editingItem.questions.length);
+            }
+          })
+          .catch(() => {});
+      }
+    } else if (type === 'grammar') {
+      setGrammarTitle(editingItem.title || '');
+      setGrammarLevel(editingItem.level || 'B2');
+      setGrammarCategory(editingItem.category || 'Verben & Modi');
+      setGrammarSummary(editingItem.summary || '');
+      setGrammarContent(editingItem.content || '');
+      setGrammarRules(editingItem.rulePoints ? editingItem.rulePoints.join('\n') : '');
+    }
+  }, [editingItem, type]);
 
   const handleSubmitVocab = (e: React.FormEvent) => {
     e.preventDefault();
