@@ -10,8 +10,10 @@ interface ExamQuestionOption {
 
 interface ExamQuestion {
   id: string;
+  type?: 'choice' | 'writing' | 'listening';
   questionText: string;
   contextText?: string;
+  audioUrl?: string;
   options: ExamQuestionOption[];
   explanation?: string;
 }
@@ -125,8 +127,10 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               res.data.forEach((q: any, idx: number) => {
                 const mappedQ: ExamQuestion = {
                   id: String(q.id || `q-${idx + 1}`),
+                  type: q.type || 'choice',
                   questionText: q.title || `Câu ${idx + 1}: `,
-                  contextText: q.context_text || '',
+                  contextText: q.context_text || q.contextText || '',
+                  audioUrl: q.audio_url || q.audioUrl || '',
                   explanation: q.explanation || '',
                   options: q.options_json
                     ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
@@ -249,6 +253,34 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
           return {
             ...sec,
             questions: sec.questions.map((q) => (q.id === qId ? { ...q, contextText } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleQuestionTypeChange = (secId: string, qId: string, type: 'choice' | 'writing' | 'listening') => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, type } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleAudioUrlChange = (secId: string, qId: string, audioUrl: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, audioUrl } : q)),
           };
         }
         return sec;
@@ -429,8 +461,10 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         flattenedQuestions.push({
           id: q.id,
           section: fallbackSecName,
+          type: q.type || 'choice',
           questionText: q.questionText,
           contextText: q.contextText || '',
+          audioUrl: q.audioUrl || '',
           explanation: q.explanation || '',
           options: q.options.map((opt, optIndex) => {
             const letter = String.fromCharCode(65 + optIndex);
@@ -860,6 +894,64 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                               </button>
                             </div>
 
+                            {/* Question Type Selector */}
+                            <div className="p-2.5 bg-slate-100 border-2 border-[#111827] rounded-xl space-y-1.5">
+                              <label className="block text-[11px] font-black text-[#111827]">
+                                Chọn Loại Câu Hỏi / Nội Dung Thi:
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuestionTypeChange(sec.id, q.id, 'choice')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-black border-2 cursor-pointer transition-all ${
+                                    (!q.type || q.type === 'choice')
+                                      ? 'bg-[#2563eb] text-white border-[#111827] brutal-shadow-xs'
+                                      : 'bg-white text-[#334155] border-[#111827] hover:bg-slate-200'
+                                  }`}
+                                >
+                                  🔘 Trắc nghiệm (Default)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuestionTypeChange(sec.id, q.id, 'listening')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-black border-2 cursor-pointer transition-all ${
+                                    q.type === 'listening'
+                                      ? 'bg-[#d97706] text-white border-[#111827] brutal-shadow-xs'
+                                      : 'bg-white text-[#334155] border-[#111827] hover:bg-slate-200'
+                                  }`}
+                                >
+                                  🎧 Nghe (Hören)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuestionTypeChange(sec.id, q.id, 'writing')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-black border-2 cursor-pointer transition-all ${
+                                    q.type === 'writing'
+                                      ? 'bg-[#7c3aed] text-white border-[#111827] brutal-shadow-xs'
+                                      : 'bg-white text-[#334155] border-[#111827] hover:bg-slate-200'
+                                  }`}
+                                >
+                                  📝 Viết (Schreiben)
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Audio URL Input for Listening Type */}
+                            {q.type === 'listening' && (
+                              <div className="p-3 bg-[#fffbe6] border-2 border-[#111827] rounded-xl space-y-1">
+                                <label className="block text-[11px] font-black text-[#854d0e]">
+                                  🎧 File âm thanh / MP3 URL cho bài Nghe:
+                                </label>
+                                <input
+                                  type="text"
+                                  value={q.audioUrl || ''}
+                                  onChange={(e) => handleAudioUrlChange(sec.id, q.id, e.target.value)}
+                                  placeholder="Nhập đường dẫn audio MP3 (VD: https://example.com/audio.mp3 hoặc /audios/track1.mp3)..."
+                                  className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#d97706]"
+                                />
+                              </div>
+                            )}
+
                             {/* Question Content Input */}
                             <div>
                               <label className="block text-[11px] font-black text-[#111827] mb-1">
@@ -870,92 +962,97 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                 required
                                 value={q.questionText}
                                 onChange={(e) => handleQuestionTextChange(sec.id, q.id, e.target.value)}
-                                placeholder={`Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
+                                placeholder={q.type === 'writing' ? 'Ví dụ: Bài thi Viết thư phàn nàn B2 (Schriftlicher Ausdruck)' : `Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
                                 className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                               />
                             </div>
 
-                            {/* Context Text / Reading Text (Lesetext / Hörtext) */}
+                            {/* Context Text / Reading Text / Prompt Instructions */}
                             <div>
                               <label className="block text-[11px] font-black text-[#111827] mb-1">
-                                Đoạn văn bản / Ngữ cảnh (Lesetext / Hörtext nếu có)
+                                {q.type === 'writing' ? 'Đề bài & Yêu cầu bài viết (Prompt / Instructions)' : 'Đoạn văn bản / Ngữ cảnh (Lesetext / Hörtext)'}
                               </label>
                               <textarea
-                                rows={2}
+                                rows={q.type === 'writing' ? 4 : 2}
                                 value={q.contextText || ''}
                                 onChange={(e) => handleContextTextChange(sec.id, q.id, e.target.value)}
-                                placeholder="Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này..."
+                                placeholder={q.type === 'writing' ? 'Nhập chi tiết yêu cầu bài viết, các ý bắt buộc cần có trong thư B2...' : 'Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này...'}
                                 className="w-full p-2 bg-[#fff8e7] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                               />
                             </div>
 
-                            {/* Options List */}
-                            <div className="pl-2 sm:pl-3 space-y-2 border-l-4 border-[#2563EB] pt-1 mt-1">
-                              <label className="block text-[10px] font-black text-[#111827] uppercase tracking-wider">
-                                Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
-                              </label>
+                            {/* Options List (Only for Choice or Listening) */}
+                            {q.type !== 'writing' && (
+                              <div className="pl-2 sm:pl-3 space-y-2 border-l-4 border-[#2563EB] pt-1 mt-1">
+                                <label className="block text-[10px] font-black text-[#111827] uppercase tracking-wider">
+                                  Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
+                                </label>
 
-                              {q.options.map((opt, optIndex) => {
-                                const letter = String.fromCharCode(65 + optIndex);
-                                const cleanText = getCleanOptionText(opt.text);
+                                {q.options.map((opt, optIndex) => {
+                                  const letter = String.fromCharCode(65 + optIndex);
+                                  const cleanText = getCleanOptionText(opt.text);
 
-                                return (
-                                  <div key={opt.id} className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleSetCorrectOption(sec.id, q.id, opt.id)}
-                                      className={`px-3 py-1.5 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
-                                        opt.isCorrect
-                                          ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
-                                          : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
-                                      }`}
-                                    >
-                                      {opt.isCorrect ? (
-                                        <>
-                                          <CheckCircle2 className="w-3.5 h-3.5" />
-                                          <span>Đáp án Đúng</span>
-                                        </>
-                                      ) : (
-                                        <span>Chọn Đúng</span>
+                                  return (
+                                    <div key={opt.id} className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSetCorrectOption(sec.id, q.id, opt.id)}
+                                        className={`px-3 py-1.5 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
+                                          opt.isCorrect
+                                            ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+                                            : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
+                                        }`}
+                                      >
+                                        {opt.isCorrect ? (
+                                          <>
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                            <span>Đáp án Đúng</span>
+                                          </>
+                                        ) : (
+                                          <span>Chọn Đúng</span>
+                                        )}
+                                      </button>
+
+                                      <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]">
+                                        <span className="px-3 py-1.5 bg-[#eff6ff] text-[#1e40af] border-r-2 border-[#111827] font-black text-xs shrink-0 select-none">
+                                          {letter}:
+                                        </span>
+                                        <input
+                                          type="text"
+                                          required
+                                          value={cleanText}
+                                          onChange={(e) => handleOptionTextChange(sec.id, q.id, opt.id, optIndex, e.target.value)}
+                                          placeholder={`Nội dung phương án ${letter}...`}
+                                          className="w-full p-1.5 text-xs font-semibold text-[#111827] focus:outline-none"
+                                        />
+                                      </div>
+
+                                      {q.options.length > 2 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteOption(sec.id, q.id, opt.id)}
+                                          className="p-1.5 text-[#ef4444] hover:bg-[#fee2e2] rounded-lg border border-[#111827] transition-all cursor-pointer"
+                                          title="Xóa lựa chọn này"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                       )}
-                                    </button>
-
-                                    <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]">
-                                      <span className="px-3 py-1.5 bg-[#eff6ff] text-[#1e40af] border-r-2 border-[#111827] font-black text-xs shrink-0 select-none">
-                                        {letter}:
-                                      </span>
-                                      <input
-                                        type="text"
-                                        required
-                                        value={cleanText}
-                                        onChange={(e) => handleOptionTextChange(sec.id, q.id, opt.id, optIndex, e.target.value)}
-                                        placeholder={`Nhập nội dung đáp án ${letter}...`}
-                                        className="w-full p-1.5 text-xs font-bold text-[#111827] focus:outline-none bg-transparent"
-                                      />
                                     </div>
+                                  );
+                                })}
 
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteOption(sec.id, q.id, opt.id)}
-                                      className="p-1.5 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-xl cursor-pointer transition-all shrink-0"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                );
-                              })}
-
-                              <div className="pt-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleAddOption(sec.id, q.id)}
-                                  className="px-3 py-1 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-[11px] font-black hover:bg-[#dbeafe] transition-all cursor-pointer inline-flex items-center gap-1 brutal-shadow-xs"
-                                >
-                                  <Plus className="w-3.5 h-3.5" />
-                                  <span>+ Thêm đáp án cho Câu này</span>
-                                </button>
+                                <div className="pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddOption(sec.id, q.id)}
+                                    className="px-3 py-1 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-[11px] font-black hover:bg-[#dbeafe] transition-all cursor-pointer inline-flex items-center gap-1 brutal-shadow-xs"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>+ Thêm đáp án cho Câu này</span>
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
 
                             {/* Explanation Section */}
                             <div className="pt-2 border-t border-[#111827]/10 space-y-1">

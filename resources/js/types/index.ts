@@ -93,9 +93,11 @@ export interface Question {
   id: number;
   section: string;
   subSection: string;
+  type?: 'choice' | 'writing' | 'listening';
   title: string;
   contextText?: string;
   audioUrl?: string;
+  wordLimit?: number;
   options: Array<{ id: string; text: string }>;
   correctOptionId: string;
   explanation?: string;

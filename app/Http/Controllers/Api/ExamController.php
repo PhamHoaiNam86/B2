@@ -150,11 +150,13 @@ class ExamController extends Controller
                     'exam_code' => $exam->exam_code,
                     'section' => $q['section'] ?? 'Leseverstehen',
                     'sub_section' => $q['subSection'] ?? 'Teil 1',
+                    'type' => $q['type'] ?? 'choice',
                     'question_number' => $index + 1,
                     'title' => $q['title'] ?? $q['questionText'] ?? ('Câu '.($index + 1)),
                     'context_text' => $q['contextText'] ?? null,
+                    'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                     'options_json' => $options,
-                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? 'a'),
+                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
                     'explanation' => $q['explanation'] ?? null,
                 ]);
             }
@@ -229,11 +231,13 @@ class ExamController extends Controller
                     'exam_code' => $exam->exam_code,
                     'section' => $q['section'] ?? 'Leseverstehen',
                     'sub_section' => $q['subSection'] ?? 'Teil 1',
+                    'type' => $q['type'] ?? 'choice',
                     'question_number' => $index + 1,
                     'title' => $q['title'] ?? $q['questionText'] ?? ('Câu '.($index + 1)),
                     'context_text' => $q['contextText'] ?? null,
+                    'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                     'options_json' => $options,
-                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? 'a'),
+                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
                     'explanation' => $q['explanation'] ?? null,
                 ]);
             }
