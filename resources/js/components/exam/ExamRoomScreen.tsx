@@ -290,22 +290,22 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   <PenTool className="w-4 h-4 text-[#2563EB]" />
                   Bài Làm Viết Thư B2 Của Bạn (Gõ văn bản vào ô dưới):
                 </h4>
-                <span className={`text-xs font-black px-2.5 py-0.5 rounded border-2 ${
-                  essayWordCount >= 150 && essayWordCount <= 250
+                <span className={`text-xs font-black px-2.5 py-1 rounded-xl border-2 ${
+                  essayWordCount >= 100
                     ? 'bg-[#dcfce7] text-[#166534] border-[#166534]'
-                    : 'bg-[#f1f5f9] text-[#475569] border-[#94a3b8]'
+                    : 'bg-slate-100 text-slate-700 border-slate-300'
                 }`}>
-                  Đã viết: {essayWordCount} / 150-200 từ
+                  📝 Đã viết: {essayWordCount} từ (Soạn thảo bài viết dài tự do)
                 </span>
               </div>
 
               <textarea
-                rows={12}
+                rows={18}
                 value={essayText}
                 readOnly={isReviewMode}
                 onChange={(e) => !isReviewMode && setEssayText(e.target.value)}
                 placeholder="Sehr geehrte Damen und Herren, hiermit möchte ich mich über den B2-Sprachkurs beschweren..."
-                className="w-full p-4 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-relaxed resize-y"
+                className="w-full p-5 bg-[#fcf9f8] border-2 border-[#111827] rounded-2xl text-sm sm:text-base font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-loose resize-y min-h-[380px] shadow-inner"
               />
 
               {isReviewMode && (
@@ -410,22 +410,22 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                               <PenTool className="w-3.5 h-3.5 text-[#2563EB]" />
                               Khung Soạn Thảo Bài Viết Của Bạn:
                             </label>
-                            <span className={`text-[11px] font-black px-2.5 py-0.5 rounded border-2 ${
+                            <span className={`text-[11px] font-black px-2.5 py-1 rounded-xl border-2 ${
                               currentTextCount >= 100
                                 ? 'bg-[#dcfce7] text-[#166534] border-[#166534]'
                                 : 'bg-slate-100 text-slate-700 border-slate-300'
                             }`}>
-                              Đã viết: {currentTextCount} từ
+                              📝 Đã viết: {currentTextCount} từ (Gõ bài viết dài tự do)
                             </span>
                           </div>
 
                           <textarea
-                            rows={10}
+                            rows={18}
                             value={userChoice}
                             readOnly={isReviewMode}
                             onChange={(e) => !isReviewMode && onAnswerChange(q.id, e.target.value)}
                             placeholder="Nhập nội dung bài viết của bạn tại đây (Sehr geehrte Damen und Herren...)..."
-                            className="w-full p-4 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-relaxed resize-y"
+                            className="w-full p-5 bg-[#fcf9f8] border-2 border-[#111827] rounded-2xl text-sm sm:text-base font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-loose resize-y min-h-[380px] shadow-inner"
                           />
                         </div>
                       </div>
