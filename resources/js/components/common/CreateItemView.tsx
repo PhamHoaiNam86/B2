@@ -68,20 +68,11 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     return [
       {
         id: `q-1`,
-        questionText: 'Câu 1: Chọn từ thích hợp nhất để điền vào chỗ trống trong đoạn văn...',
+        questionText: '',
+        explanation: '',
         options: [
-          { id: `opt-1-1`, text: 'A. obwohl', isCorrect: true },
-          { id: `opt-1-2`, text: 'B. weil', isCorrect: false },
-          { id: `opt-1-3`, text: 'C. trotz', isCorrect: false },
-          { id: `opt-1-4`, text: 'D. damit', isCorrect: false },
-        ],
-      },
-      {
-        id: `q-2`,
-        questionText: 'Câu 2: Ý chính của đoạn văn trên là gì?',
-        options: [
-          { id: `opt-2-1`, text: 'A. Tỉ lệ thất nghiệp giảm mạnh vào mùa hè.', isCorrect: true },
-          { id: `opt-2-2`, text: 'B. Các hợp đồng mới sẽ được ký vào mùa thu.', isCorrect: false },
+          { id: `opt-1-1`, text: '', isCorrect: true },
+          { id: `opt-1-2`, text: '', isCorrect: false },
         ],
       },
     ];
@@ -93,10 +84,11 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     const qIndex = questions.length + 1;
     const newQ: ExamQuestion = {
       id: `q-${Date.now()}`,
-      questionText: `Câu ${qIndex}: `,
+      questionText: '',
+      explanation: '',
       options: [
-        { id: `opt-${Date.now()}-1`, text: 'Đáp án A: ', isCorrect: true },
-        { id: `opt-${Date.now()}-2`, text: 'Đáp án B: ', isCorrect: false },
+        { id: `opt-${Date.now()}-1`, text: '', isCorrect: true },
+        { id: `opt-${Date.now()}-2`, text: '', isCorrect: false },
       ],
     };
     const updated = [...questions, newQ];
@@ -125,10 +117,9 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     setQuestions((prev) =>
       prev.map((q) => {
         if (q.id === qId) {
-          const optLabel = String.fromCharCode(65 + q.options.length);
           const newOpt: ExamQuestionOption = {
             id: `opt-${Date.now()}`,
-            text: `Đáp án ${optLabel}: `,
+            text: '',
             isCorrect: false,
           };
           return { ...q, options: [...q.options, newOpt] };
@@ -153,13 +144,22 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     );
   };
 
-  const handleOptionTextChange = (qId: string, optId: string, text: string) => {
+  const getCleanOptionText = (rawText: string) => {
+    if (!rawText) return '';
+    return rawText.replace(/^(?:Đáp án\s*)?[A-Z][:.]\s*/i, '');
+  };
+
+  const handleOptionTextChange = (qId: string, optId: string, optIndex: number, newRawValue: string) => {
+    const letter = String.fromCharCode(65 + optIndex);
+    const clean = getCleanOptionText(newRawValue);
+    const formattedText = clean ? `${letter}: ${clean}` : '';
+
     setQuestions((prev) =>
       prev.map((q) => {
         if (q.id === qId) {
           return {
             ...q,
-            options: q.options.map((opt) => (opt.id === optId ? { ...opt, text } : opt)),
+            options: q.options.map((opt) => (opt.id === optId ? { ...opt, text: formattedText } : opt)),
           };
         }
         return q;
@@ -216,7 +216,45 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   );
 
   useEffect(() => {
-    if (!editingItem) return;
+    if (!editingItem) {
+      if (type === 'exam') {
+        setExamName('');
+        setExamCode(`TELC-B2-MOCK-${Date.now().toString().slice(-4)}`);
+        setLevel('TELC B2');
+        setDurationMinutes(90);
+        setDescription('');
+        setQuestions([
+          {
+            id: 'q-1',
+            questionText: '',
+            explanation: '',
+            options: [
+              { id: 'opt-1-1', text: '', isCorrect: true },
+              { id: 'opt-1-2', text: '', isCorrect: false },
+            ],
+          },
+        ]);
+        setTotalQuestions(1);
+      } else if (type === 'vocab') {
+        setWord('');
+        setArticle('der');
+        setPlural('');
+        setPos('Nomen');
+        setPhonetic('');
+        setMeaningVi('');
+        setExampleDe('');
+        setExampleVi('');
+        setTopic('Arbeit & Beruf');
+      } else if (type === 'grammar') {
+        setGrammarTitle('');
+        setGrammarLevel('B2');
+        setGrammarCategory('Verben & Modi');
+        setGrammarSummary('');
+        setGrammarContent('');
+        setGrammarRules('');
+      }
+      return;
+    }
 
     if (type === 'vocab') {
       setWord(editingItem.word || '');
@@ -310,13 +348,25 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       return;
     }
 
+    const sanitizedQuestions = questions.map((q) => ({
+      ...q,
+      options: q.options.map((opt, optIndex) => {
+        const letter = String.fromCharCode(65 + optIndex);
+        const clean = getCleanOptionText(opt.text);
+        return {
+          ...opt,
+          text: clean ? `${letter}: ${clean}` : `${letter}: `,
+        };
+      }),
+    }));
+
     const examData: ExamModel = {
       id: editingItem?.id || `exam-${Date.now()}`,
       name: examName,
       examCode,
       level,
       durationMinutes,
-      totalQuestions: questions.length || totalQuestions,
+      totalQuestions: sanitizedQuestions.length || totalQuestions,
       description: description || 'Đề thi thử tiêu chuẩn TELC B2.',
       sections: editingItem?.sections || [
         { name: 'Leseverstehen', questionCount: 20, duration: '45 phút' },
@@ -326,7 +376,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       ],
       targetScore: editingItem?.targetScore || 225,
       passRate: editingItem?.passRate || '85%',
-      questions,
+      questions: sanitizedQuestions,
     };
 
     if (isEditMode && onUpdateExam) {
@@ -729,50 +779,60 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                       Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
                     </label>
 
-                    {q.options.map((opt, optIndex) => (
-                      <div key={opt.id} className="flex items-center gap-2">
-                        {/* Toggle Correct Answer Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleSetCorrectOption(q.id, opt.id)}
-                          className={`px-3 py-2 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
-                            opt.isCorrect
-                              ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
-                              : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
-                          }`}
-                          title={opt.isCorrect ? 'Đáp án đúng' : 'Bấm để chọn làm đáp án đúng'}
-                        >
-                          {opt.isCorrect ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>Đáp án Đúng</span>
-                            </>
-                          ) : (
-                            <span>Chọn Đúng</span>
-                          )}
-                        </button>
+                    {q.options.map((opt, optIndex) => {
+                      const letter = String.fromCharCode(65 + optIndex);
+                      const cleanText = getCleanOptionText(opt.text);
 
-                        {/* Option Text Input */}
-                        <input
-                          type="text"
-                          required
-                          value={opt.text}
-                          onChange={(e) => handleOptionTextChange(q.id, opt.id, e.target.value)}
-                          placeholder={`Nhập nội dung đáp án ${optIndex + 1}...`}
-                          className="flex-1 p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
-                        />
+                      return (
+                        <div key={opt.id} className="flex items-center gap-2">
+                          {/* Toggle Correct Answer Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleSetCorrectOption(q.id, opt.id)}
+                            className={`px-3 py-2 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
+                              opt.isCorrect
+                                ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+                                : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
+                            }`}
+                            title={opt.isCorrect ? 'Đáp án đúng' : 'Bấm để chọn làm đáp án đúng'}
+                          >
+                            {opt.isCorrect ? (
+                              <>
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>Đáp án Đúng</span>
+                              </>
+                            ) : (
+                              <span>Chọn Đúng</span>
+                            )}
+                          </button>
 
-                        {/* Delete Option Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteOption(q.id, opt.id)}
-                          className="p-2 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-xl cursor-pointer transition-all shrink-0"
-                          title="Xóa lựa chọn đáp án này"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                          {/* Option Text Input with A: B: C: D: Badge */}
+                          <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]">
+                            <span className="px-3 py-2 bg-[#eff6ff] text-[#1e40af] border-r-2 border-[#111827] font-black text-xs shrink-0 select-none">
+                              {letter}:
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={cleanText}
+                              onChange={(e) => handleOptionTextChange(q.id, opt.id, optIndex, e.target.value)}
+                              placeholder={`Nhập nội dung đáp án ${letter}...`}
+                              className="w-full p-2 text-xs font-bold text-[#111827] focus:outline-none bg-transparent"
+                            />
+                          </div>
+
+                          {/* Delete Option Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOption(q.id, opt.id)}
+                            className="p-2 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-xl cursor-pointer transition-all shrink-0"
+                            title="Xóa lựa chọn đáp án này"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
 
                     {/* Add Option Button under each question */}
                     <div className="pt-2">
