@@ -10,7 +10,7 @@ interface StudentsViewProps {
 
 const ITEMS_PER_PAGE = 10;
 
-export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToast, currentUser = 'admin' }) => {
+export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToast, currentUser = 'student' }) => {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 

@@ -22,7 +22,7 @@ export const VocabView: React.FC<VocabViewProps> = ({
   onOpenAddModal,
   onOpenFlashcardModal,
   onShowToast,
-  currentUser = 'admin',
+  currentUser = 'student',
   onEditVocab,
   onDeleteVocab,
 }) => {

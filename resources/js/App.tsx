@@ -1005,22 +1005,47 @@ export default function App() {
 
               {/* PAGE VIEW: TRANG THÊM MỚI & CHỈNH SỬA TỪ VỰNG / ĐỀ THI / NGỮ PHÁP */}
               {activeTab === 'create-item' && (
-                <CreateItemView
-                  type={createItemType}
-                  editingItem={editingItem}
-                  onBack={() => {
-                    const backTab = createItemType === 'vocab' ? 'vocab' : createItemType === 'grammar' ? 'grammar' : 'exam';
-                    setEditingItem(null);
-                    setActiveTab(backTab);
-                  }}
-                  onAddVocab={handleAddVocab}
-                  onAddExam={handleAddExam}
-                  onAddGrammar={handleAddGrammar}
-                  onUpdateVocab={handleUpdateVocab}
-                  onUpdateExam={handleUpdateExam}
-                  onUpdateGrammar={handleUpdateGrammar}
-                  onShowToast={showToast}
-                />
+                currentUser === 'admin' ? (
+                  <CreateItemView
+                    type={createItemType}
+                    editingItem={editingItem}
+                    onBack={() => {
+                      const backTab = createItemType === 'vocab' ? 'vocab' : createItemType === 'grammar' ? 'grammar' : 'exam';
+                      setEditingItem(null);
+                      setActiveTab(backTab);
+                    }}
+                    onAddVocab={handleAddVocab}
+                    onAddExam={handleAddExam}
+                    onAddGrammar={handleAddGrammar}
+                    onUpdateVocab={handleUpdateVocab}
+                    onUpdateExam={handleUpdateExam}
+                    onUpdateGrammar={handleUpdateGrammar}
+                    onShowToast={showToast}
+                  />
+                ) : (
+                  <ExamsView
+                    exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
+                    levelLabel="B2"
+                    onSelectExam={(exam) => {
+                      setSelectedExam(exam);
+                      setActiveTab('exam-detail');
+                    }}
+                    onStartExam={(exam) => handleStartExamRoom(exam)}
+                    onOpenNewExamModal={() => {
+                      setEditingItem(null);
+                      setCreateItemType('exam');
+                      setActiveTab('create-item');
+                    }}
+                    onEditExam={(exam) => {
+                      setEditingItem(exam);
+                      setCreateItemType('exam');
+                      setActiveTab('create-item');
+                    }}
+                    onDeleteExam={handleDeleteExam}
+                    onShowToast={showToast}
+                    currentUser={currentUser}
+                  />
+                )
               )}
 
               {/* TAB 6: MODUL SCHREIBEN (WRITING) */}

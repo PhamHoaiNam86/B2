@@ -16,7 +16,7 @@ interface DocumentMaterialViewProps {
   currentUser?: 'admin' | 'student';
 }
 
-export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type, onShowToast, currentUser = 'admin' }) => {
+export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type, onShowToast, currentUser = 'student' }) => {
   // Leaderboard state
   const [lbTab, setLbTab] = useState<'exp' | 'streak' | 'done'>('exp');
   const [lbFilter, setLbFilter] = useState<'all' | 'week' | 'month'>('all');

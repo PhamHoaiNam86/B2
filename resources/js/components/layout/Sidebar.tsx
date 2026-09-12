@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile,
   onCloseMobile,
   tabSwitchCount = 0,
-  currentUser = 'admin',
+  currentUser = 'student',
   onLogout,
 }) => {
   const navItems = [

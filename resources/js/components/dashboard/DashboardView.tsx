@@ -42,7 +42,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToVocab,
   onNavigateToGrammar,
   onNavigateToSchreiben,
-  currentUser = 'admin',
+  currentUser = 'student',
 }) => {
   const [activeLevelFilter, setActiveLevelFilter] = useState<'ALL' | 'B2' | 'B1' | 'A2' | 'A1'>('B2');
 

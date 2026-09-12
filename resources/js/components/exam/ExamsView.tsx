@@ -22,7 +22,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onStartExam,
   onOpenNewExamModal,
   onShowToast,
-  currentUser = 'admin',
+  currentUser = 'student',
   onEditExam,
   onDeleteExam,
 }) => {
@@ -64,18 +64,10 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
           <div className="w-16 h-16 bg-[#eff6ff] border-2 border-[#111827] rounded-2xl flex items-center justify-center mx-auto text-3xl">
             📝
           </div>
-          <h3 className="text-xl font-black text-[#111827] font-heading">Chưa có bộ đề thi nào</h3>
+          <h3 className="text-xl font-black text-[#111827] font-heading">Dữ liệu đang được cập nhật</h3>
           <p className="text-xs text-[#4b5563] max-w-md mx-auto leading-relaxed">
-            Ngân hàng đề thi hiện đang trống. Vui lòng quay lại sau hoặc đăng nhập tài khoản Admin để bắt đầu tạo bộ đề thi mới!
+            Ngân hàng đề thi trình độ {levelLabel} đang được cập nhật. Vui lòng quay lại sau!
           </p>
-          {onOpenNewExamModal && (
-            <button
-              onClick={onOpenNewExamModal}
-              className="px-5 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow hover:bg-[#ea580c] transition-all cursor-pointer inline-flex items-center gap-2 uppercase font-heading"
-            >
-              + Tạo Bộ Đề Thi Mới
-            </button>
-          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

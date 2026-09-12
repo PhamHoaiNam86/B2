@@ -21,7 +21,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
   onOpenDiagnosticTest,
   onOpenTrapQuiz,
   onShowToast,
-  currentUser = 'admin',
+  currentUser = 'student',
   onAddNewTopic,
   onEditTopic,
   onDeleteTopic,

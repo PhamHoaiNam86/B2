@@ -7,7 +7,7 @@ interface ProfileViewProps {
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
-  currentUser = 'admin',
+  currentUser = 'student',
   onShowToast,
 }) => {
   // Profile form state initialized with realistic student/admin data
