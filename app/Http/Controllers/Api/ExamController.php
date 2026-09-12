@@ -112,6 +112,7 @@ class ExamController extends Controller
             'description' => 'nullable|string',
             'total_questions' => 'nullable|integer',
             'questions' => 'nullable|array',
+            'sections' => 'nullable|array',
         ]);
 
         $exam = Exam::create([
@@ -124,6 +125,7 @@ class ExamController extends Controller
             'target_score' => 225,
             'pass_rate' => '88%',
             'is_active' => true,
+            'sections_json' => $validated['sections'] ?? null,
         ]);
 
         if (! empty($validated['questions'])) {
@@ -179,6 +181,7 @@ class ExamController extends Controller
             'description' => 'nullable|string',
             'total_questions' => 'nullable|integer',
             'questions' => 'nullable|array',
+            'sections' => 'nullable|array',
         ]);
 
         if (isset($validated['name'])) {
@@ -195,6 +198,9 @@ class ExamController extends Controller
         }
         if (isset($validated['total_questions'])) {
             $exam->total_questions = $validated['total_questions'];
+        }
+        if (isset($validated['sections'])) {
+            $exam->sections_json = $validated['sections'];
         }
 
         $exam->save();

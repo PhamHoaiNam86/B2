@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VocabItem, ExamModel, GrammarTopic } from '../../types';
-import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle } from 'lucide-react';
 
 interface ExamQuestionOption {
   id: string;
@@ -11,8 +11,16 @@ interface ExamQuestionOption {
 interface ExamQuestion {
   id: string;
   questionText: string;
+  contextText?: string;
   options: ExamQuestionOption[];
   explanation?: string;
+}
+
+interface ExamSection {
+  id: string;
+  name: string;
+  duration: string;
+  questions: ExamQuestion[];
 }
 
 interface CreateItemViewProps {
@@ -60,201 +68,35 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
 
-  // Dynamic Exam Questions State
-  const [questions, setQuestions] = useState<ExamQuestion[]>(() => {
-    if (editingItem?.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
-      return editingItem.questions;
-    }
+  // Dynamic Exam Sections State (Admin freely creates and names sections)
+  const [sections, setSections] = useState<ExamSection[]>(() => {
     return [
       {
-        id: `q-1`,
-        questionText: '',
-        explanation: '',
-        options: [
-          { id: `opt-1-1`, text: '', isCorrect: true },
-          { id: `opt-1-2`, text: '', isCorrect: false },
+        id: `sec-${Date.now()}`,
+        name: '',
+        duration: '30 phút',
+        questions: [
+          {
+            id: `q-1-1`,
+            questionText: '',
+            contextText: '',
+            explanation: '',
+            options: [
+              { id: `opt-1-1-1`, text: '', isCorrect: true },
+              { id: `opt-1-1-2`, text: '', isCorrect: false },
+            ],
+          },
         ],
       },
     ];
   });
 
-  const [totalQuestions, setTotalQuestions] = useState(editingItem?.totalQuestions || questions.length);
+  // Calculate Total Questions Count across all sections
+  const totalQuestionsCount = sections.reduce((acc, sec) => acc + sec.questions.length, 0);
 
-  const handleAddQuestion = () => {
-    const qIndex = questions.length + 1;
-    const newQ: ExamQuestion = {
-      id: `q-${Date.now()}`,
-      questionText: '',
-      explanation: '',
-      options: [
-        { id: `opt-${Date.now()}-1`, text: '', isCorrect: true },
-        { id: `opt-${Date.now()}-2`, text: '', isCorrect: false },
-      ],
-    };
-    const updated = [...questions, newQ];
-    setQuestions(updated);
-    setTotalQuestions(updated.length);
-    onShowToast('Đã thêm câu hỏi', `Đã mở rộng form thêm Câu ${qIndex}`, 'info');
-  };
-
-  const handleDeleteQuestion = (qId: string) => {
-    if (questions.length <= 1) {
-      onShowToast('Cảnh báo', 'Đề thi cần có ít nhất 1 câu hỏi', 'warning');
-      return;
-    }
-    const updated = questions.filter((q) => q.id !== qId);
-    setQuestions(updated);
-    setTotalQuestions(updated.length);
-  };
-
-  const handleQuestionTextChange = (qId: string, text: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => (q.id === qId ? { ...q, questionText: text } : q))
-    );
-  };
-
-  const handleAddOption = (qId: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          const newOpt: ExamQuestionOption = {
-            id: `opt-${Date.now()}`,
-            text: '',
-            isCorrect: false,
-          };
-          return { ...q, options: [...q.options, newOpt] };
-        }
-        return q;
-      })
-    );
-  };
-
-  const handleDeleteOption = (qId: string, optId: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          if (q.options.length <= 2) {
-            onShowToast('Cảnh báo', 'Mỗi câu hỏi cần ít nhất 2 lựa chọn đáp án', 'warning');
-            return q;
-          }
-          return { ...q, options: q.options.filter((opt) => opt.id !== optId) };
-        }
-        return q;
-      })
-    );
-  };
-
-  const getCleanOptionText = (rawText: string) => {
-    if (!rawText) return '';
-    return rawText.replace(/^(?:Đáp án\s*)?[A-Z][:.]\s*/i, '');
-  };
-
-  const handleOptionTextChange = (qId: string, optId: string, optIndex: number, newRawValue: string) => {
-    const letter = String.fromCharCode(65 + optIndex);
-    const clean = getCleanOptionText(newRawValue);
-    const formattedText = clean ? `${letter}: ${clean}` : '';
-
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          return {
-            ...q,
-            options: q.options.map((opt) => (opt.id === optId ? { ...opt, text: formattedText } : opt)),
-          };
-        }
-        return q;
-      })
-    );
-  };
-
-  const handleSetCorrectOption = (qId: string, optId: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          return {
-            ...q,
-            options: q.options.map((opt) => ({
-              ...opt,
-              isCorrect: opt.id === optId,
-            })),
-          };
-        }
-        return q;
-      })
-    );
-  };
-
-  const handleExplanationChange = (qId: string, text: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => (q.id === qId ? { ...q, explanation: text } : q))
-    );
-  };
-
-  const handleInsertSnippet = (qId: string, snippet: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          const currentExp = q.explanation || '';
-          return {
-            ...q,
-            explanation: currentExp ? `${currentExp}\n${snippet}` : snippet,
-          };
-        }
-        return q;
-      })
-    );
-  };
-
-  // Grammar State
-  const [grammarTitle, setGrammarTitle] = useState(editingItem?.title || '');
-  const [grammarLevel, setGrammarLevel] = useState(editingItem?.level || 'B2');
-  const [grammarCategory, setGrammarCategory] = useState(editingItem?.category || 'Verben & Modi');
-  const [grammarSummary, setGrammarSummary] = useState(editingItem?.summary || '');
-  const [grammarContent, setGrammarContent] = useState(editingItem?.content || '');
-  const [grammarRules, setGrammarRules] = useState(
-    editingItem?.rulePoints ? editingItem.rulePoints.join('\n') : ''
-  );
-
+  // Pre-fill fields on Edit Mode
   useEffect(() => {
-    if (!editingItem) {
-      if (type === 'exam') {
-        setExamName('');
-        setExamCode(`TELC-B2-MOCK-${Date.now().toString().slice(-4)}`);
-        setLevel('TELC B2');
-        setDurationMinutes(90);
-        setDescription('');
-        setQuestions([
-          {
-            id: 'q-1',
-            questionText: '',
-            explanation: '',
-            options: [
-              { id: 'opt-1-1', text: '', isCorrect: true },
-              { id: 'opt-1-2', text: '', isCorrect: false },
-            ],
-          },
-        ]);
-        setTotalQuestions(1);
-      } else if (type === 'vocab') {
-        setWord('');
-        setArticle('der');
-        setPlural('');
-        setPos('Nomen');
-        setPhonetic('');
-        setMeaningVi('');
-        setExampleDe('');
-        setExampleVi('');
-        setTopic('Arbeit & Beruf');
-      } else if (type === 'grammar') {
-        setGrammarTitle('');
-        setGrammarLevel('B2');
-        setGrammarCategory('Verben & Modi');
-        setGrammarSummary('');
-        setGrammarContent('');
-        setGrammarRules('');
-      }
-      return;
-    }
+    if (!editingItem) return;
 
     if (type === 'vocab') {
       setWord(editingItem.word || '');
@@ -278,23 +120,36 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
           .then((res) => res.json())
           .then((res) => {
             if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              const mappedQuestions: ExamQuestion[] = res.data.map((q: any, idx: number) => ({
-                id: String(q.id || `q-${idx + 1}`),
-                questionText: q.title || `Câu ${idx + 1}: `,
-                contextText: q.context_text || '',
-                explanation: q.explanation || '',
-                options: q.options_json
-                  ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
-                  : [
-                      { id: `opt-${idx}-1`, text: 'Đáp án A: ', isCorrect: true },
-                      { id: `opt-${idx}-2`, text: 'Đáp án B: ', isCorrect: false },
-                    ],
+              const sectionsMap: Record<string, ExamQuestion[]> = {};
+
+              res.data.forEach((q: any, idx: number) => {
+                const mappedQ: ExamQuestion = {
+                  id: String(q.id || `q-${idx + 1}`),
+                  questionText: q.title || `Câu ${idx + 1}: `,
+                  contextText: q.context_text || '',
+                  explanation: q.explanation || '',
+                  options: q.options_json
+                    ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
+                    : [],
+                };
+
+                const secName = q.section || 'Phần 1';
+                if (!sectionsMap[secName]) {
+                  sectionsMap[secName] = [];
+                }
+                sectionsMap[secName].push(mappedQ);
+              });
+
+              const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
+                id: `sec-${sIdx + 1}`,
+                name: secName,
+                duration: '30 phút',
+                questions: sectionsMap[secName],
               }));
-              setQuestions(mappedQuestions);
-              setTotalQuestions(mappedQuestions.length);
-            } else if (editingItem.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
-              setQuestions(editingItem.questions);
-              setTotalQuestions(editingItem.questions.length);
+
+              if (builtSections.length > 0) {
+                setSections(builtSections);
+              }
             }
           })
           .catch(() => {});
@@ -308,6 +163,225 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       setGrammarRules(editingItem.rulePoints ? editingItem.rulePoints.join('\n') : '');
     }
   }, [editingItem, type]);
+
+  // Section Handlers
+  const handleAddSection = () => {
+    const secIdx = sections.length + 1;
+    const newSec: ExamSection = {
+      id: `sec-${Date.now()}`,
+      name: '',
+      duration: '30 phút',
+      questions: [],
+    };
+    setSections((prev) => [...prev, newSec]);
+    onShowToast('Đã thêm phần thi', `Đã mở rộng thêm Phần thi số ${secIdx}`, 'info');
+  };
+
+  const handleDeleteSection = (secId: string) => {
+    if (sections.length <= 1) {
+      onShowToast('Cảnh báo', 'Đề thi cần có ít nhất 1 phần thi', 'warning');
+      return;
+    }
+    setSections((prev) => prev.filter((s) => s.id !== secId));
+    onShowToast('Đã xóa phần thi', 'Đã xóa phần thi khỏi cấu trúc đề thi', 'info');
+  };
+
+  const handleSectionNameChange = (secId: string, name: string) => {
+    setSections((prev) => prev.map((s) => (s.id === secId ? { ...s, name } : s)));
+  };
+
+  const handleSectionDurationChange = (secId: string, duration: string) => {
+    setSections((prev) => prev.map((s) => (s.id === secId ? { ...s, duration } : s)));
+  };
+
+  // Question Handlers inside targeted section
+  const handleAddQuestionToSection = (secId: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          const newQ: ExamQuestion = {
+            id: `q-${Date.now()}`,
+            questionText: '',
+            contextText: '',
+            explanation: '',
+            options: [
+              { id: `opt-${Date.now()}-1`, text: '', isCorrect: true },
+              { id: `opt-${Date.now()}-2`, text: '', isCorrect: false },
+            ],
+          };
+          return { ...sec, questions: [...sec.questions, newQ] };
+        }
+        return sec;
+      })
+    );
+    onShowToast('Thêm câu hỏi', 'Đã tạo 1 câu hỏi mới vào phần thi này', 'info');
+  };
+
+  const handleDeleteQuestionFromSection = (secId: string, qId: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return { ...sec, questions: sec.questions.filter((q) => q.id !== qId) };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleQuestionTextChange = (secId: string, qId: string, text: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, questionText: text } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleContextTextChange = (secId: string, qId: string, contextText: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, contextText } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const getCleanOptionText = (rawText: string) => {
+    if (!rawText) return '';
+    return rawText.replace(/^(?:Đáp án\s*)?[A-Z][:.]\s*/i, '');
+  };
+
+  const handleOptionTextChange = (secId: string, qId: string, optId: string, optIndex: number, newRawValue: string) => {
+    const letter = String.fromCharCode(65 + optIndex);
+    const clean = getCleanOptionText(newRawValue);
+    const formattedText = clean ? `${letter}: ${clean}` : '';
+
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => {
+              if (q.id === qId) {
+                return {
+                  ...q,
+                  options: q.options.map((opt) => (opt.id === optId ? { ...opt, text: formattedText } : opt)),
+                };
+              }
+              return q;
+            }),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleSetCorrectOption = (secId: string, qId: string, optId: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => {
+              if (q.id === qId) {
+                return {
+                  ...q,
+                  options: q.options.map((opt) => ({
+                    ...opt,
+                    isCorrect: opt.id === optId,
+                  })),
+                };
+              }
+              return q;
+            }),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleAddOption = (secId: string, qId: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => {
+              if (q.id === qId) {
+                const newOpt: ExamQuestionOption = {
+                  id: `opt-${Date.now()}`,
+                  text: '',
+                  isCorrect: false,
+                };
+                return { ...q, options: [...q.options, newOpt] };
+              }
+              return q;
+            }),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleDeleteOption = (secId: string, qId: string, optId: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => {
+              if (q.id === qId) {
+                if (q.options.length <= 2) {
+                  onShowToast('Cảnh báo', 'Mỗi câu hỏi cần ít nhất 2 đáp án', 'warning');
+                  return q;
+                }
+                return { ...q, options: q.options.filter((opt) => opt.id !== optId) };
+              }
+              return q;
+            }),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleExplanationChange = (secId: string, qId: string, text: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, explanation: text } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  // Grammar State
+  const [grammarTitle, setGrammarTitle] = useState(editingItem?.title || '');
+  const [grammarLevel, setGrammarLevel] = useState(editingItem?.level || 'B2');
+  const [grammarCategory, setGrammarCategory] = useState(editingItem?.category || 'Verben & Modi');
+  const [grammarSummary, setGrammarSummary] = useState(editingItem?.summary || '');
+  const [grammarContent, setGrammarContent] = useState(editingItem?.content || '');
+  const [grammarRules, setGrammarRules] = useState(
+    editingItem?.rulePoints ? editingItem.rulePoints.join('\n') : ''
+  );
 
   const handleSubmitVocab = (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,16 +422,32 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       return;
     }
 
-    const sanitizedQuestions = questions.map((q) => ({
-      ...q,
-      options: q.options.map((opt, optIndex) => {
-        const letter = String.fromCharCode(65 + optIndex);
-        const clean = getCleanOptionText(opt.text);
-        return {
-          ...opt,
-          text: clean ? `${letter}: ${clean}` : `${letter}: `,
-        };
-      }),
+    const flattenedQuestions: any[] = [];
+    sections.forEach((sec, sIdx) => {
+      const fallbackSecName = sec.name.trim() || `Phần ${sIdx + 1}`;
+      sec.questions.forEach((q) => {
+        flattenedQuestions.push({
+          id: q.id,
+          section: fallbackSecName,
+          questionText: q.questionText,
+          contextText: q.contextText || '',
+          explanation: q.explanation || '',
+          options: q.options.map((opt, optIndex) => {
+            const letter = String.fromCharCode(65 + optIndex);
+            const clean = getCleanOptionText(opt.text);
+            return {
+              ...opt,
+              text: clean ? `${letter}: ${clean}` : `${letter}: `,
+            };
+          }),
+        });
+      });
+    });
+
+    const formattedSections = sections.map((sec, sIdx) => ({
+      name: sec.name.trim() || `Phần ${sIdx + 1}`,
+      questionCount: sec.questions.length,
+      duration: sec.duration || '30 phút',
     }));
 
     const examData: ExamModel = {
@@ -366,17 +456,12 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       examCode,
       level,
       durationMinutes,
-      totalQuestions: sanitizedQuestions.length || totalQuestions,
-      description: description || 'Đề thi thử tiêu chuẩn TELC B2.',
-      sections: editingItem?.sections || [
-        { name: 'Leseverstehen', questionCount: 20, duration: '45 phút' },
-        { name: 'Sprachbausteine', questionCount: 10, duration: '15 phút' },
-        { name: 'Hörverstehen', questionCount: 10, duration: '20 phút' },
-        { name: 'Schriftlicher Ausdruck', questionCount: 1, duration: '30 phút' },
-      ],
+      totalQuestions: flattenedQuestions.length || totalQuestionsCount,
+      description: description || 'Đề thi thử tiếng Đức chuẩn hóa.',
+      sections: formattedSections,
       targetScore: editingItem?.targetScore || 225,
       passRate: editingItem?.passRate || '85%',
-      questions: sanitizedQuestions,
+      questions: flattenedQuestions,
     };
 
     if (isEditMode && onUpdateExam) {
@@ -420,480 +505,623 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       onShowToast('Cập nhật thành công', `Đã chỉnh sửa chuyên đề ngữ pháp "${grammarTitle}".`, 'success');
     } else if (onAddGrammar) {
       onAddGrammar(topicData);
-      onShowToast('Thành công', `Đã tạo chuyên đề ngữ pháp mới "${grammarTitle}".`, 'success');
+      onShowToast('Thành công', `Đã thêm chuyên đề ngữ pháp mới "${grammarTitle}".`, 'success');
     }
     onBack();
   };
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Navigation Top Header */}
+    <div className="space-y-6 w-full pb-12">
+      {/* Top Bar */}
       <div className="flex items-center justify-between border-b-2 border-[#111827] pb-4">
         <button
+          type="button"
           onClick={onBack}
-          className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#f8fafc] flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại danh sách</span>
+          <span>Quay lại</span>
         </button>
 
-        <span className="px-3 py-1 bg-[#2563EB] text-white border border-[#111827] rounded-full text-xs font-black brutal-shadow-xs flex items-center gap-1.5 uppercase">
-          {type === 'vocab' ? <BookOpen className="w-3.5 h-3.5" /> : type === 'grammar' ? <Brain className="w-3.5 h-3.5" /> : <FileCheck2 className="w-3.5 h-3.5" />}
-          {isEditMode ? 'FORM CHỈNH SỬA DỮ LIỆU' : 'FORM TẠO MỚI DỮ LIỆU'} ({type.toUpperCase()})
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-[#2563EB] text-white rounded-full text-xs font-black uppercase border border-[#111827]">
+            {isEditMode ? 'CHỈNH SỬA DỮ LIỆU' : 'TẠO MỚI DỮ LIỆU'}
+          </span>
+          <span className="px-3 py-1 bg-[#eff6ff] text-[#1e40af] rounded-full text-xs font-black uppercase border border-[#111827]">
+            {type === 'vocab' ? 'TỪ VỰNG' : type === 'grammar' ? 'NGỮ PHÁP' : 'ĐỀ THI'}
+          </span>
+        </div>
       </div>
 
-      {type === 'vocab' ? (
-        <form onSubmit={handleSubmitVocab} className="p-6 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4">
+      {/* Main Form Box */}
+      <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-6 sm:p-8 brutal-shadow space-y-6">
+        <div className="space-y-1">
           <h2 className="text-xl font-black text-[#111827] font-heading flex items-center gap-2">
-            {isEditMode ? <Edit className="w-5 h-5 text-[#2563EB]" /> : <PlusCircle className="w-5 h-5 text-[#2563EB]" />}
-            {isEditMode ? `Chỉnh Sửa Từ Vựng: "${editingItem?.word}"` : 'Thêm Từ Vựng Tiếng Đức B2 Mới'}
+            {type === 'vocab' && <BookOpen className="w-6 h-6 text-[#2563EB]" />}
+            {type === 'exam' && <FileCheck2 className="w-6 h-6 text-[#F97316]" />}
+            {type === 'grammar' && <Brain className="w-6 h-6 text-[#059669]" />}
+            <span>
+              {isEditMode ? 'Chỉnh Sửa' : 'Thêm Mới'}{' '}
+              {type === 'vocab' ? 'Từ Vựng B2' : type === 'grammar' ? 'Chuyên Đề Ngữ Pháp' : 'Bộ Đề Thi Thử'}
+            </span>
           </h2>
+          <p className="text-xs text-[#4b5563]">
+            Nhập đầy đủ các trường thông tin bên dưới để lưu dữ liệu vào hệ thống CSDL.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Quán từ (Artikel)</label>
-              <select
-                value={article}
-                onChange={(e) => setArticle(e.target.value)}
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              >
-                <option value="der">der (Nam)</option>
-                <option value="die">die (Nữ)</option>
-                <option value="das">das (Trung)</option>
-                <option value="">Không có</option>
-              </select>
+        {/* 1. FORM VOCAB */}
+        {type === 'vocab' && (
+          <form onSubmit={handleSubmitVocab} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Giống từ (Article)</label>
+                <select
+                  value={article}
+                  onChange={(e) => setArticle(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="der">der (Giống đực)</option>
+                  <option value="die">die (Giống cái)</option>
+                  <option value="das">das (Giống trung)</option>
+                  <option value="">Không có (Verb/Adj)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Từ tiếng Đức *</label>
+                <input
+                  type="text"
+                  required
+                  value={word}
+                  onChange={(e) => setWord(e.target.value)}
+                  placeholder="Ví dụ: Berufsausbildung"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Dạng số nhiều (Plural)</label>
+                <input
+                  type="text"
+                  value={plural}
+                  onChange={(e) => setPlural(e.target.value)}
+                  placeholder="Ví dụ: die Ausbildungen"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
             </div>
 
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-black text-[#111827] mb-1">Từ vựng tiếng Đức *</label>
-              <input
-                type="text"
-                required
-                value={word}
-                onChange={(e) => setWord(e.target.value)}
-                placeholder="Ví dụ: die Bestätigung"
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Loại từ (POS)</label>
+                <select
+                  value={pos}
+                  onChange={(e) => setPos(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="Nomen">Nomen (Danh từ)</option>
+                  <option value="Verb">Verb (Động từ)</option>
+                  <option value="Adjektiv">Adjektiv (Tính từ)</option>
+                  <option value="Redewendung">Redewendung (Cụm từ)</option>
+                </select>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Số nhiều (Plural)</label>
-              <input
-                type="text"
-                value={plural}
-                onChange={(e) => setPlural(e.target.value)}
-                placeholder="Ví dụ: -en (die Bestätigungen)"
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Phiên âm (Phonetic)</label>
+                <input
+                  type="text"
+                  value={phonetic}
+                  onChange={(e) => setPhonetic(e.target.value)}
+                  placeholder="Ví dụ: /bəˈʁuːfsʔaʊsˌbɪldʊŋ/"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Chủ đề (Topic)</label>
+                <input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="Ví dụ: Arbeit & Beruf"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Nghĩa tiếng Việt *</label>
+              <label className="block text-xs font-black text-[#111827] mb-1">Nghĩa Tiếng Việt *</label>
               <input
                 type="text"
                 required
                 value={meaningVi}
                 onChange={(e) => setMeaningVi(e.target.value)}
-                placeholder="Ví dụ: Sự xác nhận, giấy chứng nhận"
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Ví dụ Tiếng Đức (Beispiel)</label>
-            <input
-              type="text"
-              value={exampleDe}
-              onChange={(e) => setExampleDe(e.target.value)}
-              placeholder="Ví dụ: Ich bitte um eine schriftliche Bestätigung."
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Dịch nghĩa ví dụ (Ví dụ Tiếng Việt)</label>
-            <input
-              type="text"
-              value={exampleVi}
-              onChange={(e) => setExampleVi(e.target.value)}
-              placeholder="Ví dụ: Tôi xin một xác nhận bằng văn bản."
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase"
-            >
-              <Save className="w-4 h-4" /> {isEditMode ? 'Lưu Thay Đổi Từ Vựng' : 'Lưu Từ Vựng Mới'}
-            </button>
-          </div>
-        </form>
-      ) : type === 'grammar' ? (
-        <form onSubmit={handleSubmitGrammar} className="p-6 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4">
-          <h2 className="text-xl font-black text-[#111827] font-heading flex items-center gap-2">
-            {isEditMode ? <Edit className="w-5 h-5 text-[#2563EB]" /> : <PlusCircle className="w-5 h-5 text-[#2563EB]" />}
-            {isEditMode ? `Chỉnh Sửa Bài Học Ngữ Pháp: "${editingItem?.title}"` : 'Tạo Chuyên Đề Ngữ Pháp Mới'}
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Tên chuyên đề ngữ pháp *</label>
-              <input
-                type="text"
-                required
-                value={grammarTitle}
-                onChange={(e) => setGrammarTitle(e.target.value)}
-                placeholder="Ví dụ: Konjunktiv II & Giả định cách"
+                placeholder="Ví dụ: Đào tạo nghề nghiệp"
                 className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Cấp độ *</label>
-              <select
-                value={grammarLevel}
-                onChange={(e) => setGrammarLevel(e.target.value)}
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              >
-                <option value="B2">B2</option>
-                <option value="B1">B1</option>
-                <option value="A2">A2</option>
-                <option value="A1">A1</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Danh mục *</label>
-            <input
-              type="text"
-              required
-              value={grammarCategory}
-              onChange={(e) => setGrammarCategory(e.target.value)}
-              placeholder="Ví dụ: Verben & Modi / Passivstrukturen"
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Tóm tắt chuyên đề *</label>
-            <textarea
-              rows={2}
-              required
-              value={grammarSummary}
-              onChange={(e) => setGrammarSummary(e.target.value)}
-              placeholder="Tóm tắt ngắn gọn lý thuyết và ứng dụng trong bài thi B2..."
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Các quy tắc bẫy đề thi (Mỗi quy tắc 1 dòng)</label>
-            <textarea
-              rows={3}
-              value={grammarRules}
-              onChange={(e) => setGrammarRules(e.target.value)}
-              placeholder="Nhập mỗi quy tắc trên 1 dòng..."
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase"
-            >
-              <Save className="w-4 h-4" /> {isEditMode ? 'Lưu Thay Đổi Ngữ Pháp' : 'Lưu Bài Học Ngữ Pháp Mới'}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <form onSubmit={handleSubmitExam} className="p-6 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4">
-          <h2 className="text-xl font-black text-[#111827] font-heading flex items-center gap-2">
-            {isEditMode ? <Edit className="w-5 h-5 text-[#F97316]" /> : <PlusCircle className="w-5 h-5 text-[#F97316]" />}
-            {isEditMode ? `Chỉnh Sửa Bộ Đề Thi: "${editingItem?.name}"` : 'Tạo Bộ Đề Thi Mới'}
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Mã đề thi *</label>
-              <input
-                type="text"
-                required
-                value={examCode}
-                onChange={(e) => setExamCode(e.target.value)}
-                placeholder="Ví dụ: TELC-B2-MOCK-05"
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Trình độ *</label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              >
-                <option value="TELC C1">TELC C1</option>
-                <option value="Goethe C1">Goethe C1</option>
-                <option value="TELC B2">TELC B2</option>
-                <option value="TELC B1">TELC B1</option>
-                <option value="TELC A2">TELC A2</option>
-                <option value="TELC A1">TELC A1</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Tên bộ đề thi *</label>
-            <input
-              type="text"
-              required
-              value={examName}
-              onChange={(e) => setExamName(e.target.value)}
-              placeholder="Ví dụ: Đề Thi Thử TELC B2 Tổng Hợp Số 5"
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Thời gian làm bài (Phút)</label>
-              <input
-                type="number"
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Tổng số câu hỏi</label>
-              <input
-                type="number"
-                value={totalQuestions}
-                onChange={(e) => setTotalQuestions(Number(e.target.value))}
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#111827] mb-1">Mô tả bộ đề thi</label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Mô tả ngắn về cấu trúc và yêu cầu của đề thi..."
-              className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            />
-          </div>
-
-          {/* DYNAMIC QUESTION & ANSWER BUILDER SECTION */}
-          <div className="pt-6 border-t-2 border-[#111827] space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#eff6ff] p-4 border-2 border-[#111827] rounded-xl brutal-shadow-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <span className="px-2.5 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black uppercase border border-[#111827]">
-                  TRÌNH TẠO NỘI DUNG CÂU HỎI & ĐÁP ÁN
-                </span>
-                <h3 className="text-base font-black text-[#111827] mt-1 font-heading">
-                  Danh Sách Câu Hỏi & Đáp Án Chi Tiết ({questions.length} câu)
-                </h3>
-                <p className="text-xs text-[#4b5563]">
-                  Nhập tiêu đề câu hỏi, các lựa chọn đáp án và bấm nút 🔘 để đánh dấu đáp án đúng.
-                </p>
+                <label className="block text-xs font-black text-[#111827] mb-1">Ví dụ Tiếng Đức</label>
+                <textarea
+                  rows={2}
+                  value={exampleDe}
+                  onChange={(e) => setExampleDe(e.target.value)}
+                  placeholder="Ví dụ: Eine duale Berufsausbildung kombiniert Theorie und Praxis."
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
               </div>
 
-              <button
-                type="button"
-                onClick={handleAddQuestion}
-                className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 uppercase"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>+ Thêm Câu Hỏi Mới</span>
-              </button>
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Dịch nghĩa câu ví dụ</label>
+                <textarea
+                  rows={2}
+                  value={exampleVi}
+                  onChange={(e) => setExampleVi(e.target.value)}
+                  placeholder="Dịch: Đào tạo nghề kép kết hợp lý thuyết và thực hành."
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
             </div>
 
-            {/* Questions List */}
-            <div className="space-y-4">
-              {questions.map((q, qIndex) => (
-                <div
-                  key={q.id}
-                  className="bg-[#f8fafc] border-2 border-[#111827] rounded-2xl p-5 brutal-shadow-xs space-y-3"
+            <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase"
+              >
+                <Save className="w-4 h-4" />
+                <span>Lưu Từ Vựng</span>
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* 2. DYNAMIC ADMIN EXAM BUILDER (ADMIN TỰ TẠO VÀ ĐẶT TÊN CÁC PHẦN THI) */}
+        {type === 'exam' && (
+          <form onSubmit={handleSubmitExam} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Mã bộ đề thi (Exam Code) *</label>
+                <input
+                  type="text"
+                  required
+                  value={examCode}
+                  onChange={(e) => setExamCode(e.target.value)}
+                  placeholder="Ví dụ: TELC-B2-MOCK-05"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold font-mono uppercase"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Trình độ (Level)</label>
+                <select
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
                 >
-                  {/* Question Header & Delete Question Button */}
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="px-3 py-1 bg-[#111827] text-white rounded-lg text-xs font-black uppercase font-mono shrink-0">
-                      CÂU HỎI {qIndex + 1}
-                    </span>
+                  <option value="TELC A1">Goethe / TELC A1</option>
+                  <option value="TELC A2">Goethe / TELC A2</option>
+                  <option value="TELC B1">Goethe / TELC B1</option>
+                  <option value="TELC B2">TELC B2 Deutsch</option>
+                  <option value="TELC C1">TELC C1 Hochschule</option>
+                </select>
+              </div>
+            </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteQuestion(q.id)}
-                      className="px-3 py-1 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-lg cursor-pointer transition-all shrink-0 font-bold text-xs flex items-center gap-1"
-                      title="Xóa câu hỏi này"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Xóa Câu {qIndex + 1}</span>
-                    </button>
-                  </div>
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">Tên bộ đề thi *</label>
+              <input
+                type="text"
+                required
+                value={examName}
+                onChange={(e) => setExamName(e.target.value)}
+                placeholder="Ví dụ: Đề Thi Thử TELC B2 Tổng Hợp Số 5"
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+              />
+            </div>
 
-                  {/* Question Content Input */}
-                  <div>
-                    <label className="block text-xs font-black text-[#111827] mb-1">
-                      Nội dung / Tiêu đề câu hỏi #{qIndex + 1} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={q.questionText}
-                      onChange={(e) => handleQuestionTextChange(q.id, e.target.value)}
-                      placeholder={`Ví dụ: Câu ${qIndex + 1}: Chọn đáp án đúng...`}
-                      className="w-full p-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                    />
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Thời gian làm bài tổng (Phút)</label>
+                <input
+                  type="number"
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
 
-                  {/* Options List for this Question */}
-                  <div className="pl-2 sm:pl-4 space-y-2 border-l-4 border-[#2563EB] pt-1 mt-2">
-                    <label className="block text-[11px] font-black text-[#111827] uppercase tracking-wider">
-                      Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
-                    </label>
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Tổng số câu hỏi (Tự động tính)</label>
+                <input
+                  type="number"
+                  disabled
+                  value={totalQuestionsCount}
+                  className="w-full p-2.5 bg-slate-100 border-2 border-[#111827] rounded-xl text-xs font-black text-[#2563EB]"
+                />
+              </div>
+            </div>
 
-                    {q.options.map((opt, optIndex) => {
-                      const letter = String.fromCharCode(65 + optIndex);
-                      const cleanText = getCleanOptionText(opt.text);
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">Mô tả bộ đề thi</label>
+              <textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Mô tả ngắn về cấu trúc và yêu cầu của đề thi..."
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+              />
+            </div>
 
-                      return (
-                        <div key={opt.id} className="flex items-center gap-2">
-                          {/* Toggle Correct Answer Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleSetCorrectOption(q.id, opt.id)}
-                            className={`px-3 py-2 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
-                              opt.isCorrect
-                                ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
-                                : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
-                            }`}
-                            title={opt.isCorrect ? 'Đáp án đúng' : 'Bấm để chọn làm đáp án đúng'}
-                          >
-                            {opt.isCorrect ? (
-                              <>
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Đáp án Đúng</span>
-                              </>
-                            ) : (
-                              <span>Chọn Đúng</span>
-                            )}
-                          </button>
+            {/* DYNAMIC SECTIONS & QUESTIONS BUILDER */}
+            <div className="pt-6 border-t-2 border-[#111827] space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#eff6ff] p-4 border-2 border-[#111827] rounded-xl brutal-shadow-xs">
+                <div>
+                  <span className="px-2.5 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-black uppercase border border-[#111827]">
+                    TỰ ĐỊNH NGHĨA PHẦN THI & CÂU HỎI
+                  </span>
+                  <h3 className="text-base font-black text-[#111827] mt-1 font-heading">
+                    Cấu Trúc Đề Thi ({sections.length} Phần Thi - Tổng {totalQuestionsCount} Câu)
+                  </h3>
+                  <p className="text-xs text-[#4b5563]">
+                    Admin chủ động gõ tên và tạo các Phần Thi. Bấm nút "+ Thêm câu hỏi" trong từng Phần Thi tương ứng.
+                  </p>
+                </div>
 
-                          {/* Option Text Input with A: B: C: D: Badge */}
-                          <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]">
-                            <span className="px-3 py-2 bg-[#eff6ff] text-[#1e40af] border-r-2 border-[#111827] font-black text-xs shrink-0 select-none">
-                              {letter}:
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              value={cleanText}
-                              onChange={(e) => handleOptionTextChange(q.id, opt.id, optIndex, e.target.value)}
-                              placeholder={`Nhập nội dung đáp án ${letter}...`}
-                              className="w-full p-2 text-xs font-bold text-[#111827] focus:outline-none bg-transparent"
-                            />
-                          </div>
+                <button
+                  type="button"
+                  onClick={handleAddSection}
+                  className="px-4 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 uppercase font-heading"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  <span>+ Thêm Phần Thi Mới</span>
+                </button>
+              </div>
 
-                          {/* Delete Option Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteOption(q.id, opt.id)}
-                            className="p-2 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-xl cursor-pointer transition-all shrink-0"
-                            title="Xóa lựa chọn đáp án này"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+              {/* Sections Cards Loop */}
+              <div className="space-y-6">
+                {sections.map((sec, secIdx) => (
+                  <div
+                    key={sec.id}
+                    className="bg-[#f8fafc] border-2 border-[#111827] rounded-2xl p-5 brutal-shadow-xs space-y-4"
+                  >
+                    {/* Section Card Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 border-2 border-[#111827] rounded-xl">
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="px-3 py-1.5 bg-[#2563EB] text-white rounded-lg text-xs font-black uppercase font-mono shrink-0">
+                          PHẦN THI #{secIdx + 1}
+                        </span>
+
+                        <input
+                          type="text"
+                          required
+                          value={sec.name}
+                          onChange={(e) => handleSectionNameChange(sec.id, e.target.value)}
+                          placeholder={`Nhập tên phần thi (Ví dụ: Phần ${secIdx + 1}, Nghe, Đọc, Bài 1...)`}
+                          className="w-full p-2 bg-[#eff6ff] border-2 border-[#111827] rounded-lg text-xs font-black text-[#1e40af] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="text"
+                          value={sec.duration}
+                          onChange={(e) => handleSectionDurationChange(sec.id, e.target.value)}
+                          placeholder="30 phút"
+                          className="w-28 p-2 bg-white border-2 border-[#111827] rounded-lg text-xs font-bold text-center"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSection(sec.id)}
+                          className="p-2 text-[#e11d48] hover:bg-[#ffe4e6] border-2 border-[#111827] rounded-lg cursor-pointer transition-all"
+                          title="Xóa phần thi này"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Questions List Inside This Section */}
+                    <div className="space-y-4 pl-0 sm:pl-3">
+                      {sec.questions.length === 0 ? (
+                        <div className="p-4 bg-white border-2 border-dashed border-[#111827]/30 rounded-xl text-center text-xs font-bold text-[#64748b]">
+                          Chưa có câu hỏi nào trong {sec.name || `Phần Thi #${secIdx + 1}`}. Bấm nút bên dưới để thêm câu hỏi!
                         </div>
-                      );
-                    })}
+                      ) : (
+                        sec.questions.map((q, qIdx) => (
+                          <div
+                            key={q.id}
+                            className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs space-y-3"
+                          >
+                            {/* Question Title & Delete Button */}
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="px-2.5 py-0.5 bg-[#111827] text-white rounded text-[11px] font-black uppercase font-mono shrink-0">
+                                CÂU {qIdx + 1} ({sec.name || `Phần ${secIdx + 1}`})
+                              </span>
 
-                    {/* Add Option Button under each question */}
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAddOption(q.id)}
-                        className="px-3.5 py-2 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-xs font-black hover:bg-[#dbeafe] transition-all cursor-pointer inline-flex items-center gap-1.5 brutal-shadow-xs"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>+ Thêm đáp án cho Câu {qIndex + 1}</span>
-                      </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteQuestionFromSection(sec.id, q.id)}
+                                className="px-2.5 py-1 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-lg cursor-pointer transition-all font-bold text-[11px] flex items-center gap-1"
+                                title="Xóa câu hỏi này"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Xóa Câu này</span>
+                              </button>
+                            </div>
+
+                            {/* Question Content Input */}
+                            <div>
+                              <label className="block text-[11px] font-black text-[#111827] mb-1">
+                                Nội dung / Tiêu đề câu hỏi #{qIdx + 1} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={q.questionText}
+                                onChange={(e) => handleQuestionTextChange(sec.id, q.id, e.target.value)}
+                                placeholder={`Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
+                                className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                              />
+                            </div>
+
+                            {/* Context Text / Reading Text (Lesetext / Hörtext) */}
+                            <div>
+                              <label className="block text-[11px] font-black text-[#111827] mb-1">
+                                Đoạn văn bản / Ngữ cảnh (Lesetext / Hörtext nếu có)
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={q.contextText || ''}
+                                onChange={(e) => handleContextTextChange(sec.id, q.id, e.target.value)}
+                                placeholder="Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này..."
+                                className="w-full p-2 bg-[#fff8e7] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                              />
+                            </div>
+
+                            {/* Options List */}
+                            <div className="pl-2 sm:pl-3 space-y-2 border-l-4 border-[#2563EB] pt-1 mt-1">
+                              <label className="block text-[10px] font-black text-[#111827] uppercase tracking-wider">
+                                Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
+                              </label>
+
+                              {q.options.map((opt, optIndex) => {
+                                const letter = String.fromCharCode(65 + optIndex);
+                                const cleanText = getCleanOptionText(opt.text);
+
+                                return (
+                                  <div key={opt.id} className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetCorrectOption(sec.id, q.id, opt.id)}
+                                      className={`px-3 py-1.5 rounded-xl border-2 text-[11px] font-black cursor-pointer transition-all shrink-0 flex items-center gap-1.5 ${
+                                        opt.isCorrect
+                                          ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+                                          : 'bg-white text-[#4b5563] border-[#111827] hover:bg-slate-100'
+                                      }`}
+                                    >
+                                      {opt.isCorrect ? (
+                                        <>
+                                          <CheckCircle2 className="w-3.5 h-3.5" />
+                                          <span>Đáp án Đúng</span>
+                                        </>
+                                      ) : (
+                                        <span>Chọn Đúng</span>
+                                      )}
+                                    </button>
+
+                                    <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]">
+                                      <span className="px-3 py-1.5 bg-[#eff6ff] text-[#1e40af] border-r-2 border-[#111827] font-black text-xs shrink-0 select-none">
+                                        {letter}:
+                                      </span>
+                                      <input
+                                        type="text"
+                                        required
+                                        value={cleanText}
+                                        onChange={(e) => handleOptionTextChange(sec.id, q.id, opt.id, optIndex, e.target.value)}
+                                        placeholder={`Nhập nội dung đáp án ${letter}...`}
+                                        className="w-full p-1.5 text-xs font-bold text-[#111827] focus:outline-none bg-transparent"
+                                      />
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteOption(sec.id, q.id, opt.id)}
+                                      className="p-1.5 text-[#e11d48] hover:bg-[#ffe4e6] border border-[#111827] rounded-xl cursor-pointer transition-all shrink-0"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+
+                              <div className="pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddOption(sec.id, q.id)}
+                                  className="px-3 py-1 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-[11px] font-black hover:bg-[#dbeafe] transition-all cursor-pointer inline-flex items-center gap-1 brutal-shadow-xs"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>+ Thêm đáp án cho Câu này</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Explanation Section */}
+                            <div className="pt-2 border-t border-[#111827]/10 space-y-1">
+                              <label className="block text-[11px] font-black text-[#111827]">
+                                Giải Thích Chi Tiết Đáp Án
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={q.explanation || ''}
+                                onChange={(e) => handleExplanationChange(sec.id, q.id, e.target.value)}
+                                placeholder="Nhập nội dung giải thích chi tiết đáp án đúng cho câu hỏi này..."
+                                className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      )}
+
+                      {/* Add Question Button inside section */}
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleAddQuestionToSection(sec.id)}
+                          className="w-full py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
+                        >
+                          <PlusCircle className="w-4 h-4" />
+                          <span>+ Thêm Câu Hỏi Mới Cho {sec.name || `Phần Thi #${secIdx + 1}`}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* DETAILED EXPLANATION SECTION */}
-                  <div className="pt-3 border-t-2 border-[#111827]/10 space-y-1.5 mt-3">
-                    <label className="block text-xs font-black text-[#111827]">
-                      Giải Thích Chi Tiết Đáp Án
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={q.explanation || ''}
-                      onChange={(e) => handleExplanationChange(q.id, e.target.value)}
-                      placeholder="Nhập nội dung giải thích chi tiết đáp án đúng cho câu hỏi này..."
-                      className="w-full p-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                    />
-                  </div>
-                </div>
-              ))}
+              {/* Bottom Add Section Button */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleAddSection}
+                  className="w-full py-3.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider font-heading"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  <span>+ Thêm Phần Thi Mới (Phần {sections.length + 1})</span>
+                </button>
+              </div>
             </div>
 
-            {/* Bottom Add Question Button */}
-            <div className="pt-2">
+            <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
               <button
                 type="button"
-                onClick={handleAddQuestion}
-                className="w-full py-3.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider"
+                onClick={onBack}
+                className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>+ Thêm Câu Hỏi Mới (Câu {questions.length + 1})</span>
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase font-heading"
+              >
+                <Save className="w-4 h-4" />
+                <span>Lưu & Xuất Bản Bộ Đề Thi</span>
               </button>
             </div>
-          </div>
+          </form>
+        )}
 
-          <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase"
-            >
-              <Save className="w-4 h-4" /> {isEditMode ? 'Lưu Thay Đổi Đề Thi' : 'Lưu Bộ Đề Thi Mới'}
-            </button>
-          </div>
-        </form>
-      )}
+        {/* 3. FORM GRAMMAR */}
+        {type === 'grammar' && (
+          <form onSubmit={handleSubmitGrammar} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Trình độ (Level)</label>
+                <select
+                  value={grammarLevel}
+                  onChange={(e) => setGrammarLevel(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="A1">Trình độ A1</option>
+                  <option value="A2">Trình độ A2</option>
+                  <option value="B1">Trình độ B1</option>
+                  <option value="B2">Trình độ B2</option>
+                  <option value="C1">Trình độ C1</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Danh mục (Category)</label>
+                <select
+                  value={grammarCategory}
+                  onChange={(e) => setGrammarCategory(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="Verben & Modi">Verben & Modi (Động từ & Thể)</option>
+                  <option value="Satzbau & Konnektoren">Satzbau (Cấu trúc câu & Liên từ)</option>
+                  <option value="Nomen & Kasus">Nomen & Kasus (Danh từ & Biến thể)</option>
+                  <option value="Passiv & Ersatzformen">Passiv (Thể bị động & Dạng thay thế)</option>
+                  <option value="Sprachbausteine Traps">Sprachbausteine (Bẫy đề thi B2)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Tên chuyên đề ngữ pháp *</label>
+                <input
+                  type="text"
+                  required
+                  value={grammarTitle}
+                  onChange={(e) => setGrammarTitle(e.target.value)}
+                  placeholder="Ví dụ: Konjunktiv II in der Vergangenheit"
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">Tóm tắt chuyên đề (Summary) *</label>
+              <textarea
+                rows={2}
+                required
+                value={grammarSummary}
+                onChange={(e) => setGrammarSummary(e.target.value)}
+                placeholder="Tóm tắt ngắn gọn cấu trúc ngữ pháp và cách dùng trong đề thi..."
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">Nội dung bài học chi tiết (Markdown/Text)</label>
+              <textarea
+                rows={5}
+                value={grammarContent}
+                onChange={(e) => setGrammarContent(e.target.value)}
+                placeholder="Nhập chi tiết lý thuyết, công thức và ví dụ..."
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">Các quy tắc cốt lõi (Mỗi quy tắc 1 dòng)</label>
+              <textarea
+                rows={3}
+                value={grammarRules}
+                onChange={(e) => setGrammarRules(e.target.value)}
+                placeholder="Công thức: hätte / wäre + Partizip II&#10;Dùng để diễn tả ước muốn trong quá khứ..."
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+              />
+            </div>
+
+            <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-[#059669] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase font-heading"
+              >
+                <Save className="w-4 h-4" />
+                <span>Lưu Chuyên Đề Ngữ Pháp</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 };
