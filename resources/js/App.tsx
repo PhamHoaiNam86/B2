@@ -128,6 +128,7 @@ export default function App() {
   // Exam state & Anti-cheat
   const [examState, setExamState] = useState<UserExamState>(INITIAL_EXAM_STATE);
   const [isExamRoomActive, setIsExamRoomActive] = useState<boolean>(false);
+  const [isExamReviewMode, setIsExamReviewMode] = useState<boolean>(false);
   const [tabSwitchAlert, setTabSwitchAlert] = useState<string | null>(null);
 
   // Toast System
@@ -597,6 +598,7 @@ export default function App() {
         isSubmitted: false,
       }));
     }
+    setIsExamReviewMode(false);
     setIsExamRoomActive(true);
     setActiveTab('exam');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -605,6 +607,7 @@ export default function App() {
 
   const handleFinishExamSubmit = () => {
     setIsExamRoomActive(false);
+    setIsExamReviewMode(false);
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Đã nộp bài thi', 'Hệ thống đã ghi nhận và phân tích điểm thi thử của bạn.', 'success');
@@ -616,8 +619,15 @@ export default function App() {
       answers: {},
       tabSwitchCount: 0,
     });
+    setIsExamReviewMode(false);
     setIsExamRoomActive(true);
     setActiveTab('exam');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReviewExam = () => {
+    setIsExamReviewMode(true);
+    setIsExamRoomActive(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -679,9 +689,20 @@ export default function App() {
           onFinishSection={handleFinishExamSubmit}
           onBackToDashboard={() => {
             setIsExamRoomActive(false);
-            setActiveTab('dashboard');
+            if (isExamReviewMode) {
+              setIsExamReviewMode(false);
+              setActiveTab('results');
+            } else {
+              setActiveTab('dashboard');
+            }
           }}
           formattedCountdown={formatCountdown(examState.timeRemainingSeconds)}
+          isReviewMode={isExamReviewMode}
+          onExitReviewMode={() => {
+            setIsExamRoomActive(false);
+            setIsExamReviewMode(false);
+            setActiveTab('results');
+          }}
         />
       ) : (
         /* STANDARD PORTAL LAYOUT: FIXED SIDEBAR (256px) + 7px GAP + TOP NAVBAR + MAIN CONTENT (p-5px) */
@@ -873,6 +894,7 @@ export default function App() {
                   examState={examState}
                   onRetakeExam={handleRetakeExam}
                   onBackToDashboard={() => setActiveTab('dashboard')}
+                  onReviewExam={handleReviewExam}
                 />
               )}
 

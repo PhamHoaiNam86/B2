@@ -27,6 +27,8 @@ interface ExamRoomScreenProps {
   onFinishSection: () => void;
   onBackToDashboard: () => void;
   formattedCountdown: string;
+  isReviewMode?: boolean;
+  onExitReviewMode?: () => void;
 }
 
 const SECTIONS = [
@@ -42,6 +44,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   onFinishSection,
   onBackToDashboard,
   formattedCountdown,
+  isReviewMode = false,
+  onExitReviewMode,
 }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
@@ -72,6 +76,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             contextText: q.context_text || '',
             options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
             correctOptionId: q.correct_option_id || 'A',
+            explanation: q.explanation || '',
           }));
           setQuestions(mapped);
         }
@@ -113,15 +118,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         <div className="w-full px-[10px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={onBackToDashboard}
+              onClick={isReviewMode ? (onExitReviewMode || onBackToDashboard) : onBackToDashboard}
               className="p-1.5 rounded-lg border border-white/20 hover:bg-white/10 text-xs font-bold flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Rời phòng thi</span>
+              <span className="hidden sm:inline">{isReviewMode ? 'Quay lại' : 'Rời phòng thi'}</span>
             </button>
             <div>
-              <span className="px-2 py-0.5 bg-[#2563EB] text-white text-[10px] font-black rounded uppercase">
-                PHÒNG THI THỬ TRỰC TUYẾN
+              <span className={`px-2 py-0.5 text-white text-[10px] font-black rounded uppercase ${isReviewMode ? 'bg-[#059669]' : 'bg-[#2563EB]'}`}>
+                {isReviewMode ? 'CHẾ ĐỘ XEM LẠI BÀI LÀM & GIẢI THÍCH CHI TIẾT 💡' : 'PHÒNG THI THỬ TRỰC TUYẾN'}
               </span>
               <h2 className="text-sm sm:text-base font-black font-heading text-white line-clamp-1">
                 {examState.examCode}: TELC B2 Deutsch Prüfung Simulation
@@ -131,25 +136,37 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
           {/* Countdown & Anti-cheat status */}
           <div className="flex items-center gap-3">
-            {examState.tabSwitchCount > 0 && (
+            {!isReviewMode && examState.tabSwitchCount > 0 && (
               <div className="px-3 py-1 bg-[#dc2626] text-white border border-white/30 rounded-lg text-xs font-black flex items-center gap-1.5 animate-bounce">
                 <ShieldAlert className="w-4 h-4 text-[#fef08a]" />
                 <span>Vi phạm: {examState.tabSwitchCount} lần</span>
               </div>
             )}
 
-            <div className="px-3 py-1.5 bg-white text-[#111827] rounded-xl font-black text-sm font-heading border-2 border-[#2563EB] flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#2563EB]" />
-              <span>{formattedCountdown}</span>
-            </div>
+            {isReviewMode ? (
+              <button
+                onClick={onExitReviewMode || onBackToDashboard}
+                className="px-4 py-2 bg-[#059669] text-white rounded-xl font-black text-xs border border-white hover:bg-[#047857] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase brutal-shadow-xs"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Thoát Chế Độ Xem Lại
+              </button>
+            ) : (
+              <>
+                <div className="px-3 py-1.5 bg-white text-[#111827] rounded-xl font-black text-sm font-heading border-2 border-[#2563EB] flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#2563EB]" />
+                  <span>{formattedCountdown}</span>
+                </div>
 
-            <button
-              onClick={() => setShowSubmitModal(true)}
-              className="px-4 py-2 bg-[#F97316] text-white rounded-xl font-black text-xs border border-white hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 uppercase font-heading brutal-shadow-xs"
-            >
-              <Send className="w-3.5 h-3.5" />
-              Nộp Bài Thi
-            </button>
+                <button
+                  onClick={() => setShowSubmitModal(true)}
+                  className="px-4 py-2 bg-[#F97316] text-white rounded-xl font-black text-xs border border-white hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 uppercase font-heading brutal-shadow-xs"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Nộp Bài Thi
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -220,7 +237,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 <ul className="list-disc pl-5 space-y-1 text-xs">
                   <li>Grund für das Schreiben nennen</li>
                   <li>Die aufgetretenen Probleme genau beschreiben</li>
-                  <li>Vorschlag zur Lösung oder Entschädigung fordern</li>
+                  <li>Vorschlag zur Lösung hoặc Entschädigung fordern</li>
                 </ul>
               </div>
             </div>
@@ -243,10 +260,23 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               <textarea
                 rows={12}
                 value={essayText}
-                onChange={(e) => setEssayText(e.target.value)}
+                readOnly={isReviewMode}
+                onChange={(e) => !isReviewMode && setEssayText(e.target.value)}
                 placeholder="Sehr geehrte Damen und Herren, hiermit möchte ich mich über den B2-Sprachkurs beschweren..."
                 className="w-full p-4 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-relaxed resize-y"
               />
+
+              {isReviewMode && (
+                <div className="p-4 bg-[#f0fdf4] border-2 border-[#166534] rounded-xl space-y-2 text-xs">
+                  <h4 className="font-black text-[#166534] flex items-center gap-1.5 font-heading uppercase">
+                    <CheckCircle2 className="w-4 h-4 text-[#166534]" />
+                    Đánh Giá AI & Giám Khảo Về Bài Viết:
+                  </h4>
+                  <p className="text-[#166534] font-bold leading-relaxed">
+                    Cấu trúc bố cục thư chuẩn TELC B2. Sử dụng đầy đủ các yêu cầu đề bài (lý do viết thư, mô tả sự cố, phương án bồi thường) và từ vựng B2 phong phú.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -312,25 +342,65 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
                 {/* Options List */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase text-[#4b5563] font-heading">Chọn phương án trả lời đúng:</h4>
+                  <h4 className="text-xs font-black uppercase text-[#4b5563] font-heading">
+                    {isReviewMode ? 'Kết quả lựa chọn & đáp án chuẩn:' : 'Chọn phương án trả lời đúng:'}
+                  </h4>
+
                   {currentQuestion.options.map((opt) => {
-                    const isSelected = examState.answers[currentQuestion.id] === opt.id;
+                    const userChoice = examState.answers[currentQuestion.id];
+                    const isSelected = userChoice === opt.id;
+                    const correctChoice = currentQuestion.correctOptionId || 'A';
+                    const isCorrectOption = opt.id === correctChoice;
+
+                    let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
+                    let badgeElement = null;
+
+                    if (isReviewMode) {
+                      if (isSelected && isCorrectOption) {
+                        buttonStyle = 'bg-[#dcfce7] text-[#166534] border-[#166534] font-black brutal-shadow';
+                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#166534] text-white font-black">✓ Bạn chọn ĐÚNG</span>;
+                      } else if (isSelected && !isCorrectOption) {
+                        buttonStyle = 'bg-[#fee2e2] text-[#991b1b] border-[#dc2626] font-black brutal-shadow';
+                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#dc2626] text-white font-black">✗ Bạn chọn SAI</span>;
+                      } else if (!isSelected && isCorrectOption) {
+                        buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
+                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
+                      } else {
+                        buttonStyle = 'bg-[#f8fafc] text-slate-500 border-slate-300 opacity-60';
+                      }
+                    } else if (isSelected) {
+                      buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
+                      badgeElement = <CheckCircle2 className="w-5 h-5 text-white shrink-0" />;
+                    }
 
                     return (
                       <button
                         key={opt.id}
-                        onClick={() => onAnswerChange(currentQuestion.id, opt.id)}
-                        className={`w-full text-left p-4 rounded-xl border-[2.5px] font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between ${
-                          isSelected
-                            ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black'
-                            : 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]'
-                        }`}
+                        disabled={isReviewMode}
+                        onClick={() => !isReviewMode && onAnswerChange(currentQuestion.id, opt.id)}
+                        className={`w-full text-left p-4 rounded-xl border-[2.5px] text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${
+                          isReviewMode ? 'cursor-default' : 'cursor-pointer'
+                        } ${buttonStyle}`}
                       >
                         <span>{opt.text}</span>
-                        {isSelected && <CheckCircle2 className="w-5 h-5 text-white shrink-0" />}
+                        {badgeElement}
                       </button>
                     );
                   })}
+
+                  {/* Detailed Explanation Box in Review Mode */}
+                  {isReviewMode && (
+                    <div className="mt-4 p-4 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-2">
+                      <h5 className="text-xs font-black uppercase text-[#1e40af] flex items-center gap-1.5 font-heading">
+                        <HelpCircle className="w-4 h-4 text-[#2563EB]" />
+                        💡 Giải Thích Chi Tiết Đáp Án:
+                      </h5>
+                      <p className="text-xs sm:text-sm text-[#1e293b] leading-relaxed font-medium">
+                        {currentQuestion.explanation ||
+                          `Phương án đúng là (${currentQuestion.correctOptionId || 'A'}). Dựa vào ngữ cảnh bài đọc/nghe và quy tắc ngữ pháp B2 TELC, lựa chọn này giải thích chính xác ý nghĩa của câu.`}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -352,8 +422,27 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
             <div className="grid grid-cols-5 gap-2">
               {questions.map((q) => {
-                const isAnswered = Boolean(examState.answers[q.id]);
+                const userAns = examState.answers[q.id];
+                const isAnswered = Boolean(userAns);
+                const isCorrect = userAns === (q.correctOptionId || 'A');
                 const isCurrent = q.id === activeQuestionId;
+
+                let gridStyle = 'bg-[#fcf9f8] text-[#111827] border-[#111827] hover:bg-[#e2e8f0]';
+                if (isReviewMode) {
+                  if (isAnswered && isCorrect) {
+                    gridStyle = 'bg-[#059669] text-white border-[#111827] font-black';
+                  } else if (isAnswered && !isCorrect) {
+                    gridStyle = 'bg-[#dc2626] text-white border-[#111827] font-black';
+                  } else {
+                    gridStyle = 'bg-slate-200 text-slate-600 border-slate-400';
+                  }
+                } else if (isAnswered) {
+                  gridStyle = 'bg-[#059669] text-white border-[#111827]';
+                }
+
+                if (isCurrent) {
+                  gridStyle += ' ring-2 ring-[#2563EB] border-[#111827]';
+                }
 
                 return (
                   <button
@@ -366,13 +455,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                       else setActiveSectionIndex(0);
                       setActiveQuestionId(q.id);
                     }}
-                    className={`h-10 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${
-                      isCurrent
-                        ? 'ring-2 ring-[#2563EB] border-[#111827] bg-[#eff6ff] text-[#1e40af]'
-                        : isAnswered
-                        ? 'bg-[#059669] text-white border-[#111827]'
-                        : 'bg-[#fcf9f8] text-[#111827] border-[#111827] hover:bg-[#e2e8f0]'
-                    }`}
+                    className={`h-10 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${gridStyle}`}
                   >
                     {q.id}
                   </button>
@@ -420,6 +503,14 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             >
               <span>Chuyển Sang {SECTIONS[activeSectionIndex + 1]?.name}</span>
               <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : isReviewMode ? (
+            <button
+              onClick={onExitReviewMode || onBackToDashboard}
+              className="px-6 py-2.5 bg-[#059669] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#047857] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>THOÁT XEM LẠI & VỀ BÁO CÁO</span>
             </button>
           ) : (
             <button

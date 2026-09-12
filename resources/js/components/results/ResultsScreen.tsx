@@ -6,12 +6,14 @@ interface ResultsScreenProps {
   examState: UserExamState;
   onRetakeExam: () => void;
   onBackToDashboard: () => void;
+  onReviewExam?: () => void;
 }
 
 export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   examState,
   onRetakeExam,
   onBackToDashboard,
+  onReviewExam,
 }) => {
   const answeredCount = Object.keys(examState.answers).length;
   // Calculate simulated score
@@ -55,6 +57,14 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          {onReviewExam && (
+            <button
+              onClick={onReviewExam}
+              className="px-5 py-2.5 bg-[#2563EB] text-white rounded-xl text-xs font-bold hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-blue-500/20 font-heading"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" /> Xem Chi Tiết Bài Làm & Giải Thích 💡
+            </button>
+          )}
           <button
             onClick={onRetakeExam}
             className="px-5 py-2.5 bg-[#F97316] text-white rounded-xl text-xs font-bold hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-orange-500/20"
