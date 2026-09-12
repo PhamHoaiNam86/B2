@@ -251,12 +251,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Tổng quan thông số hệ thống, quản lý ngân hàng đề thi, tài liệu, ngữ pháp và danh sách học viên
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 bg-[#ffe082] text-[#3e2723] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs">
-              👑 Chế độ Admin (Toàn quyền quản lý)
-            </span>
-          </div>
         </div>
 
         {/* 4 Admin Key Metric Cards */}

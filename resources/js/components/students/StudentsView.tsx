@@ -28,12 +28,6 @@ export const StudentsView: React.FC<StudentsViewProps> = ({ students, onShowToas
 
   return (
     <div className="space-y-6">
-      {currentUser === 'student' && (
-        <div className="p-4 bg-[#fff8e7] border-2 border-[#1c1b1b] rounded-xl brutal-shadow-sm flex items-center gap-3 text-xs font-bold text-[#3e2723]">
-          <ShieldAlert className="w-5 h-5 text-[#d97706] shrink-0" />
-          <span>Bạn đang ở chế độ <b>Học Viên B2 (Chỉ xem)</b>. Bạn không có quyền Thêm, Sửa hoặc Xóa dữ liệu học viên.</span>
-        </div>
-      )}
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

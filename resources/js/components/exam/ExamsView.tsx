@@ -52,10 +52,6 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
             Luyện tập đề thi thử theo cấu trúc tiêu chuẩn Goethe / TELC {levelLabel}
           </p>
         </div>
-
-        <div className="px-3.5 py-2 bg-[#eff6ff] text-[#1e40af] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
-          <span>🎓 Chế độ Học viên: Chọn bài thi & Làm bài trực tuyến</span>
-        </div>
       </div>
 
       {/* Grid */}
