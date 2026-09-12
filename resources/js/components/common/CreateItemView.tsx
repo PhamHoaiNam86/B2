@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VocabItem, ExamModel, GrammarTopic } from '../../types';
-import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle, Upload } from 'lucide-react';
 
 interface ExamQuestionOption {
   id: string;
@@ -69,6 +69,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [level, setLevel] = useState(editingItem?.level || 'TELC B2');
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
+  const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
 
   // Dynamic Exam Sections State (Admin freely creates and names sections)
   const [sections, setSections] = useState<ExamSection[]>(() => {
@@ -286,6 +287,31 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         return sec;
       })
     );
+  };
+
+  const handleFileUpload = async (secId: string, qId: string, file: File) => {
+    setUploadingAudioQId(qId);
+    try {
+      const formData = new FormData();
+      formData.append('audio', file);
+
+      const response = await fetch('/api/v1/upload-audio', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success && data.url) {
+        handleAudioUrlChange(secId, qId, data.url);
+        onShowToast('Tải file thành công!', 'Đã tải file âm thanh MP3 thành công cho bài nghe.', 'success');
+      } else {
+        onShowToast('Lỗi tải file', data.message || 'Không thể tải file âm thanh', 'warning');
+      }
+    } catch (err) {
+      onShowToast('Lỗi tải file', 'Không thể kết nối đến máy chủ để tải file âm thanh', 'warning');
+    } finally {
+      setUploadingAudioQId(null);
+    }
   };
 
   const getCleanOptionText = (rawText: string) => {
@@ -936,19 +962,52 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                               </div>
                             </div>
 
-                            {/* Audio URL Input for Listening Type */}
+                            {/* Audio File Upload Box for Listening Type */}
                             {q.type === 'listening' && (
-                              <div className="p-3 bg-[#fffbe6] border-2 border-[#111827] rounded-xl space-y-1">
-                                <label className="block text-[11px] font-black text-[#854d0e]">
-                                  🎧 File âm thanh / MP3 URL cho bài Nghe:
+                              <div className="p-3.5 bg-[#fffbe6] border-2 border-[#111827] rounded-xl space-y-2">
+                                <label className="block text-[11px] font-black text-[#854d0e] flex items-center gap-1.5 font-heading uppercase">
+                                  <Upload className="w-4 h-4 text-[#d97706]" />
+                                  Tải File Âm Thanh MP3 Cho Bài Nghe:
                                 </label>
-                                <input
-                                  type="text"
-                                  value={q.audioUrl || ''}
-                                  onChange={(e) => handleAudioUrlChange(sec.id, q.id, e.target.value)}
-                                  placeholder="Nhập đường dẫn audio MP3 (VD: https://example.com/audio.mp3 hoặc /audios/track1.mp3)..."
-                                  className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#d97706]"
-                                />
+                                
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                  <label className="px-4 py-2 bg-[#d97706] text-white border-2 border-[#111827] rounded-xl text-xs font-black hover:bg-[#b45309] transition-all cursor-pointer inline-flex items-center justify-center gap-2 brutal-shadow-xs shrink-0">
+                                    <Upload className="w-4 h-4" />
+                                    <span>{uploadingAudioQId === q.id ? 'Đang tải file lên...' : '📁 Chọn File MP3 Tải Lên'}</span>
+                                    <input
+                                      type="file"
+                                      accept="audio/*,.mp3,.wav,.m4a,.ogg"
+                                      className="hidden"
+                                      disabled={uploadingAudioQId === q.id}
+                                      onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                          handleFileUpload(sec.id, q.id, e.target.files[0]);
+                                        }
+                                      }}
+                                    />
+                                  </label>
+
+                                  <div className="flex-1 flex items-center bg-white border-2 border-[#111827] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#111827]">
+                                    {q.audioUrl ? (
+                                      <span className="text-emerald-700 truncate font-semibold">✓ Đã lưu file: {q.audioUrl}</span>
+                                    ) : (
+                                      <span className="text-slate-400 font-normal">Vui lòng bấm chọn file MP3 từ máy tính của bạn...</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {q.audioUrl && (
+                                  <div className="pt-1 flex items-center justify-between gap-2 border-t border-[#d97706]/20">
+                                    <audio controls src={q.audioUrl} className="h-8 max-w-full rounded-lg" />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAudioUrlChange(sec.id, q.id, '')}
+                                      className="px-2.5 py-1 text-[11px] font-black text-[#ef4444] hover:bg-[#fee2e2] border border-[#ef4444] rounded-lg transition-all cursor-pointer"
+                                    >
+                                      Xóa file này
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )}
 

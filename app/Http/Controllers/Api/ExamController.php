@@ -267,4 +267,31 @@ class ExamController extends Controller
             'message' => 'Đã xóa bộ đề thi khỏi CSDL SQL!',
         ]);
     }
+
+    /**
+     * Upload an audio MP3 file and return public URL.
+     */
+    public function uploadAudio(Request $request)
+    {
+        $request->validate([
+            'audio' => 'required|file|mimes:mp3,wav,ogg,m4a,aac,mp4|max:30720',
+        ]);
+
+        $file = $request->file('audio');
+        $fileName = time().'_'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->getClientOriginalExtension();
+
+        $destinationPath = public_path('uploads/audios');
+        if (! file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        $file->move($destinationPath, $fileName);
+        $audioUrl = '/uploads/audios/'.$fileName;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tải file âm thanh lên thành công!',
+            'url' => $audioUrl,
+        ]);
+    }
 }
