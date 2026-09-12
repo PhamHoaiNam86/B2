@@ -64,7 +64,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch(`/api/v1/questions/${examState.examCode}`)
+    if (!examState.examCode) return;
+    fetch('/api/v1/questions/' + encodeURIComponent(examState.examCode))
       .then((res) => res.json())
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
@@ -84,13 +85,29 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       .catch(() => {});
   }, [examState.examCode]);
 
-  // Questions for current section
-  const currentSectionMeta = SECTIONS[activeSectionIndex];
+  // Extract dynamic unique section names from questions or fallback
+  const availableSectionNames = Array.from(new Set(questions.map((q) => q.section).filter(Boolean)));
+
+  const activeSections = availableSectionNames.length > 0
+    ? availableSectionNames.map((secName, idx) => {
+        const matchingSec = SECTIONS.find((s) => s.name === secName || secName.toLowerCase().includes(s.name.toLowerCase()));
+        const count = questions.filter((q) => q.section === secName).length;
+        return {
+          id: idx,
+          name: secName,
+          label: `${idx + 1}. ${secName}`,
+          shortDesc: `${count} câu hỏi`,
+          icon: matchingSec?.icon || (secName.toLowerCase().includes('hör') ? Headphones : secName.toLowerCase().includes('schrift') || secName.toLowerCase().includes('viết') ? PenTool : BookOpen),
+        };
+      })
+    : SECTIONS;
+
+  const currentSectionMeta = activeSections[activeSectionIndex] || activeSections[0] || SECTIONS[0];
+
   const sectionQuestions = questions.filter((q) => {
-    if (activeSectionIndex === 0) return !q.section || q.section.includes('Leseverstehen');
-    if (activeSectionIndex === 1) return q.section.includes('Sprachbausteine');
-    if (activeSectionIndex === 2) return q.section.includes('Hörverstehen');
-    if (activeSectionIndex === 3) return q.section.includes('Schriftlicher') || q.section.includes('Ausdruck');
+    if (activeSections.length > 0 && activeSections[activeSectionIndex]) {
+      return q.section === activeSections[activeSectionIndex].name;
+    }
     return true;
   });
 
@@ -171,17 +188,17 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         </div>
       </header>
 
-      {/* 2. SECTION STEPPER PROGRESS BAR (4 PHẦN THI) */}
+      {/* 2. SECTION STEPPER PROGRESS BAR */}
       <div className="bg-white border-b-2 border-[#111827] px-4 py-3 sticky top-[57px] z-30 shadow-xs">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
-          {SECTIONS.map((sec, idx) => {
+          {activeSections.map((sec, idx) => {
             const Icon = sec.icon;
             const isActive = activeSectionIndex === idx;
             const isDone = activeSectionIndex > idx;
 
             return (
               <button
-                key={sec.id}
+                key={sec.id || idx}
                 onClick={() => setActiveSectionIndex(idx)}
                 className={`p-2.5 rounded-xl border-2 font-bold text-xs transition-all cursor-pointer flex items-center gap-2.5 ${
                   isActive
@@ -208,45 +225,70 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
       {/* 3. MAIN EXAM CONTENT BY SECTION */}
       <main className="flex-1 w-full p-4 sm:p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* SECTION 4: SCHRIFTLICHER AUSDRUCK (VIẾT THƯ) */}
-        {activeSectionIndex === 3 ? (
-          <div className="lg:col-span-8 space-y-5">
-            {/* Header Banner */}
-            <div className="p-5 bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow space-y-2">
-              <span className="px-2.5 py-0.5 rounded-md bg-[#ffe8d6] text-[#c2410c] text-xs font-black border border-[#111827]">
-                PHẦN 4: SCHRIFTLICHER AUSDRUCK (VIẾT THƯ B2)
+        {/* LEFT 8 COLS: SECTION PAGE CONTENT (DISPLAYING ALL QUESTIONS FOR THIS SECTION) */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* SECTION HEADER BANNER */}
+          <div className="p-4 bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex items-center justify-between">
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB] text-xs font-black border border-[#2563EB]/30">
+                PHẦN THI {activeSectionIndex + 1} / 4: {currentSectionMeta.name}
               </span>
-              <h3 className="text-xl font-black text-[#111827] font-heading">
-                Đề Bài Viết Thư Phàn Nàn / Đăng Ký (Beschwerde / Bewerbung)
+              <h3 className="text-lg font-black text-[#111827] mt-1 font-heading">
+                {currentSectionMeta.label} ({sectionQuestions.length} câu hỏi)
               </h3>
-              <p className="text-xs text-[#4b5563]">
-                Yêu cầu: Viết một bức thư ngắn khoảng 150 - 200 từ giải quyết các yêu cầu trong đề bài bên dưới.
-              </p>
             </div>
+            <span className="text-xs font-bold text-slate-500">
+              Trang {activeSectionIndex + 1} / 4
+            </span>
+          </div>
 
-            {/* Prompt Box */}
-            <div className="p-5 bg-[#fff8e7] border-[2.5px] border-[#111827] rounded-xl brutal-shadow text-xs sm:text-sm text-[#111827] leading-relaxed space-y-3">
-              <h4 className="text-xs font-black uppercase text-[#92400e] flex items-center gap-1.5 font-heading">
-                <FileText className="w-4 h-4" /> Đề Bài Chi Tiết (Aufgabenstellung):
-              </h4>
-              <div className="font-semibold space-y-2 text-[#334155]">
-                <p>
-                  Sie haben vor một tuần tham gia một khóa học tiếng Đức TELC B2 tại trung tâm nhưng gặp nhiều sự cố (giảng viên nghỉ, tài liệu phát chậm, phòng học nóng...).
-                </p>
-                <p className="font-bold text-[#111827]">Schreiben Sie eine Beschwerde an die Institutsleitung:</p>
-                <ul className="list-disc pl-5 space-y-1 text-xs">
-                  <li>Grund für das Schreiben nennen</li>
-                  <li>Die aufgetretenen Probleme genau beschreiben</li>
-                  <li>Vorschlag zur Lösung hoặc Entschädigung fordern</li>
-                </ul>
+          {/* AUDIO PLAYER FOR SECTION 3 (HÖRVERSTEHEN) */}
+          {activeSectionIndex === 2 && (
+            <div className="p-4 bg-[#eff6ff] border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center border-2 border-[#111827] shrink-0">
+                  <Headphones className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-[#111827] font-heading">
+                    Audio Đề Thi Nghe (Hörtext TELC B2)
+                  </h4>
+                  <span className="text-[10px] font-bold text-[#1e40af]">
+                    Bài nghe chuẩn TELC Deutsch B2 Audio Track
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleAudio}
+                  className="px-4 py-2 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black hover:bg-[#1d4ed8] cursor-pointer flex items-center gap-1.5 brutal-shadow-xs"
+                >
+                  {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span>{isPlayingAudio ? 'Tạm Dừng Audio' : 'Phát Bài Nghe'}</span>
+                </button>
               </div>
             </div>
+          )}
 
-            {/* Writing Textarea */}
+          {/* SHARED CONTEXT TEXT BOX (LESETEXT / SPRACHBAUSTEINE / AUDIO TEXT) */}
+          {sectionQuestions[0]?.contextText && (
+            <div className="p-5 bg-[#fff8e7] border-[2.5px] border-[#111827] rounded-xl brutal-shadow text-xs sm:text-sm text-[#111827] leading-relaxed space-y-2">
+              <h4 className="text-xs font-black uppercase text-[#734c00] font-heading flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-[#734c00]" />
+                Văn Bản Đề Thi Dùng Cho 5 Câu Hỏi Trong Phần Này:
+              </h4>
+              <p className="font-medium whitespace-pre-line">{sectionQuestions[0].contextText}</p>
+            </div>
+          )}
+
+          {/* SECTION 4 ESSAY WRITER (SCHRIFTLICHER AUSDRUCK) */}
+          {activeSectionIndex === 3 && (
             <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase text-[#111827] font-heading">
-                  Bài Làm Của Bạn (Gõ văn bản vào ô dưới):
+                <h4 className="text-xs font-black uppercase text-[#111827] font-heading flex items-center gap-1.5">
+                  <PenTool className="w-4 h-4 text-[#2563EB]" />
+                  Bài Làm Viết Thư B2 Của Bạn (Gõ văn bản vào ô dưới):
                 </h4>
                 <span className={`text-xs font-black px-2.5 py-0.5 rounded border-2 ${
                   essayWordCount >= 150 && essayWordCount <= 250
@@ -278,134 +320,113 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 </div>
               )}
             </div>
-          </div>
-        ) : (
-          /* SECTION 1, 2, 3: MULTIPLE CHOICE QUESTIONS */
-          <div className="lg:col-span-8 space-y-5">
-            {/* Audio Player for Section 3 (Hörverstehen) */}
-            {activeSectionIndex === 2 && (
-              <div className="p-4 bg-[#eff6ff] border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center border-2 border-[#111827] shrink-0">
-                    <Headphones className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-[#111827] font-heading">
-                      Audio Đề Thi Nghe (Hörtext TELC B2)
-                    </h4>
-                    <span className="text-[10px] font-bold text-[#1e40af]">
-                      Bài nghe chuẩn TELC Deutsch B2 Audio Track
-                    </span>
-                  </div>
-                </div>
+          )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={toggleAudio}
-                    className="px-4 py-2 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black hover:bg-[#1d4ed8] cursor-pointer flex items-center gap-1.5 brutal-shadow-xs"
+          {/* LIST OF ALL QUESTIONS IN THIS SECTION (DISPLAYED 5 QUESTIONS ON 1 PAGE) */}
+          {sectionQuestions.length === 0 ? (
+            <div className="p-8 bg-white border-[2.5px] border-[#111827] rounded-xl font-bold text-center text-sm">
+              Không có câu hỏi nào thuộc phần thi này hoặc đang tải dữ liệu...
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {sectionQuestions.map((q, idx) => {
+                const userChoice = examState.answers[q.id];
+                const isAnswered = Boolean(userChoice);
+
+                return (
+                  <div
+                    key={q.id}
+                    id={`question-${q.id}`}
+                    className="p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24"
                   >
-                    {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    <span>{isPlayingAudio ? 'Tạm Dừng Audio' : 'Phát Bài Nghe'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
+                    {/* Question Title & SubSection Badge */}
+                    <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB] text-white text-xs font-black">
+                            Câu {q.id}
+                          </span>
+                          {q.subSection && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-xs font-bold border border-[#111827]/20">
+                              {q.subSection}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-base font-black text-[#111827] font-heading mt-1">
+                          {q.title}
+                        </h4>
+                      </div>
 
-            {!currentQuestion ? (
-              <div className="p-8 bg-white border-[2.5px] border-[#111827] rounded-xl font-bold text-center text-sm">
-                Không có câu hỏi nào thuộc phần thi này hoặc đang tải dữ liệu...
-              </div>
-            ) : (
-              <>
-                {/* Question Banner */}
-                <div className="p-4 bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex items-center justify-between">
-                  <div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-xs font-black border border-[#111827]">
-                      {currentQuestion.section} - {currentQuestion.subSection || 'Mô phỏng'}
-                    </span>
-                    <h3 className="text-lg font-black text-[#111827] mt-1 font-heading">
-                      {currentQuestion.title}
-                    </h3>
-                  </div>
-                  <span className="text-xs font-bold text-[#564145]">
-                    Câu {activeQuestionId} / {questions.length}
-                  </span>
-                </div>
-
-                {/* Context Text Box (Lesetext) */}
-                {currentQuestion.contextText && (
-                  <div className="p-5 bg-[#fff8e7] border-[2.5px] border-[#111827] rounded-xl brutal-shadow text-xs sm:text-sm text-[#111827] leading-relaxed space-y-2">
-                    <h4 className="text-xs font-black uppercase text-[#734c00] font-heading">Đoạn Văn Bản Đề Thi (Lesetext):</h4>
-                    <p className="font-medium whitespace-pre-line">{currentQuestion.contextText}</p>
-                  </div>
-                )}
-
-                {/* Options List */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase text-[#4b5563] font-heading">
-                    {isReviewMode ? 'Kết quả lựa chọn & đáp án chuẩn:' : 'Chọn phương án trả lời đúng:'}
-                  </h4>
-
-                  {currentQuestion.options.map((opt) => {
-                    const userChoice = examState.answers[currentQuestion.id];
-                    const isSelected = userChoice === opt.id;
-                    const correctChoice = currentQuestion.correctOptionId || 'A';
-                    const isCorrectOption = opt.id === correctChoice;
-
-                    let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
-                    let badgeElement = null;
-
-                    if (isReviewMode) {
-                      if (isSelected && isCorrectOption) {
-                        buttonStyle = 'bg-[#dcfce7] text-[#166534] border-[#166534] font-black brutal-shadow';
-                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#166534] text-white font-black">✓ Bạn chọn ĐÚNG</span>;
-                      } else if (isSelected && !isCorrectOption) {
-                        buttonStyle = 'bg-[#fee2e2] text-[#991b1b] border-[#dc2626] font-black brutal-shadow';
-                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#dc2626] text-white font-black">✗ Bạn chọn SAI</span>;
-                      } else if (!isSelected && isCorrectOption) {
-                        buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
-                        badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
-                      } else {
-                        buttonStyle = 'bg-[#f8fafc] text-slate-500 border-slate-300 opacity-60';
-                      }
-                    } else if (isSelected) {
-                      buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
-                      badgeElement = <CheckCircle2 className="w-5 h-5 text-white shrink-0" />;
-                    }
-
-                    return (
-                      <button
-                        key={opt.id}
-                        disabled={isReviewMode}
-                        onClick={() => !isReviewMode && onAnswerChange(currentQuestion.id, opt.id)}
-                        className={`w-full text-left p-4 rounded-xl border-[2.5px] text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${
-                          isReviewMode ? 'cursor-default' : 'cursor-pointer'
-                        } ${buttonStyle}`}
-                      >
-                        <span>{opt.text}</span>
-                        {badgeElement}
-                      </button>
-                    );
-                  })}
-
-                  {/* Detailed Explanation Box in Review Mode */}
-                  {isReviewMode && (
-                    <div className="mt-4 p-4 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-2">
-                      <h5 className="text-xs font-black uppercase text-[#1e40af] flex items-center gap-1.5 font-heading">
-                        <HelpCircle className="w-4 h-4 text-[#2563EB]" />
-                        💡 Giải Thích Chi Tiết Đáp Án:
-                      </h5>
-                      <p className="text-xs sm:text-sm text-[#1e293b] leading-relaxed font-medium">
-                        {currentQuestion.explanation ||
-                          `Phương án đúng là (${currentQuestion.correctOptionId || 'A'}). Dựa vào ngữ cảnh bài đọc/nghe và quy tắc ngữ pháp B2 TELC, lựa chọn này giải thích chính xác ý nghĩa của câu.`}
-                      </p>
+                      {isAnswered && !isReviewMode && (
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded border border-emerald-300 shrink-0">
+                          ✓ Đã làm
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+
+                    {/* Options List */}
+                    <div className="space-y-2.5">
+                      {q.options.map((opt) => {
+                        const isSelected = userChoice === opt.id;
+                        const correctChoice = q.correctOptionId || 'A';
+                        const isCorrectOption = opt.id === correctChoice;
+
+                        let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
+                        let badgeElement = null;
+
+                        if (isReviewMode) {
+                          if (isSelected && isCorrectOption) {
+                            buttonStyle = 'bg-[#dcfce7] text-[#166534] border-[#166534] font-black brutal-shadow';
+                            badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#166534] text-white font-black">✓ Bạn chọn ĐÚNG</span>;
+                          } else if (isSelected && !isCorrectOption) {
+                            buttonStyle = 'bg-[#fee2e2] text-[#991b1b] border-[#dc2626] font-black brutal-shadow';
+                            badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#dc2626] text-white font-black">✗ Bạn chọn SAI</span>;
+                          } else if (!isSelected && isCorrectOption) {
+                            buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
+                            badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
+                          } else {
+                            buttonStyle = 'bg-[#f8fafc] text-slate-500 border-slate-300 opacity-60';
+                          }
+                        } else if (isSelected) {
+                          buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
+                          badgeElement = <CheckCircle2 className="w-5 h-5 text-white shrink-0" />;
+                        }
+
+                        return (
+                          <button
+                            key={opt.id}
+                            disabled={isReviewMode}
+                            onClick={() => !isReviewMode && onAnswerChange(q.id, opt.id)}
+                            className={`w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${
+                              isReviewMode ? 'cursor-default' : 'cursor-pointer'
+                            } ${buttonStyle}`}
+                          >
+                            <span>{opt.text}</span>
+                            {badgeElement}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Detailed Explanation Box in Review Mode */}
+                    {isReviewMode && (
+                      <div className="mt-3 p-4 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-1.5">
+                        <h5 className="text-xs font-black uppercase text-[#1e40af] flex items-center gap-1.5 font-heading">
+                          <HelpCircle className="w-4 h-4 text-[#2563EB]" />
+                          💡 Giải Thích Chi Tiết Đáp Án:
+                        </h5>
+                        <p className="text-xs sm:text-sm text-[#1e293b] leading-relaxed font-medium">
+                          {q.explanation ||
+                            `Phương án đúng là (${q.correctOptionId || 'A'}). Dựa vào ngữ cảnh bài thi và quy tắc ngữ pháp B2 TELC, lựa chọn này chính xác hoàn toàn.`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* RIGHT 4 COLS: Question Navigator Grid & Scratchpad */}
         <div className="lg:col-span-4 space-y-5">
@@ -448,12 +469,20 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   <button
                     key={q.id}
                     onClick={() => {
-                      // Switch to the section containing this question
-                      if (q.section.includes('Sprachbausteine')) setActiveSectionIndex(1);
-                      else if (q.section.includes('Hörverstehen')) setActiveSectionIndex(2);
-                      else if (q.section.includes('Schriftlicher')) setActiveSectionIndex(3);
-                      else setActiveSectionIndex(0);
+                      let targetSection = 0;
+                      if (q.section.includes('Sprachbausteine')) targetSection = 1;
+                      else if (q.section.includes('Hörverstehen')) targetSection = 2;
+                      else if (q.section.includes('Schriftlicher')) targetSection = 3;
+
+                      setActiveSectionIndex(targetSection);
                       setActiveQuestionId(q.id);
+
+                      setTimeout(() => {
+                        const el = document.getElementById(`question-${q.id}`);
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 100);
                     }}
                     className={`h-10 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${gridStyle}`}
                   >
@@ -496,12 +525,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             {currentSectionMeta.label}: {currentSectionMeta.shortDesc}
           </div>
 
-          {activeSectionIndex < 3 ? (
+          {activeSectionIndex < activeSections.length - 1 ? (
             <button
-              onClick={() => setActiveSectionIndex((prev) => Math.min(3, prev + 1))}
+              onClick={() => setActiveSectionIndex((prev) => Math.min(activeSections.length - 1, prev + 1))}
               className="px-5 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
             >
-              <span>Chuyển Sang {SECTIONS[activeSectionIndex + 1]?.name}</span>
+              <span>Chuyển Sang {activeSections[activeSectionIndex + 1]?.name}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : isReviewMode ? (

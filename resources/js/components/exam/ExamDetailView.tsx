@@ -26,7 +26,7 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
   useEffect(() => {
     if (exam.examCode) {
       setLoading(true);
-      fetch(`/api/v1/questions/${exam.examCode}`)
+      fetch('/api/v1/questions/' + encodeURIComponent(exam.examCode))
         .then((res) => res.json())
         .then((res) => {
           if (res.success && Array.isArray(res.data) && res.data.length > 0) {

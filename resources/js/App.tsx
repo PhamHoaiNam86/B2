@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem } from './types';
-import { INITIAL_EXAM_STATE } from './data/mockData';
+import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem, INITIAL_EXAM_STATE } from './types';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -471,6 +470,7 @@ export default function App() {
         duration_minutes: newExam.durationMinutes,
         description: newExam.description,
         total_questions: newExam.totalQuestions,
+        sections: newExam.sections || [],
         questions: newExam.questions || [],
       }),
     })
@@ -479,20 +479,22 @@ export default function App() {
         if (res.success && res.data) {
           const created: ExamModel = {
             id: String(res.data.id || res.data.exam_code),
-            name: res.data.title || res.data.name,
+            name: res.data.name || res.data.title,
             examCode: res.data.exam_code,
             level: res.data.level || 'TELC B2',
             durationMinutes: res.data.duration_minutes || 90,
-            totalQuestions: res.data.total_questions || 45,
+            totalQuestions: res.data.total_questions || (newExam.questions ? newExam.questions.length : 0),
             description: res.data.description || '',
-            sections: newExam.sections,
-            targetScore: res.data.total_score || 300,
+            sections: res.data.sections_json
+              ? (typeof res.data.sections_json === 'string' ? JSON.parse(res.data.sections_json) : res.data.sections_json)
+              : newExam.sections,
+            targetScore: res.data.target_score || 225,
             passRate: '88%',
           };
-          setExams((prev) => prev.map((e) => (e.id === newExam.id ? created : e)));
+          setExams((prev) => prev.map((e) => (e.id === newExam.id || e.examCode === newExam.examCode ? created : e)));
         }
       })
-      .catch(() => {});
+      .catch((err) => console.error('Create Exam Error:', err));
   };
 
   const handleUpdateExam = (updatedExam: ExamModel) => {
@@ -506,8 +508,10 @@ export default function App() {
         duration_minutes: updatedExam.durationMinutes,
         description: updatedExam.description,
         total_questions: updatedExam.totalQuestions,
+        sections: updatedExam.sections || [],
+        questions: updatedExam.questions || [],
       }),
-    }).catch(() => {});
+    }).catch((err) => console.error('Update Exam Error:', err));
   };
 
   const handleDeleteExam = (id: string) => {

@@ -111,3 +111,15 @@ export interface UserExamState {
   activeSection: string;
   isSubmitted: boolean;
 }
+
+export const INITIAL_EXAM_STATE: UserExamState = {
+  examCode: '',
+  studentName: '',
+  timeRemainingSeconds: 5400,
+  timeElapsedSeconds: 0,
+  tabSwitchCount: 0,
+  answers: {},
+  activeSection: '',
+  isSubmitted: false,
+};
+
