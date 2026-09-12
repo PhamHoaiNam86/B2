@@ -1,6 +1,7 @@
 export type ActiveTab = 
   | 'dashboard'
   | 'exam'
+  | 'exam-c1'
   | 'exam-b1'
   | 'exam-a2'
   | 'exam-a1'

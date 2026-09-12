@@ -29,6 +29,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'Tổng quan Hệ Thống & Tiến Độ Học';
       case 'exam':
         return 'Kho Đề Thi & Phòng Thi Thử B2';
+      case 'exam-c1':
+        return 'Kho Đề Thi & Phòng Thi Thử C1';
       case 'exam-b1':
         return 'Kho Đề Thi & Phòng Thi Thử B1';
       case 'exam-a2':

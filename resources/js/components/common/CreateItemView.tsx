@@ -548,6 +548,8 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                 onChange={(e) => setLevel(e.target.value)}
                 className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
               >
+                <option value="TELC C1">TELC C1</option>
+                <option value="Goethe C1">Goethe C1</option>
                 <option value="TELC B2">TELC B2</option>
                 <option value="TELC B1">TELC B1</option>
                 <option value="TELC A2">TELC A2</option>

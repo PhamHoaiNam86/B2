@@ -34,7 +34,7 @@ const getInitialViewState = () => {
   }
 
   const validTabs: ActiveTab[] = [
-    'dashboard', 'exam', 'exam-b1', 'exam-a2', 'exam-a1',
+    'dashboard', 'exam', 'exam-c1', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
     'results', 'vocab', 'grammar', 'schreiben', 'students', 'history', 'profile',
     'flashcards', 'grammar-lesson', 'exam-detail', 'create-item'
@@ -731,6 +731,31 @@ export default function App() {
                 <ExamsView
                   exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
                   levelLabel="B2"
+                  onSelectExam={(exam) => {
+                    setSelectedExam(exam);
+                    setActiveTab('exam-detail');
+                  }}
+                  onStartExam={(exam) => handleStartExamRoom(exam)}
+                  onOpenNewExamModal={() => {
+                    setEditingItem(null);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onEditExam={(exam) => {
+                    setEditingItem(exam);
+                    setCreateItemType('exam');
+                    setActiveTab('create-item');
+                  }}
+                  onDeleteExam={handleDeleteExam}
+                  onShowToast={showToast}
+                  currentUser={currentUser}
+                />
+              )}
+
+              {activeTab === 'exam-c1' && (
+                <ExamsView
+                  exams={exams.filter((e) => e.level.includes('C1'))}
+                  levelLabel="C1"
                   onSelectExam={(exam) => {
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');

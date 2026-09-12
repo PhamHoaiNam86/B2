@@ -63,10 +63,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
-    { id: 'exam' as ActiveTab, label: 'Thi thử B2', icon: FileCheck2 },
-    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2 },
-    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2 },
     { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2 },
+    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2 },
+    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2 },
+    { id: 'exam' as ActiveTab, label: 'Thi thử B2', icon: FileCheck2 },
+    { id: 'exam-c1' as ActiveTab, label: 'Thi thử C1', icon: FileCheck2 },
     { id: 'docs-b2' as ActiveTab, label: 'Thư viện Tài liệu B2', icon: BookOpen },
     { id: 'docs-schreiben' as ActiveTab, label: 'Tài liệu Schreiben', icon: PenTool },
     { id: 'docs-sprechen' as ActiveTab, label: 'Tài liệu Sprechen', icon: Sparkles },
