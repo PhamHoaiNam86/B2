@@ -28,8 +28,8 @@ class VocabController extends Controller
             'pos' => 'required|string',
             'phonetic' => 'nullable|string',
             'meaning_vi' => 'required|string',
-            'example_de' => 'required|string',
-            'example_vi' => 'required|string',
+            'example_de' => 'nullable|string',
+            'example_vi' => 'nullable|string',
             'topic' => 'required|string',
         ]);
 
@@ -41,8 +41,8 @@ class VocabController extends Controller
             'pos' => $validated['pos'],
             'phonetic' => $validated['phonetic'] ?? null,
             'meaning_vi' => $validated['meaning_vi'],
-            'example_de' => $validated['example_de'],
-            'example_vi' => $validated['example_vi'],
+            'example_de' => $validated['example_de'] ?? '',
+            'example_vi' => $validated['example_vi'] ?? '',
             'topic' => $validated['topic'],
             'status' => 'learning',
             'is_favorite' => false,

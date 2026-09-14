@@ -109,50 +109,62 @@ export const VocabView: React.FC<VocabViewProps> = ({
       </div>
 
       {/* Vocab Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredVocabs.map((vocab) => (
-          <div
-            key={vocab.id}
-            className="p-5 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow space-y-3 relative hover:translate-y-[-2px] transition-all"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-[#fcf9f8] text-[#564145] border border-[#1c1b1b] text-[10px] font-black">
-                    {vocab.pos}
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-[#ffe3ea] text-[#800035] border border-[#1c1b1b] text-[10px] font-black">
-                    {vocab.topic}
-                  </span>
+      {filteredVocabs.length === 0 ? (
+        <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-12 text-center brutal-shadow space-y-3">
+          <div className="w-14 h-14 bg-[#eff6ff] border-2 border-[#1c1b1b] rounded-2xl flex items-center justify-center mx-auto text-2xl">
+            📚
+          </div>
+          <h3 className="text-lg font-black text-[#1c1b1b] font-heading">Chưa có từ vựng nào</h3>
+          <p className="text-xs text-[#564145] max-w-sm mx-auto">
+            Kho từ vựng B2 đang được cập nhật. Vui lòng quay lại sau!
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredVocabs.map((vocab) => (
+            <div
+              key={vocab.id}
+              className="p-5 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow space-y-3 relative hover:translate-y-[-2px] transition-all"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-[#fcf9f8] text-[#564145] border border-[#1c1b1b] text-[10px] font-black">
+                      {vocab.pos}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-[#ffe3ea] text-[#800035] border border-[#1c1b1b] text-[10px] font-black">
+                      {vocab.topic}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-[#1c1b1b] mt-1">
+                    {vocab.word}
+                  </h3>
+                  {vocab.phonetic && (
+                    <span className="text-xs text-[#897175] font-mono">{vocab.phonetic}</span>
+                  )}
                 </div>
-                <h3 className="text-lg font-black text-[#1c1b1b] mt-1">
-                  {vocab.word}
-                </h3>
-                {vocab.phonetic && (
-                  <span className="text-xs text-[#897175] font-mono">{vocab.phonetic}</span>
-                )}
+
+                <button
+                  onClick={() => onToggleFavorite(vocab.id)}
+                  className="p-2 rounded-lg border border-[#1c1b1b] hover:bg-[#fff3d6] cursor-pointer"
+                >
+                  <Star
+                    className={`w-4 h-4 ${
+                      vocab.isFavorite ? 'fill-[#ffe082] text-[#ffe082]' : 'text-[#897175]'
+                    }`}
+                  />
+                </button>
               </div>
 
-              <button
-                onClick={() => onToggleFavorite(vocab.id)}
-                className="p-2 rounded-lg border border-[#1c1b1b] hover:bg-[#fff3d6] cursor-pointer"
-              >
-                <Star
-                  className={`w-4 h-4 ${
-                    vocab.isFavorite ? 'fill-[#ffe082] text-[#ffe082]' : 'text-[#897175]'
-                  }`}
-                />
-              </button>
+              <div className="p-3 bg-[#fcf9f8] border-2 border-[#1c1b1b] rounded-lg text-xs space-y-1">
+                <p className="font-bold text-[#f36b92]">Nghĩa: {vocab.meaningVi}</p>
+                {vocab.exampleDe && <p className="text-[#1c1b1b] font-medium italic">"{vocab.exampleDe}"</p>}
+                {vocab.exampleVi && <p className="text-[#564145] text-[11px]">→ {vocab.exampleVi}</p>}
+              </div>
             </div>
-
-            <div className="p-3 bg-[#fcf9f8] border-2 border-[#1c1b1b] rounded-lg text-xs space-y-1">
-              <p className="font-bold text-[#f36b92]">Nghĩa: {vocab.meaningVi}</p>
-              <p className="text-[#1c1b1b] font-medium italic">"{vocab.exampleDe}"</p>
-              <p className="text-[#564145] text-[11px]">→ {vocab.exampleVi}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -71,53 +71,65 @@ export const GrammarView: React.FC<GrammarViewProps> = ({
       </div>
 
       {/* Grammar Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {topics.map((topic) => (
-          <div
-            key={topic.id}
-            className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow flex flex-col justify-between space-y-4 hover:translate-y-[-2px] transition-all"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-[10px] font-black border border-[#1c1b1b]">
-                  {topic.category}
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 text-[10px] font-black border border-emerald-400">
-                  {topic.badgeLabel}
-                </span>
-              </div>
-
-              <h3 className="text-base font-black text-[#1c1b1b] font-heading">
-                {topic.title}
-              </h3>
-              <p className="text-xs text-[#564145] leading-relaxed line-clamp-3">
-                {topic.summary}
-              </p>
-            </div>
-
-            {/* Progress bar & Action */}
-            <div className="space-y-3 border-t-2 border-[#1c1b1b]/10 pt-3">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-[#564145]">Tiến độ:</span>
-                <span className="text-[#f36b92] font-black">{topic.progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-[#f0edec] rounded-full overflow-hidden border border-[#1c1b1b]">
-                <div
-                  className="h-full bg-[#f36b92]"
-                  style={{ width: `${topic.progress}%` }}
-                />
-              </div>
-
-              <button
-                onClick={() => onSelectTopic(topic)}
-                className="w-full py-2.5 bg-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black hover:bg-[#f0edec] brutal-shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <BookOpen className="w-4 h-4 text-[#f36b92]" /> Xem Lý Thuyết & Bài Tập
-              </button>
-            </div>
+      {topics.length === 0 ? (
+        <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-12 text-center brutal-shadow space-y-3">
+          <div className="w-14 h-14 bg-[#fff8e7] border-2 border-[#1c1b1b] rounded-2xl flex items-center justify-center mx-auto text-2xl">
+            🧠
           </div>
-        ))}
-      </div>
+          <h3 className="text-lg font-black text-[#1c1b1b] font-heading">Chưa có chuyên đề ngữ pháp nào</h3>
+          <p className="text-xs text-[#564145] max-w-sm mx-auto">
+            Hệ thống chuyên đề ngữ pháp B2 đang được cập nhật. Vui lòng quay lại sau!
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {topics.map((topic) => (
+            <div
+              key={topic.id}
+              className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow flex flex-col justify-between space-y-4 hover:translate-y-[-2px] transition-all"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-[10px] font-black border border-[#1c1b1b]">
+                    {topic.category}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 text-[10px] font-black border border-emerald-400">
+                    {topic.badgeLabel}
+                  </span>
+                </div>
+
+                <h3 className="text-base font-black text-[#1c1b1b] font-heading">
+                  {topic.title}
+                </h3>
+                <p className="text-xs text-[#564145] leading-relaxed line-clamp-3">
+                  {topic.summary}
+                </p>
+              </div>
+
+              {/* Progress bar & Action */}
+              <div className="space-y-3 border-t-2 border-[#1c1b1b]/10 pt-3">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-[#564145]">Tiến độ:</span>
+                  <span className="text-[#f36b92] font-black">{topic.progress}%</span>
+                </div>
+                <div className="w-full h-2 bg-[#f0edec] rounded-full overflow-hidden border border-[#1c1b1b]">
+                  <div
+                    className="h-full bg-[#f36b92]"
+                    style={{ width: `${topic.progress}%` }}
+                  />
+                </div>
+
+                <button
+                  onClick={() => onSelectTopic(topic)}
+                  className="w-full py-2.5 bg-white border-2 border-[#1c1b1b] rounded-xl text-xs font-black hover:bg-[#f0edec] brutal-shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <BookOpen className="w-4 h-4 text-[#f36b92]" /> Xem Lý Thuyết & Bài Tập
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
