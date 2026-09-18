@@ -205,73 +205,83 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-100 text-[11px] font-black text-slate-600 uppercase border-b-2 border-slate-200">
-                <th className="p-3.5 text-center w-16">Thứ Hạng</th>
-                <th className="p-3.5">Học Viên</th>
-                <th className="p-3.5">Danh Hiệu</th>
-                <th className="p-3.5 text-center">Chuỗi Streak</th>
-                <th className="p-3.5 text-center">Tổng EXP</th>
-                <th className="p-3.5 text-center">Điểm Thi Trung Bình</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs font-bold text-[#111827]">
-              {filteredUsers.map((user, idx) => (
-                <tr
-                  key={user.id}
-                  className={`hover:bg-blue-50/50 transition-colors ${
-                    idx < 3 ? 'bg-slate-50/80 font-black' : ''
-                  }`}
-                >
-                  <td className="p-3.5 text-center font-black">
-                    {idx === 0 ? (
-                      <span className="w-7 h-7 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center mx-auto text-xs border border-[#111827]">
-                        1
-                      </span>
-                    ) : idx === 1 ? (
-                      <span className="w-7 h-7 rounded-full bg-slate-300 text-slate-800 flex items-center justify-center mx-auto text-xs border border-[#111827]">
-                        2
-                      </span>
-                    ) : idx === 2 ? (
-                      <span className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto text-xs border border-[#111827]">
-                        3
-                      </span>
-                    ) : (
-                      <span className="text-slate-500">#{idx + 1}</span>
-                    )}
-                  </td>
-                  <td className="p-3.5">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="w-9 h-9 rounded-full border border-[#111827] object-cover"
-                      />
-                      <div>
-                        <span className="font-black text-xs block">{user.name}</span>
-                        <span className="text-[10px] text-slate-500">{user.passedExamsCount} bài thi đỗ</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3.5">
-                    <span className="px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-black border border-blue-300">
-                      {user.levelTitle}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-center text-amber-600 font-black">
-                    🔥 {user.streakDays} ngày
-                  </td>
-                  <td className="p-3.5 text-center text-[#2563EB] font-black">
-                    ⭐ {user.exp.toLocaleString()} EXP
-                  </td>
-                  <td className="p-3.5 text-center text-emerald-600 font-black">
-                    {user.avgExamScore} / 300 điểm
-                  </td>
+          {filteredUsers.length === 0 ? (
+            <div className="p-12 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl space-y-3">
+              <Trophy className="w-10 h-10 text-slate-400 mx-auto" />
+              <h4 className="text-base font-black text-[#111827] font-heading">Chưa có dữ liệu Bảng Xếp Hạng trong CSDL MySQL</h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
+                Bảng xếp hạng sẽ tự động cập nhật khi học viên hoàn thành bài thi hoặc Admin thêm học viên mới!
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-100 text-[11px] font-black text-slate-600 uppercase border-b-2 border-slate-200">
+                  <th className="p-3.5 text-center w-16">Thứ Hạng</th>
+                  <th className="p-3.5">Học Viên</th>
+                  <th className="p-3.5">Danh Hiệu</th>
+                  <th className="p-3.5 text-center">Chuỗi Streak</th>
+                  <th className="p-3.5 text-center">Tổng EXP</th>
+                  <th className="p-3.5 text-center">Điểm Thi Trung Bình</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs font-bold text-[#111827]">
+                {filteredUsers.map((user, idx) => (
+                  <tr
+                    key={user.id}
+                    className={`hover:bg-blue-50/50 transition-colors ${
+                      idx < 3 ? 'bg-slate-50/80 font-black' : ''
+                    }`}
+                  >
+                    <td className="p-3.5 text-center font-black">
+                      {idx === 0 ? (
+                        <span className="w-7 h-7 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center mx-auto text-xs border border-[#111827]">
+                          1
+                        </span>
+                      ) : idx === 1 ? (
+                        <span className="w-7 h-7 rounded-full bg-slate-300 text-slate-800 flex items-center justify-center mx-auto text-xs border border-[#111827]">
+                          2
+                        </span>
+                      ) : idx === 2 ? (
+                        <span className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto text-xs border border-[#111827]">
+                          3
+                        </span>
+                      ) : (
+                        <span className="text-slate-500">#{idx + 1}</span>
+                      )}
+                    </td>
+                    <td className="p-3.5">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="w-9 h-9 rounded-full border border-[#111827] object-cover"
+                        />
+                        <div>
+                          <span className="font-black text-xs block">{user.name}</span>
+                          <span className="text-[10px] text-slate-500">{user.passedExamsCount} bài thi đỗ</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-black border border-blue-300">
+                        {user.levelTitle}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-center text-amber-600 font-black">
+                      🔥 {user.streakDays} ngày
+                    </td>
+                    <td className="p-3.5 text-center text-[#2563EB] font-black">
+                      ⭐ {user.exp.toLocaleString()} EXP
+                    </td>
+                    <td className="p-3.5 text-center text-emerald-600 font-black">
+                      {user.avgExamScore} / 300 điểm
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

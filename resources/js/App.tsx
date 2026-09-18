@@ -154,86 +154,27 @@ export default function App() {
   const [streakDays, setStreakDays] = useState<number>(7);
   const [expPoints, setExpPoints] = useState<number>(1450);
 
-  const [discussionComments, setDiscussionComments] = useState<DiscussionComment[]>([
-    {
-      id: 'comm-1',
-      examCode: 'TELC-B2-01',
-      studentName: 'Nguyễn Hoàng Anh',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
-      content: 'Phần Sprachbausteine Teil 1 bẫy cấu trúc "in Bezug auf" + Genitiv. Các bạn chú ý chia đuôi tính từ nhé!',
-      createdAt: '2 giờ trước',
-      likes: 14,
-      userLiked: true,
-    },
-    {
-      id: 'comm-2',
-      examCode: 'GOETHE-B2-01',
-      studentName: 'Trần Lê Minh',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-      content: 'Đề Goethe B2 phần Lesen Teil 3 khá dài, mẹo là gạch chân từ khóa trong 5 phát biểu trước rồi mới đọc bài.',
-      createdAt: '5 giờ trước',
-      likes: 9,
-      userLiked: false,
-    },
-  ]);
+  const [discussionComments, setDiscussionComments] = useState<DiscussionComment[]>([]);
 
-  const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([
-    {
-      id: 'lb-1',
-      rank: 1,
-      name: 'Nguyễn Hoàng Anh',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      streakDays: 14,
-      exp: 2850,
-      levelTitle: 'Bậc Thầy B2',
-      avgExamScore: 288,
-      passedExamsCount: 18,
-    },
-    {
-      id: 'lb-2',
-      rank: 2,
-      name: 'Trần Lê Minh',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      streakDays: 10,
-      exp: 2340,
-      levelTitle: 'Cao Thủ Goethe',
-      avgExamScore: 275,
-      passedExamsCount: 14,
-    },
-    {
-      id: 'lb-3',
-      rank: 3,
-      name: 'Lê Phạm Khánh Linh',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      streakDays: 9,
-      exp: 1980,
-      levelTitle: 'Chuyên Gia TELC',
-      avgExamScore: 268,
-      passedExamsCount: 12,
-    },
-    {
-      id: 'lb-4',
-      rank: 4,
-      name: 'Phạm Hoài Nam',
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+  // Dynamic Leaderboard computed from MySQL CSDL records (students & liveFeed)
+  const leaderboardUsers: LeaderboardUser[] = students.map((st, idx) => {
+    const studentResults = liveFeed.filter((f) => f.studentName.toLowerCase() === st.name.toLowerCase());
+    const avgScore = studentResults.length > 0
+      ? Math.round(studentResults.reduce((acc, r) => acc + r.score, 0) / studentResults.length)
+      : Math.round(st.currentScore || 0);
+
+    return {
+      id: st.id,
+      rank: idx + 1,
+      name: st.name,
+      avatarUrl: st.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       streakDays: 7,
-      exp: 1450,
-      levelTitle: 'Chiến Binh B2',
-      avgExamScore: 255,
-      passedExamsCount: 8,
-    },
-    {
-      id: 'lb-5',
-      rank: 5,
-      name: 'Vũ Thị Thanh Hằng',
-      avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      streakDays: 5,
-      exp: 1220,
-      levelTitle: 'Tập Sự A2-B1',
-      avgExamScore: 240,
-      passedExamsCount: 6,
-    },
-  ]);
+      exp: avgScore * 5 + studentResults.length * 100,
+      levelTitle: avgScore >= 270 ? 'Bậc Thầy B2' : avgScore >= 240 ? 'Cao Thủ' : 'Học Viên',
+      avgExamScore: avgScore,
+      passedExamsCount: studentResults.length,
+    };
+  }).sort((a, b) => b.exp - a.exp).map((u, idx) => ({ ...u, rank: idx + 1 }));
 
   const handleAddComment = (examCode: string, content: string) => {
     const newComment: DiscussionComment = {
@@ -265,101 +206,12 @@ export default function App() {
     );
   };
 
-  // Fetch real data from Laravel MySQL / SQLite Database API
+  // Fetch real data from Laravel MySQL Database API
   useEffect(() => {
-    // 1. Fetch Exams
+    // 1. Fetch Exams from MySQL Database
     fetch('/api/v1/exams')
       .then((res) => res.json())
       .then((res) => {
-        const GOETHE_SEEDS: ExamModel[] = [
-          {
-            id: 'goethe-b2-01',
-            name: 'Goethe-Zertifikat B2 Deutsch Prüfung 01',
-            examCode: 'GOETHE-B2-01',
-            level: 'B2',
-            provider: 'GOETHE',
-            durationMinutes: 100,
-            totalQuestions: 40,
-            description: 'Đề thi thử Goethe B2 theo 4 kỹ năng Lesen (5 Teile), Hören (4 Teile), Schreiben (2 Aufgaben), Sprechen.',
-            sections: [
-              { name: 'Lesen', questionCount: 15, duration: '65 phút' },
-              { name: 'Hören', questionCount: 15, duration: '40 phút' },
-              { name: 'Schreiben', questionCount: 2, duration: '75 phút' },
-              { name: 'Sprechen', questionCount: 2, duration: '15 phút' },
-            ],
-            targetScore: 240,
-            passRate: '86%',
-          },
-          {
-            id: 'goethe-b1-01',
-            name: 'Goethe-Zertifikat B1 Deutsch Simulation',
-            examCode: 'GOETHE-B1-01',
-            level: 'B1',
-            provider: 'GOETHE',
-            durationMinutes: 90,
-            totalQuestions: 35,
-            description: 'Đề thi mô phỏng Goethe B1 4 Module độc lập cho người luyện thi tiếng Đức.',
-            sections: [
-              { name: 'Lesen', questionCount: 15, duration: '65 phút' },
-              { name: 'Hören', questionCount: 10, duration: '40 phút' },
-              { name: 'Schreiben', questionCount: 3, duration: '60 phút' },
-            ],
-            targetScore: 210,
-            passRate: '92%',
-          },
-          {
-            id: 'goethe-a2-01',
-            name: 'Goethe-Zertifikat A2 Start Deutsch 2',
-            examCode: 'GOETHE-A2-01',
-            level: 'A2',
-            provider: 'GOETHE',
-            durationMinutes: 70,
-            totalQuestions: 30,
-            description: 'Đề thi thử trình độ A2 tiêu chuẩn Viện Goethe cho học viên trình độ sơ cấp.',
-            sections: [
-              { name: 'Lesen', questionCount: 10, duration: '30 phút' },
-              { name: 'Hören', questionCount: 10, duration: '30 phút' },
-              { name: 'Schreiben', questionCount: 1, duration: '30 phút' },
-            ],
-            targetScore: 180,
-            passRate: '95%',
-          },
-          {
-            id: 'goethe-a1-01',
-            name: 'Start Deutsch 1 (Goethe-Zertifikat A1)',
-            examCode: 'GOETHE-A1-01',
-            level: 'A1',
-            provider: 'GOETHE',
-            durationMinutes: 60,
-            totalQuestions: 25,
-            description: 'Đề thi tiếng Đức A1 nền tảng cho người mới bắt đầu.',
-            sections: [
-              { name: 'Lesen', questionCount: 10, duration: '25 phút' },
-              { name: 'Hören', questionCount: 10, duration: '20 phút' },
-              { name: 'Schreiben', questionCount: 1, duration: '15 phút' },
-            ],
-            targetScore: 160,
-            passRate: '98%',
-          },
-          {
-            id: 'goethe-c1-01',
-            name: 'Goethe-Zertifikat C1 Oberstufe Prüfung',
-            examCode: 'GOETHE-C1-01',
-            level: 'C1',
-            provider: 'GOETHE',
-            durationMinutes: 120,
-            totalQuestions: 45,
-            description: 'Đề thi thử cao cấp C1 Goethe rèn luyện học thuật và học văn bằng đại học Đức.',
-            sections: [
-              { name: 'Lesen', questionCount: 20, duration: '70 phút' },
-              { name: 'Hören', questionCount: 15, duration: '40 phút' },
-              { name: 'Schreiben', questionCount: 2, duration: '80 phút' },
-            ],
-            targetScore: 250,
-            passRate: '80%',
-          },
-        ];
-
         if (res.success && Array.isArray(res.data)) {
           const mappedExams: ExamModel[] = res.data.map((item: any) => ({
             id: String(item.id || item.exam_code),
@@ -379,13 +231,7 @@ export default function App() {
             targetScore: item.target_score || 225,
             passRate: item.pass_rate || '88%',
           }));
-
-          // Merge DB exams with Goethe Seeds if not present
-          const existingCodes = new Set(mappedExams.map((e) => e.examCode));
-          const missingSeeds = GOETHE_SEEDS.filter((s) => !existingCodes.has(s.examCode));
-          setExams([...mappedExams, ...missingSeeds]);
-        } else {
-          setExams(GOETHE_SEEDS);
+          setExams(mappedExams);
         }
       })
       .catch(() => {});
@@ -473,6 +319,10 @@ export default function App() {
             statusText: item.status_text || 'Đạt chuẩn TELC B2',
             timeAgo: item.time_ago || 'Vừa xong',
             description: item.description || '',
+            readingScore: item.reading_score || 0,
+            listeningScore: item.listening_score || 0,
+            writingScore: item.writing_score || 0,
+            speakingScore: item.speaking_score || 0,
           }));
           setLiveFeed(mappedFeed);
         }
@@ -956,6 +806,8 @@ export default function App() {
                   exams={exams}
                   students={students}
                   liveFeed={liveFeed}
+                  vocabsCount={vocabs.length}
+                  grammarCount={grammarTopics.length}
                   onSelectExam={(exam) => setSelectedExam(exam)}
                   onStartExamRoom={handleStartExamRoom}
                   onNavigateToVocab={() => setActiveTab('vocab')}

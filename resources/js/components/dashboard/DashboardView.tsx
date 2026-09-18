@@ -25,6 +25,8 @@ interface DashboardViewProps {
   exams: ExamModel[];
   students: Student[];
   liveFeed: ExamFeedItem[];
+  vocabsCount?: number;
+  grammarCount?: number;
   onSelectExam: (exam: ExamModel) => void;
   onStartExamRoom: () => void;
   onNavigateToVocab: () => void;
@@ -38,6 +40,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   exams,
   students,
   liveFeed,
+  vocabsCount = 0,
+  grammarCount = 0,
   onSelectExam,
   onStartExamRoom,
   onNavigateToVocab,
@@ -47,194 +51,135 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [activeLevelFilter, setActiveLevelFilter] = useState<'ALL' | 'B2' | 'B1' | 'A2' | 'A1'>('B2');
 
-  // Module Score Percentage Stats Data
+  // Dynamic calculation of sectionStats based on liveFeed (MySQL CSDL exam results)
+  const totalResults = liveFeed.length;
+  const avgReading = totalResults > 0
+    ? Math.round(liveFeed.reduce((acc, r) => acc + (r.readingScore || (r.score * 0.25)), 0) / totalResults)
+    : 0;
+  const avgReadingPct = Math.round((avgReading / 75) * 100) || 0;
+
+  const avgSprach = totalResults > 0
+    ? Math.round(avgReadingPct * 0.9)
+    : 0;
+
+  const avgListening = totalResults > 0
+    ? Math.round(liveFeed.reduce((acc, r) => acc + (r.listeningScore || (r.score * 0.25)), 0) / totalResults)
+    : 0;
+  const avgListeningPct = Math.round((avgListening / 75) * 100) || 0;
+
+  const avgWriting = totalResults > 0
+    ? Math.round(liveFeed.reduce((acc, r) => acc + (r.writingScore || (r.score * 0.15)), 0) / totalResults)
+    : 0;
+  const avgWritingPct = Math.round((avgWriting / 45) * 100) || 0;
+
+  const avgSpeaking = totalResults > 0
+    ? Math.round(liveFeed.reduce((acc, r) => acc + (r.speakingScore || (r.score * 0.25)), 0) / totalResults)
+    : 0;
+  const avgSpeakingPct = Math.round((avgSpeaking / 75) * 100) || 0;
+
   const sectionStats = [
     {
       id: 'lese',
       name: 'Leseverstehen (Kỹ năng Đọc)',
-      scorePercent: 88,
-      correctQuestions: '22/25 câu',
+      scorePercent: avgReadingPct,
+      correctQuestions: totalResults > 0 ? `${Math.round(avgReading / 3)}/25 câu` : '0/25 câu',
       color: 'from-blue-600 to-indigo-600',
       bgColor: 'bg-blue-50 text-blue-700 border-blue-200',
       barColor: 'bg-blue-600',
       icon: BookOpen,
-      status: 'Đạt chuẩn TELC B2',
+      status: avgReadingPct >= 75 ? 'Đạt chuẩn TELC B2' : totalResults > 0 ? 'Cần rèn luyện' : 'Chưa có dữ liệu',
     },
     {
       id: 'sprach',
       name: 'Sprachbausteine (Từ vựng & Bẫy ngữ pháp)',
-      scorePercent: 82,
-      correctQuestions: '16/20 câu',
+      scorePercent: avgSprach,
+      correctQuestions: totalResults > 0 ? `${Math.round(avgSprach * 0.2)}/20 câu` : '0/20 câu',
       color: 'from-indigo-600 to-purple-600',
       bgColor: 'bg-purple-50 text-purple-700 border-purple-200',
       barColor: 'bg-purple-600',
       icon: Brain,
-      status: 'Cần chú ý từ nối',
+      status: avgSprach >= 75 ? 'Xuất sắc' : totalResults > 0 ? 'Cần chú ý từ nối' : 'Chưa có dữ liệu',
     },
     {
       id: 'hoer',
       name: 'Hörverstehen (Kỹ năng Nghe hội thoại)',
-      scorePercent: 79,
-      correctQuestions: '16/20 câu',
+      scorePercent: avgListeningPct,
+      correctQuestions: totalResults > 0 ? `${Math.round(avgListening / 3.75)}/20 câu` : '0/20 câu',
       color: 'from-emerald-600 to-teal-600',
       bgColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       barColor: 'bg-emerald-600',
       icon: Headphones,
-      status: 'Tiến bộ +5%',
+      status: avgListeningPct >= 75 ? 'Phản xạ tốt' : totalResults > 0 ? 'Cần luyện thêm nghe' : 'Chưa có dữ liệu',
     },
     {
       id: 'schreib',
       name: 'Schriftlicher Ausdruck (Luyện Viết thư B2)',
-      scorePercent: 91,
-      correctQuestions: '41/45 điểm',
+      scorePercent: avgWritingPct,
+      correctQuestions: totalResults > 0 ? `${avgWriting}/45 điểm` : '0/45 điểm',
       color: 'from-orange-500 to-amber-600',
       bgColor: 'bg-orange-50 text-orange-700 border-orange-200',
       barColor: 'bg-orange-500',
       icon: FileText,
-      status: 'Xuất sắc',
+      status: avgWritingPct >= 75 ? 'Xuất sắc' : totalResults > 0 ? 'Chưa đạt mốc 33d' : 'Chưa có dữ liệu',
     },
     {
       id: 'sprech',
       name: 'Mündlicher Ausdruck (Nói Thuyết trình & Thảo luận)',
-      scorePercent: 85,
-      correctQuestions: '8.5/10 điểm',
+      scorePercent: avgSpeakingPct,
+      correctQuestions: totalResults > 0 ? `${(avgSpeaking / 7.5).toFixed(1)}/10 điểm` : '0/10 điểm',
       color: 'from-pink-500 to-rose-600',
       bgColor: 'bg-rose-50 text-rose-700 border-rose-200',
       barColor: 'bg-rose-500',
       icon: MessageSquare,
-      status: 'Phản xạ tốt',
+      status: avgSpeakingPct >= 75 ? 'Tự tin giao tiếp' : totalResults > 0 ? 'Cần luyện phản xạ' : 'Chưa có dữ liệu',
     },
   ];
 
-  // Level overall completion percentage
-  const levelStats = [
-    { level: 'TELC A1', percent: 98, examsDone: '12/12 Đề', color: 'bg-emerald-500' },
-    { level: 'TELC A2', percent: 94, examsDone: '15/15 Đề', color: 'bg-teal-500' },
-    { level: 'TELC B1', percent: 89, examsDone: '18/20 Đề', color: 'bg-sky-500' },
-    { level: 'TELC B2', percent: 86, examsDone: '22/25 Đề', color: 'bg-blue-600' },
-  ];
+  // Dynamic Level stats computation from MySQL CSDL (exams & liveFeed)
+  const levels = ['A1', 'A2', 'B1', 'B2'] as const;
+  const levelStats = levels.map((lvl) => {
+    const lvlExams = exams.filter((e) => e.level.includes(lvl));
+    const lvlResults = liveFeed.filter((f) => {
+      const matchedExam = exams.find((e) => e.examCode === f.examCode);
+      return matchedExam ? matchedExam.level.includes(lvl) : false;
+    });
+    const totalCount = lvlExams.length;
+    const doneCount = lvlResults.length;
+    const pct = totalCount > 0 ? Math.min(100, Math.round((doneCount / totalCount) * 100)) : 0;
 
-  // Top 10 Students of the Month Leaderboard Data
-  const top10Students = [
-    {
-      rank: 1,
-      name: 'Nguyễn Hoàng Anh',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      className: 'B2-K38',
-      score: 295,
+    return {
+      level: `TELC ${lvl}`,
+      percent: pct,
+      examsDone: `${doneCount}/${totalCount} Đề`,
+      color: lvl === 'A1' ? 'bg-emerald-500' : lvl === 'A2' ? 'bg-teal-500' : lvl === 'B1' ? 'bg-sky-500' : 'bg-blue-600',
+    };
+  });
+
+  const passRateStr = totalResults > 0
+    ? `${((liveFeed.filter((f) => f.score >= 180).length / totalResults) * 100).toFixed(1)}%`
+    : '0%';
+
+  // Compute Top 10 Students dynamically from MySQL CSDL data (students & liveFeed props)
+  const top10Students = students.map((st, idx) => {
+    const studentResults = liveFeed.filter((f) => f.studentName.toLowerCase() === st.name.toLowerCase());
+    const bestScore = studentResults.length > 0
+      ? Math.max(...studentResults.map((r) => r.score))
+      : (st.currentScore || 0);
+    const percent = Math.round((bestScore / 300) * 100 * 10) / 10;
+
+    return {
+      rank: idx + 1,
+      name: st.name,
+      avatar: st.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      className: st.className || 'B2',
+      score: bestScore,
       maxScore: 300,
-      percent: 98.3,
-      badge: 'VÔ ĐỊCH B2',
-      medal: '🥇',
-      medalBg: 'bg-amber-100 text-amber-900 border-amber-400',
-    },
-    {
-      rank: 2,
-      name: 'Trần Lê Minh',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      className: 'B2-K38',
-      score: 290,
-      maxScore: 300,
-      percent: 96.7,
-      badge: 'TOP 2 THÁNG',
-      medal: '🥈',
-      medalBg: 'bg-slate-200 text-slate-800 border-slate-400',
-    },
-    {
-      rank: 3,
-      name: 'Lê Phạm Khánh Linh',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      className: 'B2-K39',
-      score: 285,
-      maxScore: 300,
-      percent: 95.0,
-      badge: 'TOP 3 THÁNG',
-      medal: '🥉',
-      medalBg: 'bg-amber-800/10 text-amber-800 border-amber-600/30',
-    },
-    {
-      rank: 4,
-      name: 'Phạm Hoài Nam',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-      className: 'B2-K38',
-      score: 282,
-      maxScore: 300,
-      percent: 94.0,
-      badge: 'XUẤT SẮC',
-      medal: '4',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 5,
-      name: 'Vũ Thị Thanh Hằng',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      className: 'B2-K40',
-      score: 278,
-      maxScore: 300,
-      percent: 92.7,
-      badge: 'XUẤT SẮC',
-      medal: '5',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 6,
-      name: 'Đặng Quốc Bảo',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-      className: 'B2-K39',
-      score: 275,
-      maxScore: 300,
-      percent: 91.7,
-      badge: 'GIỎI',
-      medal: '6',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 7,
-      name: 'Bùi Thị Mai',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-      className: 'B2-K38',
-      score: 272,
-      maxScore: 300,
-      percent: 90.7,
-      badge: 'GIỎI',
-      medal: '7',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 8,
-      name: 'Trịnh Đức Anh',
-      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-      className: 'B2-K40',
-      score: 268,
-      maxScore: 300,
-      percent: 89.3,
-      badge: 'ĐẠT B2',
-      medal: '8',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 9,
-      name: 'Đỗ Thu Trang',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-      className: 'B2-K39',
-      score: 265,
-      maxScore: 300,
-      percent: 88.3,
-      badge: 'ĐẠT B2',
-      medal: '9',
-      medalBg: 'bg-gray-100 text-gray-700 border-gray-300',
-    },
-    {
-      rank: 10,
-      name: 'Ngô Tuấn Kiệt',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
-      className: 'B2-K40',
-      score: 260,
-      maxScore: 300,
-      percent: 86.7,
-      badge: 'ĐẠT B2',
-    },
-  ];
+      percent,
+      badge: bestScore >= 270 ? 'VÔ ĐỊCH' : bestScore >= 240 ? 'GIỎI' : 'ĐANG HỌC',
+      medal: idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`,
+      medalBg: idx === 0 ? 'bg-amber-100 text-amber-900 border-amber-400' : idx === 1 ? 'bg-slate-200 text-slate-800 border-slate-400' : idx === 2 ? 'bg-amber-800/10 text-amber-800 border-amber-600/30' : 'bg-gray-100 text-gray-700 border-gray-300',
+    };
+  }).sort((a, b) => b.score - a.score).map((item, idx) => ({ ...item, rank: idx + 1 }));
 
   if (currentUser === 'admin') {
     return (
@@ -270,7 +215,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-black text-[#4b5563] uppercase">Chuyên Đề Ngữ Pháp</span>
               <Brain className="w-6 h-6 text-[#F97316]" />
             </div>
-            <div className="text-3xl font-black text-[#111827]">12 Bài học</div>
+            <div className="text-3xl font-black text-[#111827]">{grammarCount} Bài học</div>
             <p className="text-[11px] text-[#2563EB] font-bold">● Kèm quy tắc bẫy & bài tập</p>
           </div>
 
@@ -279,7 +224,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-black text-[#4b5563] uppercase">Kho Từ Vựng</span>
               <BookOpen className="w-6 h-6 text-[#059669]" />
             </div>
-            <div className="text-3xl font-black text-[#111827]">5.000+ Từ</div>
+            <div className="text-3xl font-black text-[#111827]">{vocabsCount} Từ</div>
             <p className="text-[11px] text-[#F97316] font-bold">● Dữ liệu Flashcard 3D B2</p>
           </div>
 
@@ -455,55 +400,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
-              {top10Students.map((st) => (
-                <div
-                  key={st.rank}
-                  className={`p-2.5 border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3 transition-all ${
-                    st.rank === 1
-                      ? 'bg-[#fffbe6] brutal-shadow-xs border-[#b45309]'
-                      : st.rank === 2
-                      ? 'bg-[#f8fafc] border-slate-400'
-                      : st.rank === 3
-                      ? 'bg-[#fff7ed] border-amber-700/40'
-                      : 'bg-white hover:bg-[#f8fafc]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className={`w-7 h-7 shrink-0 rounded-lg border-2 border-[#111827] font-black text-xs flex items-center justify-center ${st.medalBg}`}
-                    >
-                      {st.medal}
-                    </div>
+              {top10Students.length === 0 ? (
+                <div className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl space-y-1">
+                  <p className="text-xs font-black text-slate-600">Chưa có dữ liệu học viên trong CSDL MySQL</p>
+                  <p className="text-[11px] text-slate-400 font-medium">Bảng xếp hạng sẽ tự động cập nhật khi có học viên thi!</p>
+                </div>
+              ) : (
+                top10Students.map((st) => (
+                  <div
+                    key={st.rank}
+                    className={`p-2.5 border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3 transition-all ${
+                      st.rank === 1
+                        ? 'bg-[#fffbe6] brutal-shadow-xs border-[#b45309]'
+                        : st.rank === 2
+                        ? 'bg-[#f8fafc] border-slate-400'
+                        : st.rank === 3
+                        ? 'bg-[#fff7ed] border-amber-700/40'
+                        : 'bg-white hover:bg-[#f8fafc]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-7 h-7 shrink-0 rounded-lg border-2 border-[#111827] font-black text-xs flex items-center justify-center ${st.medalBg}`}
+                      >
+                        {st.medal}
+                      </div>
 
-                    <img
-                      src={st.avatar}
-                      alt={st.name}
-                      className="w-8 h-8 rounded-full border border-[#111827] object-cover shrink-0"
-                    />
+                      <img
+                        src={st.avatar}
+                        alt={st.name}
+                        className="w-8 h-8 rounded-full border border-[#111827] object-cover shrink-0"
+                      />
 
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-black text-[#111827] truncate leading-tight">
-                        {st.name}
-                      </h4>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#f1f5f9] text-[#4b5563] border border-[#111827]/20">
-                          {st.className}
-                        </span>
-                        <span className="text-[9px] font-bold text-[#2563EB]">{st.badge}</span>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-black text-[#111827] truncate leading-tight">
+                          {st.name}
+                        </h4>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#f1f5f9] text-[#4b5563] border border-[#111827]/20">
+                            {st.className}
+                          </span>
+                          <span className="text-[9px] font-bold text-[#2563EB]">{st.badge}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="text-right shrink-0">
-                    <div className="text-xs font-black text-[#111827]">
-                      {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                    <div className="text-right shrink-0">
+                      <div className="text-xs font-black text-[#111827]">
+                        {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                      </div>
+                      <span className="text-[10px] font-extrabold text-[#059669]">
+                        {st.percent}%
+                      </span>
                     </div>
-                    <span className="text-[10px] font-extrabold text-[#059669]">
-                      {st.percent}%
-                    </span>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -576,8 +528,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-bold text-[#564145]">Tỉ lệ đỗ TELC B2</span>
             <Award className="w-5 h-5 text-[#0d5225]" />
           </div>
-          <p className="text-2xl font-black text-[#1c1b1b] font-heading">89.4%</p>
-          <span className="text-[10px] text-[#0d5225] font-bold">↑ 4.2% so với tháng trước</span>
+          <p className="text-2xl font-black text-[#1c1b1b] font-heading">{passRateStr}</p>
+          <span className="text-[10px] text-[#0d5225] font-bold">Tính từ kết quả thi thử</span>
         </div>
 
         <div className="p-4 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow space-y-1">
@@ -586,7 +538,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <FileCheck2 className="w-5 h-5 text-[#f36b92]" />
           </div>
           <p className="text-2xl font-black text-[#1c1b1b] font-heading">{exams.length} Đề chuẩn</p>
-          <span className="text-[10px] text-[#897175] font-bold">Cập nhật đề thi 2026</span>
+          <span className="text-[10px] text-[#897175] font-bold">Cập nhật từ CSDL</span>
         </div>
 
         <div
@@ -597,7 +549,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-bold text-[#564145]">Từ vựng B2</span>
             <BookOpen className="w-5 h-5 text-[#003882]" />
           </div>
-          <p className="text-2xl font-black text-[#1c1b1b] font-heading">450+ Từ</p>
+          <p className="text-2xl font-black text-[#1c1b1b] font-heading">{vocabsCount} Từ</p>
           <span className="text-[10px] text-[#003882] font-bold">Kèm Flashcards 3D →</span>
         </div>
 
@@ -609,7 +561,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-bold text-[#564145]">Chuyên đề Ngữ pháp</span>
             <Brain className="w-5 h-5 text-[#734c00]" />
           </div>
-          <p className="text-2xl font-black text-[#1c1b1b] font-heading">15 Chuyên đề</p>
+          <p className="text-2xl font-black text-[#1c1b1b] font-heading">{grammarCount} Chuyên đề</p>
           <span className="text-[10px] text-[#734c00] font-bold">Bẫy đề thi B2 →</span>
         </div>
       </div>
@@ -744,57 +696,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Top 10 Student List */}
           <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
-            {top10Students.map((st) => (
-              <div
-                key={st.rank}
-                className={`p-2.5 border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3 transition-all ${
-                  st.rank === 1
-                    ? 'bg-[#fffbe6] brutal-shadow-xs border-[#b45309]'
-                    : st.rank === 2
-                    ? 'bg-[#f8fafc] border-slate-400'
-                    : st.rank === 3
-                    ? 'bg-[#fff7ed] border-amber-700/40'
-                    : 'bg-white hover:bg-[#f8fafc]'
-                }`}
-              >
-                {/* Left: Medal / Rank & Student Info */}
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className={`w-7 h-7 shrink-0 rounded-lg border-2 border-[#111827] font-black text-xs flex items-center justify-center ${st.medalBg}`}
-                  >
-                    {st.medal}
-                  </div>
+            {top10Students.length === 0 ? (
+              <div className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl space-y-1">
+                <p className="text-xs font-black text-slate-600">Chưa có kết quả thi trong CSDL MySQL</p>
+                <p className="text-[11px] text-slate-400 font-medium">Bảng xếp hạng sẽ tự động cập nhật khi học viên hoàn thành bài thi!</p>
+              </div>
+            ) : (
+              top10Students.map((st) => (
+                <div
+                  key={st.rank}
+                  className={`p-2.5 border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3 transition-all ${
+                    st.rank === 1
+                      ? 'bg-[#fffbe6] brutal-shadow-xs border-[#b45309]'
+                      : st.rank === 2
+                      ? 'bg-[#f8fafc] border-slate-400'
+                      : st.rank === 3
+                      ? 'bg-[#fff7ed] border-amber-700/40'
+                      : 'bg-white hover:bg-[#f8fafc]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-7 h-7 shrink-0 rounded-lg border-2 border-[#111827] font-black text-xs flex items-center justify-center ${st.medalBg}`}
+                    >
+                      {st.medal}
+                    </div>
 
-                  <img
-                    src={st.avatar}
-                    alt={st.name}
-                    className="w-8 h-8 rounded-full border border-[#111827] object-cover shrink-0"
-                  />
+                    <img
+                      src={st.avatar}
+                      alt={st.name}
+                      className="w-8 h-8 rounded-full border border-[#111827] object-cover shrink-0"
+                    />
 
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-black text-[#111827] truncate leading-tight">
-                      {st.name}
-                    </h4>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#f1f5f9] text-[#4b5563] border border-[#111827]/20">
-                        {st.className}
-                      </span>
-                      <span className="text-[9px] font-bold text-[#2563EB]">{st.badge}</span>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-black text-[#111827] truncate leading-tight">
+                        {st.name}
+                      </h4>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#f1f5f9] text-[#4b5563] border border-[#111827]/20">
+                          {st.className}
+                        </span>
+                        <span className="text-[9px] font-bold text-[#2563EB]">{st.badge}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Right: Score & Percent */}
-                <div className="text-right shrink-0">
-                  <div className="text-xs font-black text-[#111827]">
-                    {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-black text-[#111827]">
+                      {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold text-[#059669]">
+                      {st.percent}%
+                    </span>
                   </div>
-                  <span className="text-[10px] font-extrabold text-[#059669]">
-                    {st.percent}%
-                  </span>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

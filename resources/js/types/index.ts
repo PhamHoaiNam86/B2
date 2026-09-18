@@ -89,6 +89,10 @@ export interface ExamFeedItem {
   statusText: string;
   timeAgo: string;
   description: string;
+  readingScore?: number;
+  listeningScore?: number;
+  writingScore?: number;
+  speakingScore?: number;
 }
 
 export interface Question {
