@@ -21,18 +21,13 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
   const [lbTab, setLbTab] = useState<'exp' | 'streak' | 'done'>('exp');
   const [lbFilter, setLbFilter] = useState<'all' | 'week' | 'month'>('all');
 
-  // Interactive chat stream
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { id: '1', user: 'Ẩn danh', level: 'B2', time: '15:14', text: 'có ai ets 18 này k ạ', isAnonymous: true },
-    { id: '2', user: 'Minh Huyền', level: 'B2', time: '15:43', text: 'ai thi ở Eurocom cho e hỏi là có trùng đề nói như trong đây ko ạ' },
-    { id: '3', user: 'Ẩn danh', level: 'B2', time: '16:11', text: 'có ai tacom m7/9 này k ạ', isAnonymous: true },
-    { id: '4', user: 'Ẩn danh', level: 'B2', time: '16:31', text: 'có minh cũng ets 18 nhé', isAnonymous: true },
-  ]);
+  // Interactive chat stream (loaded live)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMsgText, setNewMsgText] = useState('');
   const [isAnonMode, setIsAnonMode] = useState(true);
 
   // User Stats
-  const [userExp, setUserExp] = useState(1);
+  const [userExp, setUserExp] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [studyMinutes, setStudyMinutes] = useState(0);
 
@@ -43,99 +38,12 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
     fetch(`/api/v1/docs?type=${type}`)
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           setApiDocs(res.data);
         }
       })
       .catch(() => {});
   }, [type]);
-
-  const b2LibraryDocs = [
-    {
-      id: 'doc-b2-1',
-      title: '8 GIÁO TRÌNH KINH ĐIỂN B2',
-      description: 'Trọn bộ 8 sách học tiếng Đức B2 hay nhất (Aspekte Neu, Sicher, Grammatik Aktiv...)',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-2',
-      title: 'CỤM CÂU NÊN HỌC B2',
-      description: 'Tổng hợp các cụm từ Redewendungen hay dùng giúp tăng điểm nói/viết',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-3',
-      title: 'SÁCH NGỮ PHÁP GRAMMATIK AKTIV B2-C1',
-      description: 'Sách ngữ pháp giải thích chi tiết kèm bài tập thực hành chất lượng cao',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-4',
-      title: 'KIẾN THỨC NGỮ PHÁP TỪ CƠ BẢN ĐẾN NÂNG CAO',
-      description: 'Hệ thống ngữ pháp kèm ví dụ và bài tập (từ loại, câu, mệnh đề, chia động từ...)',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-5',
-      title: 'TỪ ĐIỂN THÀNH NGỮ REDEWENDUNGEN',
-      description: 'Giải thích ý nghĩa, nguồn gốc và ví dụ sử dụng thành ngữ trong ngữ cảnh cụ thể',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-6',
-      title: 'TỪ ĐIỂN TỪ ĐỒNG NGHĨA TIẾNG ĐỨC',
-      description: 'Tổng hợp từ đồng nghĩa giúp mở rộng vốn từ và tránh lặp từ khi nói/viết',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-7',
-      title: 'TỔNG HỢP TỪ VỰNG TRỌNG TÂM B2',
-      description: 'Các từ vựng quan trọng kèm giải nghĩa tiếng Đức đơn giản, cách dùng thực tế',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-8',
-      title: 'TỪ ĐIỂN HÌNH ẢNH MINH HỌA B2',
-      description: 'Minh họa hàng nghìn đồ vật, bộ phận bằng hình ảnh kèm từ vựng tiếng Đức sinh động',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-9',
-      title: 'TỪ VỰNG SÁCH ASPEKTE NEU B2',
-      description: 'Trọn bộ từ vựng 10 Kapitel sách Aspekte Neu B2 kèm phiên âm',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-10',
-      title: 'TỪ VỰNG SÁCH SICHER B2',
-      description: 'Danh mục từ vựng chuyên ngành và đời sống sách Sicher B2',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-11',
-      title: 'SÁCH BÀI TẬP TỰ HỌC B2',
-      description: 'Tuyển tập 100+ bài tập tự ôn luyện ngữ pháp và đọc hiểu B2',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-b2-12',
-      title: 'FVG NOMEN-VERB-VERBINDUNGEN B2',
-      description: 'Bảng tổng hợp cụm danh-động từ cố định hay gặp trong đề thi TELC B2',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-  ];
 
   const isSchreiben = type === 'schreiben';
 
@@ -145,7 +53,7 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
 
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      user: isAnonMode ? 'Ẩn danh' : 'Phạm Nam',
+      user: isAnonMode ? 'Ẩn danh' : 'Học Viên',
       level: 'B2',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: newMsgText.trim(),
@@ -157,64 +65,13 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
     onShowToast('Đã gửi tin nhắn', 'Tin nhắn của bạn đã xuất hiện trên Kênh Thảo Luận.', 'info');
   };
 
-  const schreibenDocs = [
-    {
-      id: 'doc-s1',
-      title: 'TÀI LIỆU SCHREIBEN B2',
-      description: 'Tuyển tập đề mẫu & từ vựng chuyên sâu Beschwerdebrief & Bitte um Information',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-s2',
-      title: 'BỘ 20 BÀI MẪU BESCHWERDEBRIEF 45/45',
-      description: 'Tuyển tập bài mẫu đạt điểm tối đa kèm phân tích cấu trúc từ nối B2',
-      isPremium: false,
-      badge: 'MIỄN PHÍ',
-    },
-    {
-      id: 'doc-s3',
-      title: 'KHO TỪ VỰNG & CẤU TRÚC VIẾT THƯ B2',
-      description: 'Hơn 150 mẫu câu chuẩn TELC cho phần Schriftlicher Ausdruck',
-      isPremium: false,
-      badge: 'HOT',
-    },
-  ];
-
-  const sprechenDocs = [
-    {
-      id: 'doc-sp1',
-      title: 'BỘ ĐỀ SPRECHEN B2',
-      description: 'Tài liệu PDF tham khảo & dàn ý chi tiết 3 phần thi nói TELC B2',
-      isPremium: true,
-      badge: 'PREMIUM',
-    },
-    {
-      id: 'doc-sp2',
-      title: 'MÜNDLICHE PRÜFUNG MP3 + KỊCH BẢN',
-      description: 'File ghi âm bài nói mẫu giữa 2 thí sinh B2 đạt kết quả Sehr Gut',
-      isPremium: false,
-      badge: 'HOT',
-    },
-    {
-      id: 'doc-sp3',
-      title: 'CÂU HỎI GEMEINSAM ETWAS PLANEN B2',
-      description: 'Tổng hợp 30 tình huống lên kế hoạch theo cặp trong phần thi nói',
-      isPremium: false,
-      badge: 'MIỄN PHÍ',
-    },
-  ];
-
-  const defaultDocs = type === 'b2' ? b2LibraryDocs : type === 'schreiben' ? schreibenDocs : sprechenDocs;
-  const currentDocs = apiDocs.length > 0
-    ? apiDocs.map((d) => ({
-        id: String(d.doc_id || d.id),
-        title: d.title,
-        description: d.description || '',
-        isPremium: Boolean(d.is_premium),
-        badge: d.badge || (d.is_premium ? 'PREMIUM' : 'MIỄN PHÍ'),
-      }))
-    : defaultDocs;
+  const currentDocs = apiDocs.map((d) => ({
+    id: String(d.doc_id || d.id),
+    title: d.title,
+    description: d.description || '',
+    isPremium: Boolean(d.is_premium),
+    badge: d.badge || (d.is_premium ? 'PREMIUM' : 'MIỄN PHÍ'),
+  }));
 
   return (
     <div className="space-y-6 w-full">
@@ -266,65 +123,73 @@ export const DocumentMaterialView: React.FC<DocumentMaterialViewProps> = ({ type
           </div>
 
           {/* MATERIAL CARDS GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {currentDocs.map((doc) => (
-              <div
-                key={doc.id}
-                className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow space-y-4 relative flex flex-col justify-between hover:translate-y-[-2px] transition-all"
-              >
-                {/* Premium Gold Tag at Top Right */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-[#fff3d6] border-2 border-[#1c1b1b] flex items-center justify-center font-black brutal-shadow-xs">
-                    <FileText className="w-5 h-5 text-[#1c1b1b]" />
+          {currentDocs.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl space-y-2">
+              <FileText className="w-10 h-10 text-slate-400 mx-auto" />
+              <h4 className="text-sm font-black text-[#111827] font-heading">Chưa có tài liệu nào trong CSDL MySQL</h4>
+              <p className="text-xs text-slate-500 font-medium">Tài liệu sẽ tự động xuất hiện khi Admin thêm vào cơ sở dữ liệu!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {currentDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-5 brutal-shadow space-y-4 relative flex flex-col justify-between hover:translate-y-[-2px] transition-all"
+                >
+                  {/* Premium Gold Tag at Top Right */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-[#fff3d6] border-2 border-[#1c1b1b] flex items-center justify-center font-black brutal-shadow-xs">
+                      <FileText className="w-5 h-5 text-[#1c1b1b]" />
+                    </div>
+
+                    {doc.isPremium ? (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#ffe082] text-[#3e2723] text-[10px] font-black border-2 border-[#1c1b1b] brutal-shadow-xs flex items-center gap-1">
+                        <Lock className="w-3 h-3 fill-current" /> PREMIUM
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#e2f7e9] text-[#0d5225] text-[10px] font-black border-2 border-[#1c1b1b] brutal-shadow-xs">
+                        {doc.badge}
+                      </span>
+                    )}
                   </div>
 
-                  {doc.isPremium ? (
-                    <span className="px-2.5 py-1 rounded-lg bg-[#ffe082] text-[#3e2723] text-[10px] font-black border-2 border-[#1c1b1b] brutal-shadow-xs flex items-center gap-1">
-                      <Lock className="w-3 h-3 fill-current" /> PREMIUM
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-lg bg-[#e2f7e9] text-[#0d5225] text-[10px] font-black border-2 border-[#1c1b1b] brutal-shadow-xs">
-                      {doc.badge}
-                    </span>
-                  )}
-                </div>
+                  {/* Card Title & Desc */}
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-[#1c1b1b] font-heading uppercase leading-snug">
+                      {doc.title}
+                    </h3>
+                    <p className="text-xs text-[#564145] leading-relaxed font-medium">
+                      {doc.description}
+                    </p>
+                  </div>
 
-                {/* Card Title & Desc */}
-                <div className="space-y-1">
-                  <h3 className="text-base font-black text-[#1c1b1b] font-heading uppercase leading-snug">
-                    {doc.title}
-                  </h3>
-                  <p className="text-xs text-[#564145] leading-relaxed font-medium">
-                    {doc.description}
-                  </p>
+                  {/* Action Button */}
+                  <div className="pt-2">
+                    {doc.isPremium ? (
+                      <button
+                        onClick={() =>
+                          onShowToast('Nâng cấp Premium', 'Gói tài liệu Premium bao gồm toàn bộ bài mẫu PDF và MP3 chuẩn TELC B2.', 'info')
+                        }
+                        className="w-full py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
+                      >
+                        <Lock className="w-3.5 h-3.5 fill-current" /> PREMIUM
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setUserExp((prev) => prev + 5);
+                          onShowToast('Mở tài liệu', `Đã mở tài liệu "${doc.title}". +5 EXP!`, 'success');
+                        }}
+                        className="w-full py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
+                      >
+                        XEM TÀI LIỆU &amp; HỌC NGAY
+                      </button>
+                    )}
+                  </div>
                 </div>
-
-                {/* Action Button */}
-                <div className="pt-2">
-                  {doc.isPremium ? (
-                    <button
-                      onClick={() =>
-                        onShowToast('Nâng cấp Premium', 'Gói tài liệu Premium bao gồm toàn bộ bài mẫu PDF và MP3 chuẩn TELC B2.', 'info')
-                      }
-                      className="w-full py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
-                    >
-                      <Lock className="w-3.5 h-3.5 fill-current" /> PREMIUM
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setUserExp((prev) => prev + 5);
-                        onShowToast('Mở tài liệu', `Đã mở tài liệu "${doc.title}". +5 EXP!`, 'success');
-                      }}
-                      className="w-full py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl font-black text-xs brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading uppercase"
-                    >
-                      XEM TÀI LIỆU &amp; HỌC NGAY
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* RIGHT 4 COLS: Leaderboard & Streak Tracker */}
