@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ExamModel } from '../../types';
-import { ArrowLeft, Clock, FileText, CheckCircle2, ShieldCheck, Play, Award, AlertCircle, Edit, ListFilter, HelpCircle, Lightbulb } from 'lucide-react';
+import { ExamModel, DiscussionComment } from '../../types';
+import { ArrowLeft, Clock, FileText, CheckCircle2, ShieldCheck, Play, Award, AlertCircle, Edit, ListFilter, HelpCircle, Lightbulb, MessageSquare } from 'lucide-react';
+import { ExamDiscussionDrawer } from './ExamDiscussionDrawer';
 
 interface ExamDetailViewProps {
   exam: ExamModel;
@@ -9,6 +10,9 @@ interface ExamDetailViewProps {
   onShowToast?: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
   currentUser?: 'admin' | 'student';
   onEditExam?: (exam: ExamModel) => void;
+  comments?: DiscussionComment[];
+  onAddComment?: (examCode: string, content: string) => void;
+  onToggleLikeComment?: (commentId: string) => void;
 }
 
 export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
@@ -18,10 +22,13 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
   onShowToast,
   currentUser = 'student',
   onEditExam,
+  comments = [],
+  onAddComment,
+  onToggleLikeComment,
 }) => {
   const [questions, setQuestions] = useState<any[]>(exam.questions || []);
   const [loading, setLoading] = useState<boolean>(false);
-  const [viewTab, setViewTab] = useState<'structure' | 'questions'>('structure');
+  const [viewTab, setViewTab] = useState<'structure' | 'questions' | 'discussion'>('structure');
 
   useEffect(() => {
     if (exam.examCode) {
@@ -49,6 +56,8 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
     }
   }, [exam.examCode]);
 
+  const providerName = exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
+
   return (
     <div className="space-y-6 w-full">
       {/* Top Header Navigation */}
@@ -65,8 +74,10 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
           <span className="px-3 py-1 rounded-full bg-[#2563EB] text-white text-xs font-black uppercase border border-[#111827]">
             {exam.examCode}
           </span>
-          <span className="px-3 py-1 rounded-full bg-[#eff6ff] text-[#1e40af] text-xs font-black border border-[#111827]">
-            {exam.level || 'TELC B2'}
+          <span className={`px-3 py-1 rounded-full text-white text-xs font-black border border-[#111827] ${
+            providerName === 'GOETHE' ? 'bg-[#059669]' : 'bg-[#2563EB]'
+          }`}>
+            {providerName} {exam.level || 'B2'}
           </span>
           {currentUser === 'admin' && onEditExam && (
             <button
@@ -83,13 +94,15 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
       {/* Main Exam Title Card */}
       <div className="p-6 sm:p-8 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4">
         <div className="space-y-2">
-          <span className="px-3 py-1 bg-[#ffe8d6] text-[#c2410c] border border-[#111827] rounded-md text-[10px] font-black uppercase">
-            ĐỀ THI CHUẨN ĐỊNH DẠNG TELC DEUTSCH
+          <span className={`px-3 py-1 border border-[#111827] rounded-md text-[10px] font-black uppercase ${
+            providerName === 'GOETHE' ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#ffe8d6] text-[#c2410c]'
+          }`}>
+            ĐỀ THI MÔ PHỎNG CHUẨN ĐỊNH DẠNG {providerName}
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-[#111827] font-heading">
             {exam.name}
           </h1>
-          <p className="text-xs sm:text-sm text-[#4b5563] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#4b5563] leading-relaxed font-medium">
             {exam.description || 'Bộ đề thi thử tiếng Đức mô phỏng cấu trúc kỳ thi tiêu chuẩn.'}
           </p>
         </div>
@@ -122,8 +135,8 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Tab Switcher: Structure vs Detailed Questions Preview */}
-      <div className="flex items-center gap-2 border-b-2 border-[#111827] pb-2">
+      {/* Tab Switcher: Structure vs Detailed Questions vs Discussion */}
+      <div className="flex items-center gap-2 border-b-2 border-[#111827] pb-2 overflow-x-auto">
         <button
           onClick={() => setViewTab('structure')}
           className={`px-4 py-2.5 rounded-xl border-2 font-black text-xs cursor-pointer transition-all flex items-center gap-2 ${
@@ -145,7 +158,19 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
           }`}
         >
           <HelpCircle className="w-4 h-4" />
-          <span>Chi Tiết Nội Dung Câu Hỏi ({questions.length})</span>
+          <span>Nội Dung Câu Hỏi ({questions.length})</span>
+        </button>
+
+        <button
+          onClick={() => setViewTab('discussion')}
+          className={`px-4 py-2.5 rounded-xl border-2 font-black text-xs cursor-pointer transition-all flex items-center gap-2 ${
+            viewTab === 'discussion'
+              ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+              : 'bg-white text-[#111827] border-transparent hover:border-[#111827]'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Kênh Thảo Luận & Hỏi Đáp</span>
         </button>
       </div>
 
@@ -154,7 +179,7 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
         <div className="p-6 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4">
           <h3 className="text-base font-black text-[#111827] font-heading flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-[#2563EB]" />
-            Cấu Trúc Các Phần Thi Tiêu Chuẩn (Module Breakdown):
+            Cấu Trúc Các Phần Thi {providerName} ({exam.level || 'B2'}):
           </h3>
 
           <div className="space-y-3">
@@ -267,16 +292,16 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
         </div>
       )}
 
-      {/* Rules & Anti-cheat notice */}
-      <div className="p-4 bg-[#fff3d6] border-2 border-[#111827] rounded-xl flex items-start gap-3 text-xs">
-        <AlertCircle className="w-5 h-5 text-[#c2410c] shrink-0 mt-0.5" />
-        <div>
-          <h4 className="font-black text-[#c2410c]">Lưu ý quan trọng trước khi mở đề thi:</h4>
-          <p className="text-[#78350f] mt-0.5">
-            Hệ thống áp dụng đếm ngược thời gian thực và ghi nhận bẫy chống chuyển tab gian lận. Vui lòng đảm bảo kết nối mạng ổn định trước khi bấm nút Thi Ngay.
-          </p>
-        </div>
-      </div>
+      {/* TAB 3: Per-exam Discussion Drawer */}
+      {viewTab === 'discussion' && (
+        <ExamDiscussionDrawer
+          examCode={exam.examCode}
+          examTitle={exam.name}
+          comments={comments}
+          onAddComment={onAddComment || (() => {})}
+          onToggleLike={onToggleLikeComment}
+        />
+      )}
 
       {/* Action Footer */}
       <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">

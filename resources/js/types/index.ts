@@ -18,7 +18,8 @@ export type ActiveTab =
   | 'flashcards'
   | 'grammar-lesson'
   | 'exam-detail'
-  | 'create-item';
+  | 'create-item'
+  | 'leaderboard';
 
 export type VocabStatus = 'learning' | 'mastered' | 'reviewing';
 
@@ -57,6 +58,7 @@ export interface ExamModel {
   name: string;
   examCode: string;
   level: string;
+  provider?: 'TELC' | 'GOETHE';
   durationMinutes: number;
   totalQuestions: number;
   description: string;
@@ -112,6 +114,32 @@ export interface UserExamState {
   answers: Record<number, string>;
   activeSection: string;
   isSubmitted: boolean;
+  highlights?: Record<number, string[]>;
+  notes?: Record<number, string>;
+  lastAutoSavedAt?: string;
+}
+
+export interface DiscussionComment {
+  id: string;
+  examCode: string;
+  studentName: string;
+  avatarUrl: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  userLiked?: boolean;
+}
+
+export interface LeaderboardUser {
+  id: string;
+  rank: number;
+  name: string;
+  avatarUrl: string;
+  streakDays: number;
+  exp: number;
+  levelTitle: string;
+  avgExamScore: number;
+  passedExamsCount: number;
 }
 
 export const INITIAL_EXAM_STATE: UserExamState = {
@@ -123,5 +151,9 @@ export const INITIAL_EXAM_STATE: UserExamState = {
   answers: {},
   activeSection: '',
   isSubmitted: false,
+  highlights: {},
+  notes: {},
+  lastAutoSavedAt: '',
 };
+
 

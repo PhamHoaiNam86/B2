@@ -30,6 +30,7 @@ interface DashboardViewProps {
   onNavigateToVocab: () => void;
   onNavigateToGrammar: () => void;
   onNavigateToSchreiben: () => void;
+  onNavigateToLeaderboard?: () => void;
   currentUser?: 'admin' | 'student';
 }
 

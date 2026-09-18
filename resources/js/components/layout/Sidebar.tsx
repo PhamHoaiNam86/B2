@@ -12,7 +12,8 @@ import {
   Sparkles,
   X,
   User,
-  LogOut,
+  Trophy,
+  Flame,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'leaderboard' as ActiveTab, label: 'Bảng Xếp Hạng 🏆', icon: Trophy },
     { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2 },
     { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2 },
     { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2 },
@@ -104,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 TRIEUVY DEUTSCH
               </h2>
               <span className="text-[10px] font-bold text-[#4b5563]">
-                TELC B2 Prep & Exam Portal
+                Goethe & TELC Portal
               </span>
             </div>
           </div>

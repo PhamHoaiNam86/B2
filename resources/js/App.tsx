@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem, INITIAL_EXAM_STATE } from './types';
+import { ActiveTab, VocabItem, VocabStatus, GrammarTopic, ExamModel, UserExamState, Student, ExamFeedItem, DiscussionComment, LeaderboardUser, INITIAL_EXAM_STATE } from './types';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -19,6 +19,7 @@ import { CreateItemView } from './components/common/CreateItemView';
 import { LandingPage } from './components/landing/LandingPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { ProfileView } from './components/profile/ProfileView';
+import { LeaderboardView } from './components/gamification/LeaderboardView';
 import { AlertTriangle, X } from 'lucide-react';
 
 const getInitialViewState = () => {
@@ -149,18 +150,223 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>([]);
   const [liveFeed, setLiveFeed] = useState<ExamFeedItem[]>([]);
 
+  // Gamification & Discussion States
+  const [streakDays, setStreakDays] = useState<number>(7);
+  const [expPoints, setExpPoints] = useState<number>(1450);
+
+  const [discussionComments, setDiscussionComments] = useState<DiscussionComment[]>([
+    {
+      id: 'comm-1',
+      examCode: 'TELC-B2-01',
+      studentName: 'Nguyễn Hoàng Anh',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+      content: 'Phần Sprachbausteine Teil 1 bẫy cấu trúc "in Bezug auf" + Genitiv. Các bạn chú ý chia đuôi tính từ nhé!',
+      createdAt: '2 giờ trước',
+      likes: 14,
+      userLiked: true,
+    },
+    {
+      id: 'comm-2',
+      examCode: 'GOETHE-B2-01',
+      studentName: 'Trần Lê Minh',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+      content: 'Đề Goethe B2 phần Lesen Teil 3 khá dài, mẹo là gạch chân từ khóa trong 5 phát biểu trước rồi mới đọc bài.',
+      createdAt: '5 giờ trước',
+      likes: 9,
+      userLiked: false,
+    },
+  ]);
+
+  const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([
+    {
+      id: 'lb-1',
+      rank: 1,
+      name: 'Nguyễn Hoàng Anh',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      streakDays: 14,
+      exp: 2850,
+      levelTitle: 'Bậc Thầy B2',
+      avgExamScore: 288,
+      passedExamsCount: 18,
+    },
+    {
+      id: 'lb-2',
+      rank: 2,
+      name: 'Trần Lê Minh',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      streakDays: 10,
+      exp: 2340,
+      levelTitle: 'Cao Thủ Goethe',
+      avgExamScore: 275,
+      passedExamsCount: 14,
+    },
+    {
+      id: 'lb-3',
+      rank: 3,
+      name: 'Lê Phạm Khánh Linh',
+      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      streakDays: 9,
+      exp: 1980,
+      levelTitle: 'Chuyên Gia TELC',
+      avgExamScore: 268,
+      passedExamsCount: 12,
+    },
+    {
+      id: 'lb-4',
+      rank: 4,
+      name: 'Phạm Hoài Nam',
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      streakDays: 7,
+      exp: 1450,
+      levelTitle: 'Chiến Binh B2',
+      avgExamScore: 255,
+      passedExamsCount: 8,
+    },
+    {
+      id: 'lb-5',
+      rank: 5,
+      name: 'Vũ Thị Thanh Hằng',
+      avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      streakDays: 5,
+      exp: 1220,
+      levelTitle: 'Tập Sự A2-B1',
+      avgExamScore: 240,
+      passedExamsCount: 6,
+    },
+  ]);
+
+  const handleAddComment = (examCode: string, content: string) => {
+    const newComment: DiscussionComment = {
+      id: `comm-${Date.now()}`,
+      examCode,
+      studentName: currentUser === 'admin' ? 'Triệu Vỹ Admin' : 'Học Viên B2',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+      content,
+      createdAt: 'Vừa xong',
+      likes: 0,
+      userLiked: false,
+    };
+    setDiscussionComments((prev) => [newComment, ...prev]);
+    setExpPoints((prev) => prev + 5);
+    showToast('Đóng góp thảo luận', 'Đã thêm bình luận và cộng +5 EXP!', 'success');
+  };
+
+  const handleToggleLikeComment = (commentId: string) => {
+    setDiscussionComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? {
+              ...c,
+              likes: c.userLiked ? c.likes - 1 : c.likes + 1,
+              userLiked: !c.userLiked,
+            }
+          : c
+      )
+    );
+  };
+
   // Fetch real data from Laravel MySQL / SQLite Database API
   useEffect(() => {
     // 1. Fetch Exams
     fetch('/api/v1/exams')
       .then((res) => res.json())
       .then((res) => {
+        const GOETHE_SEEDS: ExamModel[] = [
+          {
+            id: 'goethe-b2-01',
+            name: 'Goethe-Zertifikat B2 Deutsch Prüfung 01',
+            examCode: 'GOETHE-B2-01',
+            level: 'B2',
+            provider: 'GOETHE',
+            durationMinutes: 100,
+            totalQuestions: 40,
+            description: 'Đề thi thử Goethe B2 theo 4 kỹ năng Lesen (5 Teile), Hören (4 Teile), Schreiben (2 Aufgaben), Sprechen.',
+            sections: [
+              { name: 'Lesen', questionCount: 15, duration: '65 phút' },
+              { name: 'Hören', questionCount: 15, duration: '40 phút' },
+              { name: 'Schreiben', questionCount: 2, duration: '75 phút' },
+              { name: 'Sprechen', questionCount: 2, duration: '15 phút' },
+            ],
+            targetScore: 240,
+            passRate: '86%',
+          },
+          {
+            id: 'goethe-b1-01',
+            name: 'Goethe-Zertifikat B1 Deutsch Simulation',
+            examCode: 'GOETHE-B1-01',
+            level: 'B1',
+            provider: 'GOETHE',
+            durationMinutes: 90,
+            totalQuestions: 35,
+            description: 'Đề thi mô phỏng Goethe B1 4 Module độc lập cho người luyện thi tiếng Đức.',
+            sections: [
+              { name: 'Lesen', questionCount: 15, duration: '65 phút' },
+              { name: 'Hören', questionCount: 10, duration: '40 phút' },
+              { name: 'Schreiben', questionCount: 3, duration: '60 phút' },
+            ],
+            targetScore: 210,
+            passRate: '92%',
+          },
+          {
+            id: 'goethe-a2-01',
+            name: 'Goethe-Zertifikat A2 Start Deutsch 2',
+            examCode: 'GOETHE-A2-01',
+            level: 'A2',
+            provider: 'GOETHE',
+            durationMinutes: 70,
+            totalQuestions: 30,
+            description: 'Đề thi thử trình độ A2 tiêu chuẩn Viện Goethe cho học viên trình độ sơ cấp.',
+            sections: [
+              { name: 'Lesen', questionCount: 10, duration: '30 phút' },
+              { name: 'Hören', questionCount: 10, duration: '30 phút' },
+              { name: 'Schreiben', questionCount: 1, duration: '30 phút' },
+            ],
+            targetScore: 180,
+            passRate: '95%',
+          },
+          {
+            id: 'goethe-a1-01',
+            name: 'Start Deutsch 1 (Goethe-Zertifikat A1)',
+            examCode: 'GOETHE-A1-01',
+            level: 'A1',
+            provider: 'GOETHE',
+            durationMinutes: 60,
+            totalQuestions: 25,
+            description: 'Đề thi tiếng Đức A1 nền tảng cho người mới bắt đầu.',
+            sections: [
+              { name: 'Lesen', questionCount: 10, duration: '25 phút' },
+              { name: 'Hören', questionCount: 10, duration: '20 phút' },
+              { name: 'Schreiben', questionCount: 1, duration: '15 phút' },
+            ],
+            targetScore: 160,
+            passRate: '98%',
+          },
+          {
+            id: 'goethe-c1-01',
+            name: 'Goethe-Zertifikat C1 Oberstufe Prüfung',
+            examCode: 'GOETHE-C1-01',
+            level: 'C1',
+            provider: 'GOETHE',
+            durationMinutes: 120,
+            totalQuestions: 45,
+            description: 'Đề thi thử cao cấp C1 Goethe rèn luyện học thuật và học văn bằng đại học Đức.',
+            sections: [
+              { name: 'Lesen', questionCount: 20, duration: '70 phút' },
+              { name: 'Hören', questionCount: 15, duration: '40 phút' },
+              { name: 'Schreiben', questionCount: 2, duration: '80 phút' },
+            ],
+            targetScore: 250,
+            passRate: '80%',
+          },
+        ];
+
         if (res.success && Array.isArray(res.data)) {
           const mappedExams: ExamModel[] = res.data.map((item: any) => ({
             id: String(item.id || item.exam_code),
             name: item.name || item.title,
             examCode: item.exam_code,
-            level: item.level || 'TELC B2',
+            level: item.level || 'B2',
+            provider: item.provider || (item.name?.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC'),
             durationMinutes: item.duration_minutes || 90,
             totalQuestions: item.total_questions || 45,
             description: item.description || '',
@@ -173,7 +379,13 @@ export default function App() {
             targetScore: item.target_score || 225,
             passRate: item.pass_rate || '88%',
           }));
-          setExams(mappedExams);
+
+          // Merge DB exams with Goethe Seeds if not present
+          const existingCodes = new Set(mappedExams.map((e) => e.examCode));
+          const missingSeeds = GOETHE_SEEDS.filter((s) => !existingCodes.has(s.examCode));
+          setExams([...mappedExams, ...missingSeeds]);
+        } else {
+          setExams(GOETHE_SEEDS);
         }
       })
       .catch(() => {});
@@ -732,6 +944,8 @@ export default function App() {
               currentUser={currentUser}
               onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
               onLogout={() => navigateToLanding()}
+              streakDays={streakDays}
+              expPoints={expPoints}
             />
 
             {/* Main Workspace: Full width with 10px padding and left border for 12px visual separation */}
@@ -747,7 +961,17 @@ export default function App() {
                   onNavigateToVocab={() => setActiveTab('vocab')}
                   onNavigateToGrammar={() => setActiveTab('grammar')}
                   onNavigateToSchreiben={() => setActiveTab('docs-schreiben')}
+                  onNavigateToLeaderboard={() => setActiveTab('leaderboard')}
                   currentUser={currentUser}
+                />
+              )}
+
+              {/* TAB LEADERBOARD: BẢNG XẾP HẠNG */}
+              {activeTab === 'leaderboard' && (
+                <LeaderboardView
+                  users={leaderboardUsers}
+                  currentUserExp={expPoints}
+                  currentUserStreak={streakDays}
                 />
               )}
 
@@ -1002,6 +1226,9 @@ export default function App() {
                     onBack={() => setActiveTab('exam')}
                     onStartExam={() => handleStartExamRoom(selectedExam)}
                     onShowToast={showToast}
+                    comments={discussionComments}
+                    onAddComment={handleAddComment}
+                    onToggleLikeComment={handleToggleLikeComment}
                   />
                 ) : (
                   <ExamsView

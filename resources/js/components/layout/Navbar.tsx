@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab } from '../../types';
-import { Search, ShieldAlert, Sparkles, UserCheck, Menu, GraduationCap, FileText, LogOut } from 'lucide-react';
+import { Search, ShieldAlert, Sparkles, UserCheck, Menu, GraduationCap, FileText, LogOut, Flame, Zap } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -11,6 +11,8 @@ interface NavbarProps {
   onOpenExamRoom?: () => void;
   onToggleMobileMenu: () => void;
   onLogout?: () => void;
+  streakDays?: number;
+  expPoints?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +24,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExamRoom,
   onToggleMobileMenu,
   onLogout,
+  streakDays = 7,
+  expPoints = 1450,
 }) => {
   const getTabTitle = () => {
     switch (activeTab) {
@@ -54,7 +58,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'students':
         return 'Quản Lý Học Viên & Bảng Điểm Thi';
       case 'history':
-        return 'Lịch Sử Làm Bài & Bảng Xếp Hạng';
+        return 'Lịch Sử Làm Bài & Thống Kê';
+      case 'leaderboard':
+        return '🏆 Bảng Xếp Hạng Vinh Danh Học Viên';
       case 'profile':
         return 'Hồ Sơ Cá Nhân Học Viên & Cài Đặt';
       case 'flashcards':
@@ -66,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'create-item':
         return 'Form Tạo Mới & Chỉnh Sửa Dữ Liệu';
       default:
-        return 'TRIEUVY DEUTSCH TELC B2 Portal';
+        return 'TRIEUVY DEUTSCH Goethe & TELC Portal';
     }
   };
 
@@ -85,13 +91,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-md bg-[#2563EB] text-white text-[10px] font-black uppercase border border-[#111827]">
-                TELC B2
+                GOETHE & TELC
               </span>
               <h1 className="text-base sm:text-lg font-black text-[#111827] font-heading line-clamp-1">
                 {getTabTitle()}
               </h1>
             </div>
-            <p className="text-[11px] text-[#4b5563] hidden sm:block">
+            <p className="text-[11px] text-[#4b5563] hidden sm:block font-medium">
               Hệ thống luyện thi & mô phỏng phòng thi chuẩn quốc tế TRIEUVY DEUTSCH
             </p>
           </div>
@@ -111,23 +117,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right: Countdown, Account Role Badge & Logout Button */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Real-time countdown badge if exam active */}
+        {/* Right: Gamification Badges (Streak & EXP), Countdown & Logout */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Streak Counter Badge */}
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-[#fff7ed] text-[#c2410c] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs" title="Chuỗi ngày học liên tục">
+            <Flame className="w-4 h-4 fill-amber-400 text-amber-500" />
+            <span>{streakDays}d</span>
+          </div>
+
+          {/* EXP Points Badge */}
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-[#eff6ff] text-[#1d4ed8] border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs" title="Điểm kinh nghiệm tích lũy">
+            <Zap className="w-4 h-4 fill-blue-400 text-blue-500" />
+            <span>{expPoints} EXP</span>
+          </div>
+
+          {/* Countdown badge if exam active */}
           {formattedCountdown && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#ffe3ea] text-[#800035] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-sm animate-pulse">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#ffe3ea] text-[#800035] border-2 border-[#1c1b1b] rounded-xl text-xs font-black brutal-shadow-xs animate-pulse">
               <ShieldAlert className="w-4 h-4 text-[#ba1a1a]" />
-              <span>Thời gian: {formattedCountdown}</span>
+              <span>{formattedCountdown}</span>
             </div>
           )}
-
-
 
           {/* Logout Button */}
           {onLogout && (
             <button
               onClick={onLogout}
-              className="px-3 py-1.5 rounded-xl border-2 border-[#111827] bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] text-xs font-bold flex items-center gap-1.5 brutal-shadow-xs hover:translate-y-[-1px] transition-all cursor-pointer"
+              className="px-3 py-1 rounded-xl border-2 border-[#111827] bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] text-xs font-bold flex items-center gap-1.5 brutal-shadow-xs hover:translate-y-[-1px] transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Đăng xuất</span>

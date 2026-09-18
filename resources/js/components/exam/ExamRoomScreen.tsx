@@ -19,6 +19,10 @@ import {
   Volume2,
   HelpCircle,
   X,
+  Highlighter,
+  Save,
+  MessageSquare,
+  Lock,
 } from 'lucide-react';
 
 interface ExamRoomScreenProps {
@@ -38,6 +42,13 @@ const SECTIONS = [
   { id: 3, name: 'Schriftlicher Ausdruck', label: '4. Schriftlicher Ausdruck', shortDesc: 'Viết bài thư B2 (1 bài)', icon: PenTool },
 ];
 
+const HIGHLIGHT_COLORS = [
+  { id: 'yellow', bg: '#fef08a', border: '#eab308', label: 'Vàng' },
+  { id: 'green', bg: '#bbf7d0', border: '#22c55e', label: 'Xanh lá' },
+  { id: 'pink', bg: '#fbcfe8', border: '#ec4899', label: 'Hồng' },
+  { id: 'blue', bg: '#bfdbfe', border: '#3b82f6', label: 'Xanh dương' },
+];
+
 export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   examState,
   onAnswerChange,
@@ -51,8 +62,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
 
-  // Section 4 Writing Essay State
-  const [essayText, setEssayText] = useState<string>('');
+  // Notes & Highlighting State for DEUTSCHMITPN 2-column layout
+  const [highlights, setHighlights] = useState<string[]>([]);
+  const [selectedColor, setSelectedColor] = useState<string>('yellow');
   const [draftNote, setDraftNote] = useState<string>('');
 
   // Audio Player State for Section 3 (Hörverstehen)
@@ -60,9 +72,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [audioProgress, setAudioProgress] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Submit Modal State
+  // Submit Modal & Anti-cheat Lock Modal
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
+  const [isLockedByAntiCheat, setIsLockedByAntiCheat] = useState<boolean>(false);
+  const [lastAutoSavedTime, setLastAutoSavedTime] = useState<string>('Vừa xong');
 
+  // Load Questions
   useEffect(() => {
     if (!examState.examCode) return;
     fetch('/api/v1/questions/' + encodeURIComponent(examState.examCode))
@@ -85,7 +100,50 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       .catch(() => {});
   }, [examState.examCode]);
 
-  // Extract dynamic unique section names from questions or fallback
+  // Anti-cheat limit enforcement: Max 3 tab switches
+  useEffect(() => {
+    if (!isReviewMode && examState.tabSwitchCount >= 3 && !isLockedByAntiCheat) {
+      setIsLockedByAntiCheat(true);
+      setTimeout(() => {
+        onFinishSection();
+      }, 3500);
+    }
+  }, [examState.tabSwitchCount, isReviewMode, isLockedByAntiCheat]);
+
+  // 2-Second Auto-save mechanism
+  useEffect(() => {
+    if (isReviewMode) return;
+    const interval = setInterval(() => {
+      try {
+        const payload = {
+          answers: examState.answers,
+          highlights,
+          draftNote,
+          updatedAt: new Date().toLocaleTimeString('vi-VN'),
+        };
+        localStorage.setItem(`exam_autosave_${examState.examCode}`, JSON.stringify(payload));
+        setLastAutoSavedTime(new Date().toLocaleTimeString('vi-VN'));
+      } catch {}
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [examState.answers, examState.examCode, highlights, draftNote, isReviewMode]);
+
+  // Highlight Text Handler inside reading context
+  const handleHighlightSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    const selectedText = selection.toString().trim();
+    if (selectedText.length > 2 && !highlights.includes(selectedText)) {
+      setHighlights((prev) => [...prev, selectedText]);
+    }
+  };
+
+  const removeHighlight = (textToRemove: string) => {
+    setHighlights((prev) => prev.filter((t) => t !== textToRemove));
+  };
+
+  // Section names mapping
   const availableSectionNames = Array.from(new Set(questions.map((q) => q.section).filter(Boolean)));
 
   const activeSections = availableSectionNames.length > 0
@@ -111,7 +169,6 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return true;
   });
 
-  // Ensure active question belongs to section or default
   useEffect(() => {
     if (sectionQuestions.length > 0 && !sectionQuestions.some((q) => q.id === activeQuestionId)) {
       setActiveQuestionId(sectionQuestions[0].id);
@@ -125,12 +182,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     setIsPlayingAudio((prev) => !prev);
   };
 
-  // Calculate Essay Word Count
-  const essayWordCount = essayText.trim() ? essayText.trim().split(/\s+/).length : 0;
-
   return (
     <div className="min-h-screen bg-[#fcf9f8] flex flex-col font-sans">
-      {/* 1. EXAM ROOM HEADER */}
+      {/* 1. EXAM ROOM HEADER WITH ANTI-CHEAT & AUTO-SAVE BADGE */}
       <header className="sticky top-0 z-40 bg-[#111827] text-white px-4 sm:px-6 py-3 border-b-4 border-[#2563EB]">
         <div className="w-full px-[10px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -142,21 +196,31 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               <span className="hidden sm:inline">{isReviewMode ? 'Quay lại' : 'Rời phòng thi'}</span>
             </button>
             <div>
-              <span className={`px-2 py-0.5 text-white text-[10px] font-black rounded uppercase ${isReviewMode ? 'bg-[#059669]' : 'bg-[#2563EB]'}`}>
-                {isReviewMode ? 'CHẾ ĐỘ XEM LẠI BÀI LÀM & GIẢI THÍCH CHI TIẾT 💡' : 'PHÒNG THI THỬ TRỰC TUYẾN'}
-              </span>
-              <h2 className="text-sm sm:text-base font-black font-heading text-white line-clamp-1">
-                {examState.examCode}: TELC B2 Deutsch Prüfung Simulation
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 text-white text-[10px] font-black rounded uppercase ${isReviewMode ? 'bg-[#059669]' : 'bg-[#2563EB]'}`}>
+                  {isReviewMode ? 'CHẾ ĐỘ XEM LẠI BÀI LÀM & GIẢI THÍCH CHI TIẾT 💡' : 'PHÒNG THI THỬ 2 CỘT chuẩn DEUTSCHMITPN'}
+                </span>
+                {!isReviewMode && (
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-bold rounded flex items-center gap-1">
+                    <Save className="w-3 h-3 text-emerald-400 animate-pulse" />
+                    Auto-save 2s: {lastAutoSavedTime}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-sm sm:text-base font-black font-heading text-white line-clamp-1 mt-0.5">
+                {examState.examCode}: Đề Thi Mô Phỏng Tiêu Chuẩn Goethe & TELC
               </h2>
             </div>
           </div>
 
           {/* Countdown & Anti-cheat status */}
           <div className="flex items-center gap-3">
-            {!isReviewMode && examState.tabSwitchCount > 0 && (
-              <div className="px-3 py-1 bg-[#dc2626] text-white border border-white/30 rounded-lg text-xs font-black flex items-center gap-1.5 animate-bounce">
-                <ShieldAlert className="w-4 h-4 text-[#fef08a]" />
-                <span>Vi phạm: {examState.tabSwitchCount} lần</span>
+            {!isReviewMode && (
+              <div className={`px-3 py-1 text-white border rounded-lg text-xs font-black flex items-center gap-1.5 ${
+                examState.tabSwitchCount > 0 ? 'bg-[#dc2626] border-white/40 animate-bounce' : 'bg-slate-800 border-slate-700'
+              }`}>
+                <ShieldAlert className={`w-4 h-4 ${examState.tabSwitchCount > 0 ? 'text-[#fef08a]' : 'text-slate-400'}`} />
+                <span>Vi phạm: {examState.tabSwitchCount}/3 lần</span>
               </div>
             )}
 
@@ -166,7 +230,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 className="px-4 py-2 bg-[#059669] text-white rounded-xl font-black text-xs border border-white hover:bg-[#047857] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase brutal-shadow-xs"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Thoát Chế Độ Xem Lại
+                Thoát Xem Lại
               </button>
             ) : (
               <>
@@ -189,8 +253,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       </header>
 
       {/* 2. SECTION STEPPER PROGRESS BAR */}
-      <div className="bg-white border-b-2 border-[#111827] px-4 py-3 sticky top-[57px] z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="bg-white border-b-2 border-[#111827] px-4 py-2.5 sticky top-[57px] z-30 shadow-xs">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
           {activeSections.map((sec, idx) => {
             const Icon = sec.icon;
             const isActive = activeSectionIndex === idx;
@@ -223,292 +287,148 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         </div>
       </div>
 
-      {/* 3. MAIN EXAM CONTENT BY SECTION */}
+      {/* 3. MAIN EXAM ROOM DEUTSCHMITPN 2-COLUMN SPLIT LAYOUT */}
       <main className="flex-1 w-full p-4 sm:p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT 8 COLS: SECTION PAGE CONTENT (DISPLAYING ALL QUESTIONS FOR THIS SECTION) */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* SECTION HEADER BANNER */}
-          <div className="p-4 bg-white border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex items-center justify-between">
-            <div>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB] text-xs font-black border border-[#2563EB]/30">
-                PHẦN THI {activeSectionIndex + 1} / 4: {currentSectionMeta.name}
-              </span>
-              <h3 className="text-lg font-black text-[#111827] mt-1 font-heading">
-                {currentSectionMeta.label} ({sectionQuestions.length} câu hỏi)
-              </h3>
-            </div>
-            <span className="text-xs font-bold text-slate-500">
-              Trang {activeSectionIndex + 1} / 4
-            </span>
-          </div>
-
-          {/* AUDIO PLAYER FOR SECTION 3 (HÖRVERSTEHEN) */}
-          {activeSectionIndex === 2 && (
-            <div className="p-4 bg-[#eff6ff] border-[2.5px] border-[#111827] rounded-xl brutal-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center border-2 border-[#111827] shrink-0">
-                  <Headphones className="w-5 h-5" />
-                </div>
+        
+        {/* LEFT COLUMN (6 COLS): READING TEXT / AUDIO / WRITING PROMPT + HIGHLIGHT & NOTES TOOL */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-4 flex flex-col h-full min-h-[500px]">
+            {/* Header ToolBar */}
+            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-[#2563EB] text-white rounded-lg border border-[#111827]">
+                  <BookOpen className="w-4 h-4" />
+                </span>
                 <div>
-                  <h4 className="text-sm font-black text-[#111827] font-heading">
-                    Audio Đề Thi Nghe (Hörtext TELC B2)
-                  </h4>
-                  <span className="text-[10px] font-bold text-[#1e40af]">
-                    Bài nghe chuẩn TELC Deutsch B2 Audio Track
+                  <h3 className="text-sm font-black text-[#111827] font-heading uppercase">
+                    Cột Trái: Đề Bài & Văn Bản Gốc
+                  </h3>
+                  <span className="text-[10px] text-slate-500 font-bold block">
+                    Highlight tô màu & Ghi chú từ vựng trực tiếp
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Color Selector for Highlighter */}
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-300">
+                <Highlighter className="w-3.5 h-3.5 text-slate-600 ml-1" />
+                {HIGHLIGHT_COLORS.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedColor(c.id)}
+                    style={{ backgroundColor: c.bg, borderColor: c.border }}
+                    className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-transform ${
+                      selectedColor === c.id ? 'scale-125 ring-2 ring-[#111827]' : 'hover:scale-110'
+                    }`}
+                    title={`Tô màu ${c.label}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Audio Player for Section 3 (Hörverstehen) */}
+            {activeSectionIndex === 2 && (
+              <div className="p-3.5 bg-[#eff6ff] border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Headphones className="w-5 h-5 text-[#2563EB]" />
+                  <div>
+                    <h4 className="text-xs font-black text-[#111827] font-heading">
+                      Audio Đề Thi Nghe Goethe / TELC
+                    </h4>
+                    <span className="text-[10px] font-bold text-[#1e40af]">File ghi âm phần nghe</span>
+                  </div>
+                </div>
                 <button
                   onClick={toggleAudio}
-                  className="px-4 py-2 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black hover:bg-[#1d4ed8] cursor-pointer flex items-center gap-1.5 brutal-shadow-xs"
+                  className="px-3 py-1.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-lg text-xs font-black hover:bg-[#1d4ed8] cursor-pointer flex items-center gap-1 brutal-shadow-xs"
                 >
-                  {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  <span>{isPlayingAudio ? 'Tạm Dừng Audio' : 'Phát Bài Nghe'}</span>
+                  {isPlayingAudio ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  <span>{isPlayingAudio ? 'Tạm Dừng' : 'Phát Audio'}</span>
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* SHARED CONTEXT TEXT BOX (LESETEXT / SPRACHBAUSTEINE / AUDIO TEXT) */}
-          {sectionQuestions[0]?.contextText && (
-            <div className="p-5 bg-[#fff8e7] border-[2.5px] border-[#111827] rounded-xl brutal-shadow text-xs sm:text-sm text-[#111827] leading-relaxed space-y-2">
-              <h4 className="text-xs font-black uppercase text-[#734c00] font-heading flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-[#734c00]" />
-                Văn Bản Đề Thi Dùng Cho 5 Câu Hỏi Trong Phần Này:
-              </h4>
-              <p className="font-medium whitespace-pre-line">{sectionQuestions[0].contextText}</p>
-            </div>
-          )}
-
-          {/* SECTION 4 ESSAY WRITER (SCHRIFTLICHER AUSDRUCK) */}
-          {activeSectionIndex === 3 && (
-            <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase text-[#111827] font-heading flex items-center gap-1.5">
-                  <PenTool className="w-4 h-4 text-[#2563EB]" />
-                  Bài Làm Viết Thư B2 Của Bạn (Gõ văn bản vào ô dưới):
-                </h4>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-xl border-2 ${
-                  essayWordCount >= 100
-                    ? 'bg-[#dcfce7] text-[#166534] border-[#166534]'
-                    : 'bg-slate-100 text-slate-700 border-slate-300'
-                }`}>
-                  📝 Đã viết: {essayWordCount} từ (Soạn thảo bài viết dài tự do)
-                </span>
+            {/* Reading Context Text Content with Highlight Capability */}
+            <div
+              onMouseUp={handleHighlightSelection}
+              className="flex-1 p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-xs sm:text-sm text-[#111827] leading-relaxed space-y-3 overflow-y-auto max-h-[500px] select-text font-medium"
+            >
+              <div className="p-2 bg-[#fff8e7] border border-[#d97706]/30 rounded-lg text-[11px] font-bold text-[#b45309] flex items-center justify-between">
+                <span>💡 Bôi đen văn bản bên dưới để dùng tool Tô Màu Highlight!</span>
+                {highlights.length > 0 && (
+                  <span className="text-[10px] bg-[#d97706] text-white px-1.5 py-0.5 rounded font-black">
+                    {highlights.length} cụm từ
+                  </span>
+                )}
               </div>
 
-              <textarea
-                rows={18}
-                value={essayText}
-                readOnly={isReviewMode}
-                onChange={(e) => !isReviewMode && setEssayText(e.target.value)}
-                placeholder="Sehr geehrte Damen und Herren, hiermit möchte ich mich über den B2-Sprachkurs beschweren..."
-                className="w-full p-5 bg-[#fcf9f8] border-2 border-[#111827] rounded-2xl text-sm sm:text-base font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-loose resize-y min-h-[380px] shadow-inner"
-              />
-
-              {isReviewMode && (
-                <div className="p-4 bg-[#f0fdf4] border-2 border-[#166534] rounded-xl space-y-2 text-xs">
-                  <h4 className="font-black text-[#166534] flex items-center gap-1.5 font-heading uppercase">
-                    <CheckCircle2 className="w-4 h-4 text-[#166534]" />
-                    Đánh Giá AI & Giám Khảo Về Bài Viết:
-                  </h4>
-                  <p className="text-[#166534] font-bold leading-relaxed">
-                    Cấu trúc bố cục thư chuẩn TELC B2. Sử dụng đầy đủ các yêu cầu đề bài (lý do viết thư, mô tả sự cố, phương án bồi thường) và từ vựng B2 phong phú.
-                  </p>
+              {sectionQuestions[0]?.contextText ? (
+                <div className="whitespace-pre-line leading-relaxed">
+                  {sectionQuestions[0].contextText}
                 </div>
+              ) : (
+                <p className="text-slate-500 italic text-center py-8">
+                  Đề bài phần thi này hiển thị theo từng câu hỏi ở cột bên phải.
+                </p>
               )}
             </div>
-          )}
 
-          {/* LIST OF ALL QUESTIONS IN THIS SECTION (DISPLAYED 5 QUESTIONS ON 1 PAGE) */}
-          {sectionQuestions.length === 0 ? (
-            <div className="p-8 bg-white border-[2.5px] border-[#111827] rounded-xl font-bold text-center text-sm">
-              Không có câu hỏi nào thuộc phần thi này hoặc đang tải dữ liệu...
+            {/* Highlighted Words Chips */}
+            {highlights.length > 0 && (
+              <div className="p-3 bg-amber-50/60 border-2 border-[#111827] rounded-xl space-y-1.5">
+                <span className="text-[11px] font-black text-[#92400e] flex items-center gap-1 uppercase font-heading">
+                  <Highlighter className="w-3.5 h-3.5" /> Các từ/cụm từ bạn đã Highlight:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {highlights.map((text, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-[#fef08a] text-[#713f12] rounded border border-[#eab308] text-[11px] font-bold flex items-center gap-1"
+                    >
+                      <span>"{text}"</span>
+                      <button onClick={() => removeHighlight(text)} className="hover:text-red-700 cursor-pointer">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Embedded Scratchpad Notes Box */}
+            <div className="pt-2 border-t-2 border-slate-100 space-y-1.5">
+              <label className="text-xs font-black text-[#111827] flex items-center gap-1 font-heading uppercase">
+                <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+                Ghi Chú Nháp Nhanh (Ghi từ mới / Dàn ý):
+              </label>
+              <textarea
+                value={draftNote}
+                onChange={(e) => setDraftNote(e.target.value)}
+                placeholder="Ghi chú nhanh câu từ, ngữ pháp nháp tại đây..."
+                rows={3}
+                className="w-full p-3 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none"
+              />
             </div>
-          ) : (
-            <div className="space-y-6">
-              {sectionQuestions.map((q, idx) => {
-                const userChoice = examState.answers[q.id] || '';
-                const isAnswered = Boolean(userChoice.trim());
-                const isWritingQuestion = q.type === 'writing';
-                const isListeningQuestion = q.type === 'listening' || Boolean(q.audioUrl);
-                const currentTextCount = isWritingQuestion ? userChoice.trim().split(/\s+/).filter(Boolean).length : 0;
-
-                return (
-                  <div
-                    key={q.id}
-                    id={`question-${q.id}`}
-                    className="p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24"
-                  >
-                    {/* Question Title & Type Badge */}
-                    <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB] text-white text-xs font-black">
-                            Câu {q.id}
-                          </span>
-                          {q.type === 'listening' && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] text-xs font-black border border-[#d97706]/30 flex items-center gap-1">
-                              <Headphones className="w-3 h-3" /> Bài Nghe
-                            </span>
-                          )}
-                          {q.type === 'writing' && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#f3e8ff] text-[#6b21a8] text-xs font-black border border-[#7c3aed]/30 flex items-center gap-1">
-                              <PenTool className="w-3 h-3" /> Bài Viết
-                            </span>
-                          )}
-                          {q.subSection && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#e8f1ff] text-[#003882] text-xs font-bold border border-[#111827]/20">
-                              {q.subSection}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="text-base font-black text-[#111827] font-heading mt-1">
-                          {q.title}
-                        </h4>
-                      </div>
-
-                      {isAnswered && !isReviewMode && (
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded border border-emerald-300 shrink-0">
-                          ✓ Đã làm
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Audio Player for Listening Question */}
-                    {isListeningQuestion && q.audioUrl && (
-                      <div className="p-3.5 bg-[#fffbe6] border-2 border-[#111827] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <Headphones className="w-5 h-5 text-[#d97706] shrink-0" />
-                          <div>
-                            <span className="text-xs font-black text-[#854d0e] block">File Âm Thanh / Audio Bài Nghe:</span>
-                            <span className="text-[10px] text-[#a16207] font-mono font-medium truncate block max-w-xs">{q.audioUrl}</span>
-                          </div>
-                        </div>
-                        <audio controls src={q.audioUrl} className="h-9 w-full sm:w-auto max-w-md rounded-lg" />
-                      </div>
-                    )}
-
-                    {/* WRITING QUESTION TYPE: Rich Textarea + Word Count */}
-                    {isWritingQuestion ? (
-                      <div className="space-y-3 pt-1">
-                        {q.contextText && (
-                          <div className="p-4 bg-[#fff8e7] border-2 border-[#111827] rounded-xl text-xs sm:text-sm leading-relaxed space-y-1">
-                            <h5 className="font-black text-[#734c00] uppercase text-xs flex items-center gap-1.5 font-heading">
-                              <BookOpen className="w-4 h-4 text-[#734c00]" />
-                              Đề Bài & Yêu Cầu Chi Tiết:
-                            </h5>
-                            <p className="whitespace-pre-line text-[#111827] font-medium">{q.contextText}</p>
-                          </div>
-                        )}
-
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-black text-[#111827] flex items-center gap-1">
-                              <PenTool className="w-3.5 h-3.5 text-[#2563EB]" />
-                              Khung Soạn Thảo Bài Viết Của Bạn:
-                            </label>
-                            <span className={`text-[11px] font-black px-2.5 py-1 rounded-xl border-2 ${
-                              currentTextCount >= 100
-                                ? 'bg-[#dcfce7] text-[#166534] border-[#166534]'
-                                : 'bg-slate-100 text-slate-700 border-slate-300'
-                            }`}>
-                              📝 Đã viết: {currentTextCount} từ (Gõ bài viết dài tự do)
-                            </span>
-                          </div>
-
-                          <textarea
-                            rows={18}
-                            value={userChoice}
-                            readOnly={isReviewMode}
-                            onChange={(e) => !isReviewMode && onAnswerChange(q.id, e.target.value)}
-                            placeholder="Nhập nội dung bài viết của bạn tại đây (Sehr geehrte Damen und Herren...)..."
-                            className="w-full p-5 bg-[#fcf9f8] border-2 border-[#111827] rounded-2xl text-sm sm:text-base font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB] leading-loose resize-y min-h-[380px] shadow-inner"
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      /* CHOICE / LISTENING OPTIONS LIST */
-                      <div className="space-y-2.5">
-                        {q.options.map((opt) => {
-                          const isSelected = userChoice === opt.id;
-                          const correctChoice = q.correctOptionId || 'A';
-                          const isCorrectOption = opt.id === correctChoice;
-
-                          let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
-                          let badgeElement = null;
-
-                          if (isReviewMode) {
-                            if (isSelected && isCorrectOption) {
-                              buttonStyle = 'bg-[#dcfce7] text-[#166534] border-[#166534] font-black brutal-shadow';
-                              badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#166534] text-white font-black">✓ Bạn chọn ĐÚNG</span>;
-                            } else if (isSelected && !isCorrectOption) {
-                              buttonStyle = 'bg-[#fee2e2] text-[#991b1b] border-[#dc2626] font-black brutal-shadow';
-                              badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#dc2626] text-white font-black">✗ Bạn chọn SAI</span>;
-                            } else if (!isSelected && isCorrectOption) {
-                              buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
-                              badgeElement = <span className="text-xs px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
-                            } else {
-                              buttonStyle = 'bg-[#f8fafc] text-slate-500 border-slate-300 opacity-60';
-                            }
-                          } else if (isSelected) {
-                            buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
-                            badgeElement = <CheckCircle2 className="w-5 h-5 text-white shrink-0" />;
-                          }
-
-                          return (
-                            <button
-                              key={opt.id}
-                              disabled={isReviewMode}
-                              onClick={() => !isReviewMode && onAnswerChange(q.id, opt.id)}
-                              className={`w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${
-                                isReviewMode ? 'cursor-default' : 'cursor-pointer'
-                              } ${buttonStyle}`}
-                            >
-                              <span>{opt.text}</span>
-                              {badgeElement}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Detailed Explanation Box in Review Mode */}
-                    {isReviewMode && (
-                      <div className="mt-3 p-4 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-1.5">
-                        <h5 className="text-xs font-black uppercase text-[#1e40af] flex items-center gap-1.5 font-heading">
-                          <HelpCircle className="w-4 h-4 text-[#2563EB]" />
-                          💡 Giải Thích Chi Tiết Đáp Án:
-                        </h5>
-                        <p className="text-xs sm:text-sm text-[#1e293b] leading-relaxed font-medium">
-                          {q.explanation ||
-                            `Phương án đúng là (${q.correctOptionId || 'A'}). Dựa vào ngữ cảnh bài thi và quy tắc ngữ pháp B2 TELC, lựa chọn này chính xác hoàn toàn.`}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* RIGHT 4 COLS: Question Navigator Grid & Scratchpad */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* Question Grid Navigator */}
-          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-4">
+        {/* RIGHT COLUMN (6 COLS): QUESTIONS LIST & QUICK JUMP QUESTION NAVIGATOR */}
+        <div className="lg:col-span-6 space-y-4">
+          
+          {/* Question Grid Jump Navigator Header */}
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-4 brutal-shadow space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-[#111827] font-heading">
-                Tiến Độ Làm Bài ({answeredCount}/{questions.length})
+              <h3 className="text-xs font-black text-[#111827] font-heading uppercase flex items-center gap-1.5">
+                <Brain className="w-4 h-4 text-[#2563EB]" />
+                Danh Sách Câu Hỏi ({answeredCount}/{questions.length} Đã Làm)
               </h3>
-              <span className="text-[10px] font-bold text-[#059669] bg-[#dcfce7] px-2 py-0.5 rounded border border-[#166534]">
-                Đã xong {answeredCount}
+              <span className="text-[10px] font-black text-[#059669] bg-[#dcfce7] px-2 py-0.5 rounded border border-[#166534]">
+                {Math.round((answeredCount / (questions.length || 1)) * 100)}% Hoàn thành
               </span>
             </div>
 
-            <div className="grid grid-cols-5 gap-2">
+            {/* Grid numbers */}
+            <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
               {questions.map((q) => {
                 const userAns = examState.answers[q.id];
                 const isAnswered = Boolean(userAns);
@@ -529,7 +449,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 }
 
                 if (isCurrent) {
-                  gridStyle += ' ring-2 ring-[#2563EB] border-[#111827]';
+                  gridStyle += ' ring-2 ring-[#2563EB] border-[#111827] scale-105';
                 }
 
                 return (
@@ -551,7 +471,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         }
                       }, 100);
                     }}
-                    className={`h-10 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${gridStyle}`}
+                    className={`h-8 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${gridStyle}`}
                   >
                     {q.id}
                   </button>
@@ -560,32 +480,139 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             </div>
           </div>
 
-          {/* Draft Note Scratchpad */}
-          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
-            <h4 className="text-xs font-black uppercase text-[#111827] flex items-center gap-1.5 font-heading">
-              <FileText className="w-4 h-4 text-[#2563EB]" />
-              Ghi Chú Nháp Nhanh (Scratchpad):
-            </h4>
-            <textarea
-              value={draftNote}
-              onChange={(e) => setDraftNote(e.target.value)}
-              placeholder="Ghi chú từ vựng, dàn ý bài viết Schriftlicher Ausdruck..."
-              className="w-full h-32 p-3 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none"
-            />
-          </div>
+          {/* QUESTIONS LIST */}
+          {sectionQuestions.length === 0 ? (
+            <div className="p-8 bg-white border-[2.5px] border-[#111827] rounded-xl font-bold text-center text-sm">
+              Đang tải danh sách câu hỏi...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {sectionQuestions.map((q) => {
+                const userChoice = examState.answers[q.id] || '';
+                const isAnswered = Boolean(userChoice.trim());
+                const isWritingQuestion = q.type === 'writing';
+
+                return (
+                  <div
+                    key={q.id}
+                    id={`question-${q.id}`}
+                    className={`p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24 ${
+                      q.id === activeQuestionId ? 'ring-2 ring-[#2563EB]' : ''
+                    }`}
+                  >
+                    {/* Title */}
+                    <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB] text-white text-xs font-black">
+                            Câu {q.id}
+                          </span>
+                          {q.subSection && (
+                            <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded border border-slate-300">
+                              {q.subSection}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm sm:text-base font-black text-[#111827] font-heading mt-1">
+                          {q.title}
+                        </h4>
+                      </div>
+
+                      {isAnswered && !isReviewMode && (
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded border border-emerald-300 shrink-0">
+                          ✓ Đã chọn
+                        </span>
+                      )}
+                    </div>
+
+                    {/* WRITING QUESTION TYPE */}
+                    {isWritingQuestion ? (
+                      <div className="space-y-2">
+                        <textarea
+                          rows={12}
+                          value={userChoice}
+                          readOnly={isReviewMode}
+                          onChange={(e) => !isReviewMode && onAnswerChange(q.id, e.target.value)}
+                          placeholder="Nhập nội dung bài viết của bạn tại đây..."
+                          className="w-full p-4 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        />
+                      </div>
+                    ) : (
+                      /* MCQ OPTIONS */
+                      <div className="space-y-2">
+                        {q.options.map((opt) => {
+                          const isSelected = userChoice === opt.id;
+                          const correctChoice = q.correctOptionId || 'A';
+                          const isCorrectOption = opt.id === correctChoice;
+
+                          let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
+                          let badgeElement = null;
+
+                          if (isReviewMode) {
+                            if (isSelected && isCorrectOption) {
+                              buttonStyle = 'bg-[#dcfce7] text-[#166534] border-[#166534] font-black brutal-shadow';
+                              badgeElement = <span className="text-[10px] px-2 py-0.5 rounded bg-[#166534] text-white font-black">✓ ĐÚNG</span>;
+                            } else if (isSelected && !isCorrectOption) {
+                              buttonStyle = 'bg-[#fee2e2] text-[#991b1b] border-[#dc2626] font-black brutal-shadow';
+                              badgeElement = <span className="text-[10px] px-2 py-0.5 rounded bg-[#dc2626] text-white font-black">✗ SAI</span>;
+                            } else if (!isSelected && isCorrectOption) {
+                              buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
+                              badgeElement = <span className="text-[10px] px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
+                            } else {
+                              buttonStyle = 'bg-[#f8fafc] text-slate-400 border-slate-200 opacity-60';
+                            }
+                          } else if (isSelected) {
+                            buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
+                            badgeElement = <CheckCircle2 className="w-4 h-4 text-white shrink-0" />;
+                          }
+
+                          return (
+                            <button
+                              key={opt.id}
+                              disabled={isReviewMode}
+                              onClick={() => !isReviewMode && onAnswerChange(q.id, opt.id)}
+                              className={`w-full text-left p-3 rounded-xl border-2 text-xs sm:text-sm transition-all flex items-center justify-between gap-2 ${
+                                isReviewMode ? 'cursor-default' : 'cursor-pointer'
+                              } ${buttonStyle}`}
+                            >
+                              <span>{opt.text}</span>
+                              {badgeElement}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Explanation in Review mode */}
+                    {isReviewMode && (
+                      <div className="mt-2 p-3 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-1">
+                        <h5 className="text-[11px] font-black uppercase text-[#1e40af] flex items-center gap-1 font-heading">
+                          <HelpCircle className="w-3.5 h-3.5 text-[#2563EB]" />
+                          💡 Giải Thích Đáp Án:
+                        </h5>
+                        <p className="text-xs text-[#1e293b] leading-relaxed font-medium">
+                          {q.explanation || `Đáp án chính xác là (${q.correctOptionId || 'A'}).`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
 
-      {/* 4. FOOTER SECTION NAVIGATION CONTROLS */}
+      {/* 4. FOOTER CONTROLS */}
       <footer className="sticky bottom-0 z-30 bg-white border-t-2 border-[#111827] p-4 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <button
             disabled={activeSectionIndex === 0}
             onClick={() => setActiveSectionIndex((prev) => Math.max(0, prev - 1))}
-            className="px-4 py-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1.5 hover:bg-[#f8fafc]"
+            className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1.5 hover:bg-[#f8fafc]"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Phần Thi Trước</span>
+            <span>Phần Trước</span>
           </button>
 
           <div className="text-xs font-black text-[#111827] font-heading hidden sm:block">
@@ -595,7 +622,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
           {activeSectionIndex < activeSections.length - 1 ? (
             <button
               onClick={() => setActiveSectionIndex((prev) => Math.min(activeSections.length - 1, prev + 1))}
-              className="px-5 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
+              className="px-5 py-2 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
             >
               <span>Chuyển Sang {activeSections[activeSectionIndex + 1]?.name}</span>
               <ArrowRight className="w-4 h-4" />
@@ -603,31 +630,31 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
           ) : isReviewMode ? (
             <button
               onClick={onExitReviewMode || onBackToDashboard}
-              className="px-6 py-2.5 bg-[#059669] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#047857] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
+              className="px-6 py-2 bg-[#059669] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#047857] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>THOÁT XEM LẠI & VỀ BÁO CÁO</span>
+              <span>Thoát Xem Lại</span>
             </button>
           ) : (
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="px-6 py-2.5 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
+              className="px-6 py-2 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer flex items-center gap-1.5 font-heading uppercase"
             >
               <Send className="w-4 h-4" />
-              <span>HOÀN THÀNH & NỘP BÀI THI</span>
+              <span>Nộp Bài Thi</span>
             </button>
           )}
         </div>
       </footer>
 
-      {/* 5. CONFIRMATION SUBMIT MODAL */}
+      {/* 5. SUBMIT CONFIRMATION MODAL */}
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-[#111827] rounded-2xl max-w-md w-full p-6 brutal-shadow-lg space-y-4 animate-scaleUp">
+          <div className="bg-white border-4 border-[#111827] rounded-2xl max-w-md w-full p-6 brutal-shadow-lg space-y-4">
             <div className="flex items-center justify-between border-b-2 border-[#111827] pb-3">
               <h3 className="text-base font-black text-[#111827] font-heading flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-[#F97316]" />
-                Xác Nhận Nộp Bài Thi TELC B2
+                Xác Nhận Nộp Bài Thi
               </h3>
               <button onClick={() => setShowSubmitModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
                 <X className="w-5 h-5 text-[#111827]" />
@@ -635,10 +662,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             </div>
 
             <div className="space-y-2 text-xs font-medium text-[#334155]">
-              <p>Bạn có chắc chắn muốn kết thúc phiên làm bài thi thử và nộp bài?</p>
+              <p>Bạn có chắc chắn muốn nộp bài thi ngay bây giờ?</p>
               <div className="p-3 bg-[#eff6ff] border-2 border-[#111827] rounded-xl space-y-1 text-xs font-bold text-[#1e40af]">
-                <div>📌 Tổng số câu đã trả lời: <b>{answeredCount} / {questions.length} câu</b></div>
-                <div>✍️ Bài viết Phần 4: <b>{essayText.trim() ? `Đã gõ ${essayWordCount} từ` : 'Chưa nhập bài viết'}</b></div>
+                <div>📌 Đã hoàn thành: <b>{answeredCount} / {questions.length} câu</b></div>
+                <div>🟢 Đã tự động lưu bài làm mới nhất</div>
               </div>
             </div>
 
@@ -647,7 +674,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 onClick={() => setShowSubmitModal(false)}
                 className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold hover:bg-slate-100 cursor-pointer"
               >
-                Hủy - Tiếp Tục Làm Bài
+                Tiếp tục làm
               </button>
               <button
                 onClick={() => {
@@ -656,8 +683,29 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 }}
                 className="px-5 py-2 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer font-heading uppercase"
               >
-                Xác Nhận Nộp Bài
+                Nộp bài ngay
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. STRICT ANTI-CHEAT LOCK MODAL (ON 3 TAB SWITCHES) */}
+      {isLockedByAntiCheat && (
+        <div className="fixed inset-0 z-50 bg-red-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-[#dc2626] rounded-2xl max-w-md w-full p-6 brutal-shadow-lg text-center space-y-4 animate-bounce">
+            <div className="w-16 h-16 rounded-2xl bg-red-100 text-[#dc2626] border-2 border-[#dc2626] flex items-center justify-center mx-auto">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-[#dc2626] font-heading">
+              KHÓA BÀI THI THỬ DO VI PHẠM!
+            </h3>
+            <p className="text-xs font-bold text-slate-700 leading-relaxed">
+              Hệ thống ghi nhận bạn đã chuyển tab/cửa sổ thi <b>quá 3 lần</b> (Chống gian lận). 
+              Bài thi đang được tự động khóa và nộp về hệ thống chấm điểm!
+            </p>
+            <div className="px-4 py-2 bg-red-100 text-red-900 rounded-xl font-black text-xs border border-red-300">
+              Đang chuyển tới trang Kết quả...
             </div>
           </div>
         </div>
