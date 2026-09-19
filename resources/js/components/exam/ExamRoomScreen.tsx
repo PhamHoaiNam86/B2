@@ -43,12 +43,25 @@ const SECTIONS = [
   { id: 3, name: 'Schriftlicher Ausdruck', label: '4. Schriftlicher Ausdruck', shortDesc: 'Viết bài thư B2 (1 bài)', icon: PenTool },
 ];
 
-const HIGHLIGHT_COLORS = [
-  { id: 'yellow', bg: '#fef08a', border: '#eab308', label: 'Vàng' },
-  { id: 'green', bg: '#bbf7d0', border: '#22c55e', label: 'Xanh lá' },
-  { id: 'pink', bg: '#fbcfe8', border: '#ec4899', label: 'Hồng' },
-  { id: 'blue', bg: '#bfdbfe', border: '#3b82f6', label: 'Xanh dương' },
+export interface HighlightItem {
+  id: string;
+  text: string;
+  colorId: string;
+}
+
+const HIGHLIGHT_COLORS_LIST = [
+  { id: 'yellow', bg: '#fef08a', border: '#eab308', text: '#713f12', label: 'Vàng' },
+  { id: 'green', bg: '#bbf7d0', border: '#22c55e', text: '#14532d', label: 'Xanh lá' },
+  { id: 'pink', bg: '#fbcfe8', border: '#ec4899', text: '#831843', label: 'Hồng' },
+  { id: 'blue', bg: '#bfdbfe', border: '#3b82f6', text: '#1e3a8a', label: 'Xanh dương' },
 ];
+
+const HIGHLIGHT_COLORS_MAP: Record<string, typeof HIGHLIGHT_COLORS_LIST[0]> = {
+  yellow: HIGHLIGHT_COLORS_LIST[0],
+  green: HIGHLIGHT_COLORS_LIST[1],
+  pink: HIGHLIGHT_COLORS_LIST[2],
+  blue: HIGHLIGHT_COLORS_LIST[3],
+};
 
 export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   examState,
@@ -87,7 +100,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
 
   // Notes & Highlighting State for DEUTSCHMITPN 2-column layout
-  const [highlights, setHighlights] = useState<string[]>([]);
+  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [selectedColor, setSelectedColor] = useState<string>('yellow');
   const [draftNote, setDraftNote] = useState<string>('');
 
@@ -159,13 +172,52 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) return;
     const selectedText = selection.toString().trim();
-    if (selectedText.length > 2 && !highlights.includes(selectedText)) {
-      setHighlights((prev) => [...prev, selectedText]);
+    if (selectedText.length >= 2 && !highlights.some((h) => h.text.toLowerCase() === selectedText.toLowerCase())) {
+      const newItem: HighlightItem = {
+        id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        text: selectedText,
+        colorId: selectedColor,
+      };
+      setHighlights((prev) => [...prev, newItem]);
     }
   };
 
-  const removeHighlight = (textToRemove: string) => {
-    setHighlights((prev) => prev.filter((t) => t !== textToRemove));
+  const removeHighlight = (idOrText: string) => {
+    setHighlights((prev) => prev.filter((h) => h.id !== idOrText && h.text !== idOrText));
+  };
+
+  const renderHighlightedText = (text: string) => {
+    if (!text) return null;
+    if (!highlights || highlights.length === 0) {
+      return text;
+    }
+
+    const sorted = [...highlights].sort((a, b) => b.text.length - a.text.length);
+    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${sorted.map((h) => escapeRegex(h.text)).join('|')})`, 'gi');
+
+    const parts = text.split(regex);
+
+    return parts.map((part, index) => {
+      const match = highlights.find((h) => h.text.toLowerCase() === part.toLowerCase());
+      if (match) {
+        const colorMeta = HIGHLIGHT_COLORS_MAP[match.colorId] || HIGHLIGHT_COLORS_MAP.yellow;
+        return (
+          <mark
+            key={index}
+            style={{
+              backgroundColor: colorMeta.bg,
+              borderColor: colorMeta.border,
+              color: colorMeta.text,
+            }}
+            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all"
+          >
+            {part}
+          </mark>
+        );
+      }
+      return part;
+    });
   };
 
   // Section names mapping
@@ -337,16 +389,19 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               {/* Color Selector for Highlighter */}
               <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-300">
                 <Highlighter className="w-3.5 h-3.5 text-slate-600 ml-1" />
-                {HIGHLIGHT_COLORS.map((c) => (
+                {HIGHLIGHT_COLORS_LIST.map((c) => (
                   <button
                     key={c.id}
+                    type="button"
                     onClick={() => setSelectedColor(c.id)}
                     style={{ backgroundColor: c.bg, borderColor: c.border }}
-                    className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-transform ${
-                      selectedColor === c.id ? 'scale-125 ring-2 ring-[#111827]' : 'hover:scale-110'
+                    className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-transform flex items-center justify-center ${
+                      selectedColor === c.id ? 'scale-125 ring-2 ring-[#111827]' : 'hover:scale-110 opacity-80'
                     }`}
                     title={`Tô màu ${c.label}`}
-                  />
+                  >
+                    {selectedColor === c.id && <div className="w-1.5 h-1.5 rounded-full bg-[#111827]" />}
+                  </button>
                 ))}
               </div>
             </div>
@@ -389,7 +444,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
               {sectionQuestions[0]?.contextText ? (
                 <div className="whitespace-pre-line leading-relaxed">
-                  {sectionQuestions[0].contextText}
+                  {renderHighlightedText(sectionQuestions[0].contextText)}
                 </div>
               ) : (
                 <p className="text-slate-500 italic text-center py-8">
@@ -400,22 +455,35 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
             {/* Highlighted Words Chips */}
             {highlights.length > 0 && (
-              <div className="p-3 bg-amber-50/60 border-2 border-[#111827] rounded-xl space-y-1.5">
-                <span className="text-[11px] font-black text-[#92400e] flex items-center gap-1 uppercase font-heading">
-                  <Highlighter className="w-3.5 h-3.5" /> Các từ/cụm từ bạn đã Highlight:
+              <div className="p-3 bg-slate-50 border-2 border-[#111827] rounded-xl space-y-1.5">
+                <span className="text-[11px] font-black text-[#111827] flex items-center gap-1 uppercase font-heading">
+                  <Highlighter className="w-3.5 h-3.5 text-[#2563EB]" /> Các từ/cụm từ bạn đã Highlight ({highlights.length}):
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {highlights.map((text, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 bg-[#fef08a] text-[#713f12] rounded border border-[#eab308] text-[11px] font-bold flex items-center gap-1"
-                    >
-                      <span>"{text}"</span>
-                      <button onClick={() => removeHighlight(text)} className="hover:text-red-700 cursor-pointer">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
+                  {highlights.map((h) => {
+                    const colorMeta = HIGHLIGHT_COLORS_MAP[h.colorId] || HIGHLIGHT_COLORS_MAP.yellow;
+                    return (
+                      <span
+                        key={h.id}
+                        style={{
+                          backgroundColor: colorMeta.bg,
+                          borderColor: colorMeta.border,
+                          color: colorMeta.text,
+                        }}
+                        className="px-2.5 py-1 rounded-lg border-2 text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all"
+                      >
+                        <span>"{h.text}"</span>
+                        <button
+                          type="button"
+                          onClick={() => removeHighlight(h.id)}
+                          className="hover:opacity-75 cursor-pointer font-black ml-1"
+                          title="Xóa highlight"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}
