@@ -120,6 +120,37 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       setDurationMinutes(editingItem.durationMinutes || 90);
       setDescription(editingItem.description || '');
 
+      if (editingItem.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
+        const sectionsMap: Record<string, ExamQuestion[]> = {};
+        editingItem.questions.forEach((q: any, idx: number) => {
+          const mappedQ: ExamQuestion = {
+            id: String(q.id || `q-${idx + 1}`),
+            type: q.type || 'choice',
+            questionText: q.questionText || q.title || `Câu ${idx + 1}: `,
+            contextText: q.contextText || q.context_text || '',
+            audioUrl: q.audioUrl || q.audio_url || '',
+            explanation: q.explanation || '',
+            options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
+          };
+          const secName = q.section || 'Phần 1';
+          if (!sectionsMap[secName]) {
+            sectionsMap[secName] = [];
+          }
+          sectionsMap[secName].push(mappedQ);
+        });
+
+        const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
+          id: `sec-${sIdx + 1}`,
+          name: secName,
+          duration: '30 phút',
+          questions: sectionsMap[secName],
+        }));
+
+        if (builtSections.length > 0) {
+          setSections(builtSections);
+        }
+      }
+
       if (editingItem.examCode) {
         fetch(`/api/v1/questions/${editingItem.examCode}`)
           .then((res) => res.json())
