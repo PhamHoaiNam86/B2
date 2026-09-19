@@ -137,6 +137,9 @@ export default function App() {
   const showToast = (title: string, message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
     setToasts((prev) => [...prev, { id, title, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
   };
 
   const removeToast = (id: string) => {
@@ -393,6 +396,50 @@ export default function App() {
   const setCreateItemType = (type: 'vocab' | 'exam' | 'grammar') => {
     sessionStorage.setItem('createItemType', type);
     setCreateItemTypeState(type);
+  };
+
+  const [previousExamTab, setPreviousExamTab] = useState<ActiveTab>('exam');
+
+  const handleOpenCreateExam = (editing: ExamModel | null = null) => {
+    setPreviousExamTab(activeTab);
+    setEditingItem(editing);
+    setCreateItemType('exam');
+    setActiveTab('create-item');
+  };
+
+  const getExamTabFromLevel = (levelStr?: string, defaultTab: ActiveTab = 'exam'): ActiveTab => {
+    if (!levelStr) return defaultTab;
+    const upper = levelStr.toUpperCase();
+    if (upper.includes('A1')) return 'exam-a1';
+    if (upper.includes('A2')) return 'exam-a2';
+    if (upper.includes('B1')) return 'exam-b1';
+    if (upper.includes('C1')) return 'exam-c1';
+    if (upper.includes('B2')) return 'exam';
+    return defaultTab;
+  };
+
+  const getInitialExamLevelForTab = (tab: ActiveTab): string => {
+    switch (tab) {
+      case 'exam-a1': return 'TELC A1';
+      case 'exam-a2': return 'TELC A2';
+      case 'exam-b1': return 'TELC B1';
+      case 'exam-c1': return 'GOETHE C1';
+      case 'exam':
+      default: return 'TELC B2';
+    }
+  };
+
+  const handleBackFromCreateItem = (targetLevel?: string) => {
+    let backTab: ActiveTab = 'exam';
+    if (createItemType === 'vocab') {
+      backTab = 'vocab';
+    } else if (createItemType === 'grammar') {
+      backTab = 'grammar';
+    } else {
+      backTab = getExamTabFromLevel(targetLevel, previousExamTab);
+    }
+    setEditingItem(null);
+    setActiveTab(backTab);
   };
 
   // Anti-cheat tab switch monitoring
@@ -837,16 +884,8 @@ export default function App() {
                     setActiveTab('exam-detail');
                   }}
                   onStartExam={(exam) => handleStartExamRoom(exam)}
-                  onOpenNewExamModal={() => {
-                    setEditingItem(null);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
-                  onEditExam={(exam) => {
-                    setEditingItem(exam);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
+                  onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                  onEditExam={(exam) => handleOpenCreateExam(exam)}
                   onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -862,16 +901,8 @@ export default function App() {
                     setActiveTab('exam-detail');
                   }}
                   onStartExam={(exam) => handleStartExamRoom(exam)}
-                  onOpenNewExamModal={() => {
-                    setEditingItem(null);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
-                  onEditExam={(exam) => {
-                    setEditingItem(exam);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
+                  onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                  onEditExam={(exam) => handleOpenCreateExam(exam)}
                   onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -887,16 +918,8 @@ export default function App() {
                     setActiveTab('exam-detail');
                   }}
                   onStartExam={(exam) => handleStartExamRoom(exam)}
-                  onOpenNewExamModal={() => {
-                    setEditingItem(null);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
-                  onEditExam={(exam) => {
-                    setEditingItem(exam);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
+                  onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                  onEditExam={(exam) => handleOpenCreateExam(exam)}
                   onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -912,16 +935,8 @@ export default function App() {
                     setActiveTab('exam-detail');
                   }}
                   onStartExam={(exam) => handleStartExamRoom(exam)}
-                  onOpenNewExamModal={() => {
-                    setEditingItem(null);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
-                  onEditExam={(exam) => {
-                    setEditingItem(exam);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
+                  onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                  onEditExam={(exam) => handleOpenCreateExam(exam)}
                   onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -937,16 +952,8 @@ export default function App() {
                     setActiveTab('exam-detail');
                   }}
                   onStartExam={(exam) => handleStartExamRoom(exam)}
-                  onOpenNewExamModal={() => {
-                    setEditingItem(null);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
-                  onEditExam={(exam) => {
-                    setEditingItem(exam);
-                    setCreateItemType('exam');
-                    setActiveTab('create-item');
-                  }}
+                  onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                  onEditExam={(exam) => handleOpenCreateExam(exam)}
                   onDeleteExam={handleDeleteExam}
                   onShowToast={showToast}
                   currentUser={currentUser}
@@ -1114,11 +1121,8 @@ export default function App() {
                   <CreateItemView
                     type={createItemType}
                     editingItem={editingItem}
-                    onBack={() => {
-                      const backTab = createItemType === 'vocab' ? 'vocab' : createItemType === 'grammar' ? 'grammar' : 'exam';
-                      setEditingItem(null);
-                      setActiveTab(backTab);
-                    }}
+                    initialLevel={createItemType === 'exam' ? (editingItem?.level || getInitialExamLevelForTab(previousExamTab)) : undefined}
+                    onBack={(targetLevel) => handleBackFromCreateItem(targetLevel)}
                     onAddVocab={handleAddVocab}
                     onAddExam={handleAddExam}
                     onAddGrammar={handleAddGrammar}
@@ -1136,16 +1140,8 @@ export default function App() {
                       setActiveTab('exam-detail');
                     }}
                     onStartExam={(exam) => handleStartExamRoom(exam)}
-                    onOpenNewExamModal={() => {
-                      setEditingItem(null);
-                      setCreateItemType('exam');
-                      setActiveTab('create-item');
-                    }}
-                    onEditExam={(exam) => {
-                      setEditingItem(exam);
-                      setCreateItemType('exam');
-                      setActiveTab('create-item');
-                    }}
+                    onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                    onEditExam={(exam) => handleOpenCreateExam(exam)}
                     onDeleteExam={handleDeleteExam}
                     onShowToast={showToast}
                     currentUser={currentUser}

@@ -28,7 +28,8 @@ interface ExamSection {
 interface CreateItemViewProps {
   type: 'vocab' | 'exam' | 'grammar';
   editingItem?: any | null;
-  onBack: () => void;
+  initialLevel?: string;
+  onBack: (targetLevel?: string) => void;
   onAddVocab: (vocab: VocabItem) => void;
   onAddExam: (exam: ExamModel) => void;
   onAddGrammar?: (topic: GrammarTopic) => void;
@@ -41,6 +42,7 @@ interface CreateItemViewProps {
 export const CreateItemView: React.FC<CreateItemViewProps> = ({
   type,
   editingItem,
+  initialLevel,
   onBack,
   onAddVocab,
   onAddExam,
@@ -65,8 +67,8 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
-  const [examCode, setExamCode] = useState(editingItem?.examCode || 'TELC-B2-MOCK-NEW');
-  const [level, setLevel] = useState(editingItem?.level || 'TELC B2');
+  const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
+  const [level, setLevel] = useState(editingItem?.level || initialLevel || 'TELC B2');
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
@@ -531,7 +533,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       onAddExam(examData);
       onShowToast('Thành công', `Đã tạo bộ đề thi mới "${examName}".`, 'success');
     }
-    onBack();
+    onBack(level);
   };
 
   const handleSubmitGrammar = (e: React.FormEvent) => {
@@ -576,7 +578,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       <div className="flex items-center justify-between border-b-2 border-[#111827] pb-4">
         <button
           type="button"
-          onClick={onBack}
+          onClick={() => onBack()}
           className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -729,7 +731,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
             <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
               <button
                 type="button"
-                onClick={onBack}
+                onClick={() => onBack()}
                 className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
               >
                 Hủy
@@ -1162,7 +1164,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
             <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
               <button
                 type="button"
-                onClick={onBack}
+                onClick={() => onBack()}
                 className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
               >
                 Hủy
@@ -1262,7 +1264,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
             <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
               <button
                 type="button"
-                onClick={onBack}
+                onClick={() => onBack()}
                 className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
               >
                 Hủy
