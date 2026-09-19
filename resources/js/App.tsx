@@ -400,13 +400,6 @@ export default function App() {
 
   const [previousExamTab, setPreviousExamTab] = useState<ActiveTab>('exam');
 
-  const handleOpenCreateExam = (editing: ExamModel | null = null) => {
-    setPreviousExamTab(activeTab);
-    setEditingItem(editing);
-    setCreateItemType('exam');
-    setActiveTab('create-item');
-  };
-
   const getExamTabFromLevel = (levelStr?: string, defaultTab: ActiveTab = 'exam'): ActiveTab => {
     if (!levelStr) return defaultTab;
     const upper = levelStr.toUpperCase();
@@ -416,6 +409,16 @@ export default function App() {
     if (upper.includes('C1')) return 'exam-c1';
     if (upper.includes('B2')) return 'exam';
     return defaultTab;
+  };
+
+  const handleOpenCreateExam = (editing: ExamModel | null = null) => {
+    const originTab = editing
+      ? getExamTabFromLevel(editing.level, activeTab.startsWith('exam') ? activeTab : 'exam')
+      : (activeTab.startsWith('exam') ? activeTab : 'exam');
+    setPreviousExamTab(originTab);
+    setEditingItem(editing);
+    setCreateItemType('exam');
+    setActiveTab('create-item');
   };
 
   const getInitialExamLevelForTab = (tab: ActiveTab): string => {
@@ -823,6 +826,7 @@ export default function App() {
           {/* Left Sidebar */}
           <Sidebar
             activeTab={activeTab}
+            previousExamTab={previousExamTab}
             createItemType={createItemType}
             onSelectTab={setActiveTab}
             isOpenMobile={isMobileMenuOpen}
@@ -880,6 +884,7 @@ export default function App() {
                   exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
                   levelLabel="B2"
                   onSelectExam={(exam) => {
+                    setPreviousExamTab('exam');
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
@@ -897,6 +902,7 @@ export default function App() {
                   exams={exams.filter((e) => e.level.includes('C1'))}
                   levelLabel="C1"
                   onSelectExam={(exam) => {
+                    setPreviousExamTab('exam-c1');
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
@@ -914,6 +920,7 @@ export default function App() {
                   exams={exams.filter((e) => e.level.includes('B1'))}
                   levelLabel="B1"
                   onSelectExam={(exam) => {
+                    setPreviousExamTab('exam-b1');
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
@@ -931,6 +938,7 @@ export default function App() {
                   exams={exams.filter((e) => e.level.includes('A2'))}
                   levelLabel="A2"
                   onSelectExam={(exam) => {
+                    setPreviousExamTab('exam-a2');
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
@@ -948,6 +956,7 @@ export default function App() {
                   exams={exams.filter((e) => e.level.includes('A1'))}
                   levelLabel="A1"
                   onSelectExam={(exam) => {
+                    setPreviousExamTab('exam-a1');
                     setSelectedExam(exam);
                     setActiveTab('exam-detail');
                   }}
@@ -1082,7 +1091,7 @@ export default function App() {
                 selectedExam ? (
                   <ExamDetailView
                     exam={selectedExam}
-                    onBack={() => setActiveTab('exam')}
+                    onBack={() => setActiveTab(previousExamTab)}
                     onStartExam={() => handleStartExamRoom(selectedExam)}
                     onShowToast={showToast}
                     comments={discussionComments}
@@ -1094,20 +1103,13 @@ export default function App() {
                     exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
                     levelLabel="B2"
                     onSelectExam={(exam) => {
+                      setPreviousExamTab('exam');
                       setSelectedExam(exam);
                       setActiveTab('exam-detail');
                     }}
                     onStartExam={(exam) => handleStartExamRoom(exam)}
-                    onOpenNewExamModal={() => {
-                      setEditingItem(null);
-                      setCreateItemType('exam');
-                      setActiveTab('create-item');
-                    }}
-                    onEditExam={(exam) => {
-                      setEditingItem(exam);
-                      setCreateItemType('exam');
-                      setActiveTab('create-item');
-                    }}
+                    onOpenNewExamModal={() => handleOpenCreateExam(null)}
+                    onEditExam={(exam) => handleOpenCreateExam(exam)}
                     onDeleteExam={handleDeleteExam}
                     onShowToast={showToast}
                     currentUser={currentUser}

@@ -19,6 +19,7 @@ import {
 interface SidebarProps {
   activeTab: ActiveTab;
   createItemType?: 'vocab' | 'exam' | 'grammar';
+  previousExamTab?: ActiveTab;
   onSelectTab: (tab: ActiveTab) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
@@ -30,13 +31,15 @@ interface SidebarProps {
 const isItemActive = (
   itemId: ActiveTab,
   currentTab: ActiveTab,
-  createItemType?: 'vocab' | 'exam' | 'grammar'
+  createItemType?: 'vocab' | 'exam' | 'grammar',
+  previousExamTab?: ActiveTab
 ) => {
   if (itemId === currentTab) return true;
 
   // Sub-views for Exam repository
-  if (itemId === 'exam' && (currentTab === 'exam-detail' || (currentTab === 'create-item' && createItemType === 'exam'))) {
-    return true;
+  if (currentTab === 'exam-detail' || (currentTab === 'create-item' && createItemType === 'exam')) {
+    const targetExamTab = previousExamTab || 'exam';
+    if (itemId === targetExamTab) return true;
   }
 
   // Sub-views for Grammar hub
@@ -55,6 +58,7 @@ const isItemActive = (
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   createItemType,
+  previousExamTab,
   onSelectTab,
   isOpenMobile,
   onCloseMobile,
@@ -122,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = isItemActive(item.id, activeTab, createItemType);
+            const isActive = isItemActive(item.id, activeTab, createItemType, previousExamTab);
             const href = item.id === 'dashboard' ? '/dashboard' : `/${item.id}`;
             const isLockedForStudent = currentUser === 'student' && item.isAdminOnly;
 
