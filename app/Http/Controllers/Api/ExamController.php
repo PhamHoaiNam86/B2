@@ -146,13 +146,15 @@ class ExamController extends Controller
                     }
                 }
 
+                $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
+
                 Question::create([
                     'exam_code' => $exam->exam_code,
                     'section' => $q['section'] ?? 'Leseverstehen',
                     'sub_section' => $q['subSection'] ?? 'Teil 1',
                     'type' => $q['type'] ?? 'choice',
                     'question_number' => $index + 1,
-                    'title' => $q['title'] ?? $q['questionText'] ?? ('Câu '.($index + 1)),
+                    'title' => $title,
                     'context_text' => $q['contextText'] ?? null,
                     'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                     'options_json' => $options,
@@ -227,13 +229,15 @@ class ExamController extends Controller
                     }
                 }
 
+                $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
+
                 Question::create([
                     'exam_code' => $exam->exam_code,
                     'section' => $q['section'] ?? 'Leseverstehen',
                     'sub_section' => $q['subSection'] ?? 'Teil 1',
                     'type' => $q['type'] ?? 'choice',
                     'question_number' => $index + 1,
-                    'title' => $q['title'] ?? $q['questionText'] ?? ('Câu '.($index + 1)),
+                    'title' => $title,
                     'context_text' => $q['contextText'] ?? null,
                     'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                     'options_json' => $options,

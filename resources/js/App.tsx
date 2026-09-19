@@ -801,6 +801,7 @@ export default function App() {
         /* FULL SCREEN EXAM ROOM MODE */
         <ExamRoomScreen
           examState={examState}
+          selectedExam={selectedExam}
           onAnswerChange={handleAnswerChange}
           onFinishSection={handleFinishExamSubmit}
           onBackToDashboard={() => {

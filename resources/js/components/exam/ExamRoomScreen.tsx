@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UserExamState, Question } from '../../types';
+import { UserExamState, Question, ExamModel } from '../../types';
 import {
   ShieldAlert,
   ArrowLeft,
@@ -27,6 +27,7 @@ import {
 
 interface ExamRoomScreenProps {
   examState: UserExamState;
+  selectedExam?: ExamModel | null;
   onAnswerChange: (questionId: number, optionId: string) => void;
   onFinishSection: () => void;
   onBackToDashboard: () => void;
@@ -51,6 +52,7 @@ const HIGHLIGHT_COLORS = [
 
 export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   examState,
+  selectedExam,
   onAnswerChange,
   onFinishSection,
   onBackToDashboard,
@@ -58,7 +60,29 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   isReviewMode = false,
   onExitReviewMode,
 }) => {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const mapQuestionsFromExam = (exam: ExamModel | null | undefined): Question[] => {
+    if (!exam || !Array.isArray(exam.questions) || exam.questions.length === 0) return [];
+    return exam.questions.map((q: any, idx: number) => ({
+      id: typeof q.id === 'number' ? q.id : (parseInt(String(q.id).replace(/\D/g, ''), 10) || idx + 1),
+      section: q.section || 'Leseverstehen',
+      subSection: q.subSection || q.sub_section || '',
+      title: q.title || q.questionText || `Câu ${idx + 1}`,
+      contextText: q.contextText || q.context_text || '',
+      audioUrl: q.audioUrl || q.audio_url || '',
+      options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
+      correctOptionId: q.correctOptionId || q.correct_option_id || 'A',
+      explanation: q.explanation || '',
+    }));
+  };
+
+  const [questions, setQuestions] = useState<Question[]>(() => mapQuestionsFromExam(selectedExam));
+
+  useEffect(() => {
+    if (selectedExam && Array.isArray(selectedExam.questions) && selectedExam.questions.length > 0) {
+      setQuestions(mapQuestionsFromExam(selectedExam));
+    }
+  }, [selectedExam]);
+
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
 
@@ -77,19 +101,20 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [isLockedByAntiCheat, setIsLockedByAntiCheat] = useState<boolean>(false);
   const [lastAutoSavedTime, setLastAutoSavedTime] = useState<string>('Vừa xong');
 
-  // Load Questions
+  // Load Questions from API if available
   useEffect(() => {
     if (!examState.examCode) return;
     fetch('/api/v1/questions/' + encodeURIComponent(examState.examCode))
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          const mapped = res.data.map((q: any) => ({
-            id: q.question_number || q.id,
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((q: any, idx: number) => ({
+            id: q.question_number || q.id || (idx + 1),
             section: q.section || 'Leseverstehen',
             subSection: q.sub_section || '',
             title: q.title,
             contextText: q.context_text || '',
+            audioUrl: q.audio_url || '',
             options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
             correctOptionId: q.correct_option_id || 'A',
             explanation: q.explanation || '',
@@ -457,9 +482,13 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     key={q.id}
                     onClick={() => {
                       let targetSection = 0;
-                      if (q.section.includes('Sprachbausteine')) targetSection = 1;
-                      else if (q.section.includes('Hörverstehen')) targetSection = 2;
-                      else if (q.section.includes('Schriftlicher')) targetSection = 3;
+                      if (activeSections.length > 0) {
+                        const secIdx = activeSections.findIndex((s) => s.name === q.section);
+                        if (secIdx >= 0) targetSection = secIdx;
+                        else if (q.section.includes('Sprachbausteine')) targetSection = 1;
+                        else if (q.section.includes('Hörverstehen')) targetSection = 2;
+                        else if (q.section.includes('Schriftlicher')) targetSection = 3;
+                      }
 
                       setActiveSectionIndex(targetSection);
                       setActiveQuestionId(q.id);
