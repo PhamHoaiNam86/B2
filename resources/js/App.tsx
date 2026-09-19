@@ -37,7 +37,7 @@ const getInitialViewState = () => {
     'dashboard', 'exam', 'exam-c1', 'exam-b1', 'exam-a2', 'exam-a1',
     'docs-b2', 'docs-schreiben', 'docs-sprechen',
     'results', 'vocab', 'grammar', 'schreiben', 'students', 'history', 'profile',
-    'flashcards', 'grammar-lesson', 'exam-detail', 'create-item'
+    'flashcards', 'grammar-lesson', 'exam-detail', 'create-item', 'leaderboard'
   ];
 
   if (rawPath && validTabs.includes(rawPath as ActiveTab)) {
@@ -45,7 +45,9 @@ const getInitialViewState = () => {
   }
 
   if (isLoggedIn) {
-    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
+    const savedTab = sessionStorage.getItem('activeTab') || localStorage.getItem('activeTab');
+    const tabToUse = savedTab && validTabs.includes(savedTab as ActiveTab) ? (savedTab as ActiveTab) : 'dashboard';
+    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: tabToUse };
   }
 
   return { viewMode: 'landing' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
@@ -60,6 +62,8 @@ export default function App() {
 
   const navigateToLanding = () => {
     localStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('activeTab');
+    localStorage.removeItem('activeTab');
     sessionStorage.removeItem('selectedExam');
     sessionStorage.removeItem('selectedGrammarTopic');
     sessionStorage.removeItem('editingItem');
@@ -84,6 +88,8 @@ export default function App() {
   const navigateToApp = (tab: ActiveTab = 'dashboard') => {
     setViewMode('app');
     setActiveTabState(tab);
+    sessionStorage.setItem('activeTab', tab);
+    localStorage.setItem('activeTab', tab);
     setShowWelcomePopup(true);
     const targetPath = tab === 'dashboard' ? '/dashboard' : `/${tab}`;
     if (window.location.pathname !== targetPath) {
@@ -93,6 +99,8 @@ export default function App() {
 
   const setActiveTab = (tab: ActiveTab) => {
     setActiveTabState(tab);
+    sessionStorage.setItem('activeTab', tab);
+    localStorage.setItem('activeTab', tab);
     if (viewMode !== 'app') {
       setViewMode('app');
     }
@@ -126,8 +134,38 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Exam state & Anti-cheat
-  const [examState, setExamState] = useState<UserExamState>(INITIAL_EXAM_STATE);
-  const [isExamRoomActive, setIsExamRoomActive] = useState<boolean>(false);
+  const [examState, setExamStateInternal] = useState<UserExamState>(() => {
+    try {
+      const saved = sessionStorage.getItem('activeExamState');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return INITIAL_EXAM_STATE;
+  });
+
+  const setExamState: React.Dispatch<React.SetStateAction<UserExamState>> = (action) => {
+    setExamStateInternal((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      try {
+        sessionStorage.setItem('activeExamState', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const [isExamRoomActive, setIsExamRoomActiveState] = useState<boolean>(() => {
+    return sessionStorage.getItem('isExamRoomActive') === 'true';
+  });
+
+  const setIsExamRoomActive = (active: boolean) => {
+    if (active) {
+      sessionStorage.setItem('isExamRoomActive', 'true');
+    } else {
+      sessionStorage.removeItem('isExamRoomActive');
+      sessionStorage.removeItem('activeExamState');
+    }
+    setIsExamRoomActiveState(active);
+  };
+
   const [isExamReviewMode, setIsExamReviewMode] = useState<boolean>(false);
   const [tabSwitchAlert, setTabSwitchAlert] = useState<string | null>(null);
 
@@ -704,19 +742,21 @@ export default function App() {
 
   const handleStartExamRoom = (exam?: ExamModel) => {
     if (exam) {
-      setExamState((prev) => ({
-        ...prev,
+      setSelectedExam(exam);
+      const newExamState: UserExamState = {
+        ...INITIAL_EXAM_STATE,
         examCode: exam.examCode,
+        studentName: currentUser === 'admin' ? 'Triệu Vỹ Admin' : 'Học Viên B2',
         timeRemainingSeconds: (exam.durationMinutes || 90) * 60,
         timeElapsedSeconds: 0,
         tabSwitchCount: 0,
         answers: {},
         isSubmitted: false,
-      }));
+      };
+      setExamState(newExamState);
     }
     setIsExamReviewMode(false);
     setIsExamRoomActive(true);
-    setActiveTab('exam');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Vào phòng thi', `Đã bắt đầu phiên thi thử ${exam ? exam.name : 'TELC B2'} với bộ đếm thời gian.`, 'info');
   };
@@ -724,6 +764,7 @@ export default function App() {
   const handleFinishExamSubmit = () => {
     setIsExamRoomActive(false);
     setIsExamReviewMode(false);
+    sessionStorage.removeItem('activeExamState');
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Đã nộp bài thi', 'Hệ thống đã ghi nhận và phân tích điểm thi thử của bạn.', 'success');

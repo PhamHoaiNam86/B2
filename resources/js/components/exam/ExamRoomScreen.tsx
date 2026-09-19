@@ -100,9 +100,38 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
 
   // Notes & Highlighting State for DEUTSCHMITPN 2-column layout
-  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
+  const [highlights, setHighlights] = useState<HighlightItem[]>(() => {
+    try {
+      if (examState.examCode) {
+        const saved = localStorage.getItem(`exam_autosave_${examState.examCode}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.highlights)) {
+            return parsed.highlights.map((h: any, idx: number) => {
+              if (typeof h === 'string') {
+                return { id: `h-${idx}`, text: h, colorId: 'yellow' };
+              }
+              return h;
+            });
+          }
+        }
+      }
+    } catch {}
+    return [];
+  });
   const [selectedColor, setSelectedColor] = useState<string>('yellow');
-  const [draftNote, setDraftNote] = useState<string>('');
+  const [draftNote, setDraftNote] = useState<string>(() => {
+    try {
+      if (examState.examCode) {
+        const saved = localStorage.getItem(`exam_autosave_${examState.examCode}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed.draftNote === 'string') return parsed.draftNote;
+        }
+      }
+    } catch {}
+    return '';
+  });
 
   // Audio Player State for Section 3 (Hörverstehen)
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
