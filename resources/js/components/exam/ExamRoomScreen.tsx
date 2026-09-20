@@ -543,25 +543,46 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               </div>
             </div>
 
-            {/* Audio Player for Section 3 (Hörverstehen) */}
-            {activeSectionIndex === 2 && (
-              <div className="p-3.5 bg-[#eff6ff] border-2 border-[#111827] rounded-xl flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Headphones className="w-5 h-5 text-[#2563EB]" />
-                  <div>
-                    <h4 className="text-xs font-black text-[#111827] font-heading">
-                      Audio Đề Thi Nghe Goethe / TELC
-                    </h4>
-                    <span className="text-[10px] font-bold text-[#1e40af]">File ghi âm phần nghe</span>
+            {/* Audio Player for Listening Exams / Hörverstehen (Dynamic Media Detection) */}
+            {Boolean(
+              (currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl) ||
+              currentSectionMeta?.name?.toLowerCase().includes('hör') ||
+              currentSectionMeta?.name?.toLowerCase().includes('nghe') ||
+              activeSectionIndex === 2
+            ) && (
+              <div className="p-3.5 bg-[#eff6ff] border-2 border-[#111827] rounded-xl space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Headphones className="w-5 h-5 text-[#2563EB]" />
+                    <div>
+                      <h4 className="text-xs font-black text-[#111827] font-heading uppercase">
+                        File Âm Thanh Bài Nghe Goethe / TELC
+                      </h4>
+                      <span className="text-[10px] font-bold text-[#1e40af]">Bài nghe kiểm tra kỹ năng Hörverstehen</span>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={toggleAudio}
-                  className="px-3 py-1.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-lg text-xs font-black hover:bg-[#1d4ed8] cursor-pointer flex items-center gap-1 brutal-shadow-xs"
-                >
-                  {isPlayingAudio ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  <span>{isPlayingAudio ? 'Tạm Dừng' : 'Phát Audio'}</span>
-                </button>
+
+                {(currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl) ? (
+                  ((currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl || '').includes('.mp4') ||
+                   (currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl || '').includes('.webm')) ? (
+                    <video
+                      controls
+                      src={currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl}
+                      className="w-full max-h-52 rounded-lg border-2 border-[#111827]"
+                    />
+                  ) : (
+                    <audio
+                      controls
+                      src={currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl}
+                      className="w-full h-10 rounded-lg border border-[#2563eb]/40"
+                    />
+                  )
+                ) : (
+                  <p className="text-[11px] font-bold text-amber-700 italic bg-amber-50 p-2 rounded-lg border border-amber-300">
+                    💡 Phần thi nghe này chưa chọn file ghi âm MP3. Giáo viên có thể thêm file ghi âm khi sửa đề thi.
+                  </p>
+                )}
               </div>
             )}
 

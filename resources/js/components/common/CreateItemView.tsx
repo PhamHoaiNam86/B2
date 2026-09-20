@@ -323,6 +323,11 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   };
 
   const handleFileUpload = async (secId: string, qId: string, file: File) => {
+    if (file.size > 30 * 1024 * 1024) {
+      onShowToast('File quá lớn', 'Dung lượng file âm thanh vượt quá giới hạn 30MB. Vui lòng nén file MP3 hoặc chọn file nhỏ hơn.', 'warning');
+      return;
+    }
+
     setUploadingAudioQId(qId);
     try {
       const formData = new FormData();
@@ -333,15 +338,25 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         body: formData,
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        if (responseText.includes('POST data is too large') || response.status === 413 || response.status === 500) {
+          onShowToast('Lỗi dung lượng file', 'File âm thanh vượt quá giới hạn cấu hình tải lên của máy chủ (post_max_size). Vui lòng nén file MP3 dưới 10MB.', 'warning');
+          return;
+        }
+      }
+
       if (data.success && data.url) {
         handleAudioUrlChange(secId, qId, data.url);
         onShowToast('Tải file thành công!', 'Đã tải file âm thanh MP3 thành công cho bài nghe.', 'success');
       } else {
-        onShowToast('Lỗi tải file', data.message || 'Không thể tải file âm thanh', 'warning');
+        onShowToast('Lỗi tải file', data.message || 'Không thể tải file âm thanh. Vui lòng chọn file MP3 hợp lệ.', 'warning');
       }
     } catch (err) {
-      onShowToast('Lỗi tải file', 'Không thể kết nối đến máy chủ để tải file âm thanh', 'warning');
+      onShowToast('Lỗi tải file', 'Không thể tải file âm thanh. Dung lượng file có thể vượt quá cấu hình Server.', 'warning');
     } finally {
       setUploadingAudioQId(null);
     }
@@ -1009,7 +1024,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                     <span>{uploadingAudioQId === q.id ? 'Đang tải file lên...' : '📁 Chọn File MP3 Tải Lên'}</span>
                                     <input
                                       type="file"
-                                      accept="audio/*,.mp3,.wav,.m4a,.ogg"
+                                      accept="audio/*,video/*,.mp3,.wav,.m4a,.ogg,.mp4,.webm"
                                       className="hidden"
                                       disabled={uploadingAudioQId === q.id}
                                       onChange={(e) => {
