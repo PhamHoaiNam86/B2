@@ -770,6 +770,14 @@ export default function App() {
     showToast('Đã nộp bài thi', 'Hệ thống đã ghi nhận và phân tích điểm thi thử của bạn.', 'success');
   };
 
+  // Auto-submit when countdown timer reaches 00:00:00
+  useEffect(() => {
+    if (isExamRoomActive && !isExamReviewMode && examState.timeRemainingSeconds <= 0 && examState.timeElapsedSeconds > 0) {
+      showToast('Hết giờ làm bài!', 'Đã hết thời gian thi quy định. Hệ thống tự động nộp bài thi của bạn.', 'warning');
+      handleFinishExamSubmit();
+    }
+  }, [isExamRoomActive, isExamReviewMode, examState.timeRemainingSeconds, examState.timeElapsedSeconds]);
+
   const handleRetakeExam = () => {
     setExamState({
       ...INITIAL_EXAM_STATE,
