@@ -843,6 +843,7 @@ export default function App() {
         <ExamRoomScreen
           examState={examState}
           selectedExam={selectedExam}
+          vocabs={vocabs}
           onAnswerChange={handleAnswerChange}
           onFinishSection={handleFinishExamSubmit}
           onBackToDashboard={() => {

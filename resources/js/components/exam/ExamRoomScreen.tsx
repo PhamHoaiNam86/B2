@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UserExamState, Question, ExamModel } from '../../types';
+import { UserExamState, Question, ExamModel, VocabItem } from '../../types';
 import {
   ShieldAlert,
   ArrowLeft,
@@ -28,6 +28,7 @@ import {
 interface ExamRoomScreenProps {
   examState: UserExamState;
   selectedExam?: ExamModel | null;
+  vocabs?: VocabItem[];
   onAnswerChange: (questionId: number, optionId: string) => void;
   onFinishSection: () => void;
   onBackToDashboard: () => void;
@@ -47,6 +48,8 @@ export interface HighlightItem {
   id: string;
   text: string;
   colorId: string;
+  translation?: string;
+  isTranslating?: boolean;
 }
 
 const HIGHLIGHT_COLORS_LIST = [
@@ -66,6 +69,7 @@ const HIGHLIGHT_COLORS_MAP: Record<string, typeof HIGHLIGHT_COLORS_LIST[0]> = {
 export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   examState,
   selectedExam,
+  vocabs = [],
   onAnswerChange,
   onFinishSection,
   onBackToDashboard,
@@ -99,26 +103,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const [activeQuestionId, setActiveQuestionId] = useState<number>(1);
 
-  // Notes & Highlighting State for DEUTSCHMITPN 2-column layout
-  const [highlights, setHighlights] = useState<HighlightItem[]>(() => {
-    try {
-      if (examState.examCode) {
-        const saved = localStorage.getItem(`exam_autosave_${examState.examCode}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed.highlights)) {
-            return parsed.highlights.map((h: any, idx: number) => {
-              if (typeof h === 'string') {
-                return { id: `h-${idx}`, text: h, colorId: 'yellow' };
-              }
-              return h;
-            });
-          }
-        }
-      }
-    } catch {}
-    return [];
-  });
+  // Notes & Highlighting State for DEUTSCHMITPN 2-column layout (Reset on page reload)
+  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [selectedColor, setSelectedColor] = useState<string>('yellow');
   const [draftNote, setDraftNote] = useState<string>(() => {
     try {
@@ -184,7 +170,6 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       try {
         const payload = {
           answers: examState.answers,
-          highlights,
           draftNote,
           updatedAt: new Date().toLocaleTimeString('vi-VN'),
         };
@@ -194,13 +179,13 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [examState.answers, examState.examCode, highlights, draftNote, isReviewMode]);
+  }, [examState.answers, examState.examCode, draftNote, isReviewMode]);
 
-  // Color switch handler: updates selected color AND immediately recolors active/existing highlights
+  // Color switch handler: sets active highlight color for next selections or applies to currently selected text
   const handleColorChange = (newColorId: string) => {
     setSelectedColor(newColorId);
 
-    // 1. If user has active text selection in DOM, apply new color to it
+    // If user has active text selection in DOM, apply new color to that specific text
     const selection = window.getSelection();
     if (selection && !selection.isCollapsed) {
       const selectedText = selection.toString().trim();
@@ -222,15 +207,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             ];
           }
         });
-        return;
       }
     }
-
-    // 2. If no active selection, update all existing highlights to the newly picked color
-    setHighlights((prev) => {
-      if (prev.length === 0) return prev;
-      return prev.map((h) => ({ ...h, colorId: newColorId }));
-    });
   };
 
   // Highlight Text Handler inside reading context
@@ -255,6 +233,70 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         }
       });
     }
+  };
+
+  const speakGermanText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'de-DE';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const translateGermanInline = async (highlightId: string, text: string) => {
+    const target = highlights.find((h) => h.id === highlightId);
+    if (target?.translation) {
+      setHighlights((prev) =>
+        prev.map((h) => (h.id === highlightId ? { ...h, translation: undefined } : h))
+      );
+      return;
+    }
+
+    setHighlights((prev) =>
+      prev.map((h) => (h.id === highlightId ? { ...h, isTranslating: true } : h))
+    );
+
+    const cleanQuery = text.trim();
+    const lower = cleanQuery.toLowerCase();
+
+    // 1. Search in Real CSDL Vocabularies Database table (vocabs prop)
+    if (Array.isArray(vocabs) && vocabs.length > 0) {
+      const dbMatch = vocabs.find(
+        (v) =>
+          v.word.toLowerCase() === lower ||
+          `${(v.article || '').toLowerCase()} ${v.word.toLowerCase()}`.trim() === lower
+      );
+      if (dbMatch && dbMatch.meaningVi) {
+        setHighlights((prev) =>
+          prev.map((h) =>
+            h.id === highlightId ? { ...h, translation: dbMatch.meaningVi, isTranslating: false } : h
+          )
+        );
+        return;
+      }
+    }
+
+    // 2. Call live online translation API (MyMemory DE -> VI API)
+    try {
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanQuery)}&langpair=de|vi`);
+      const data = await res.json();
+      const rawTrans = data?.responseData?.translatedText;
+      if (rawTrans && !rawTrans.includes('MYMEMORY') && !rawTrans.includes('quota')) {
+        setHighlights((prev) =>
+          prev.map((h) => (h.id === highlightId ? { ...h, translation: rawTrans, isTranslating: false } : h))
+        );
+        return;
+      }
+    } catch {}
+
+    // 3. Fallback format if API is unreachable
+    setHighlights((prev) =>
+      prev.map((h) =>
+        h.id === highlightId ? { ...h, translation: `Dịch: "${cleanQuery}"`, isTranslating: false } : h
+      )
+    );
   };
 
   const updateSingleHighlightColor = (id: string, colorId: string) => {
@@ -288,6 +330,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             key={index}
             onClick={(e) => {
               e.stopPropagation();
+              speakGermanText(match.text);
+              if (!match.translation) {
+                translateGermanInline(match.id, match.text);
+              }
               updateSingleHighlightColor(match.id, selectedColor);
             }}
             style={{
@@ -295,10 +341,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               borderColor: colorMeta.border,
               color: colorMeta.text,
             }}
-            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all cursor-pointer hover:opacity-90"
-            title="Click để đổi sang màu đang chọn"
+            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all cursor-pointer hover:opacity-90 active:scale-95 inline-flex items-center gap-1"
+            title={`🔊 Click phát âm | ${match.translation ? `Nghĩa: ${match.translation}` : 'Click dịch & phát âm'}`}
           >
-            {part}
+            <span>{part}</span>
+            {match.translation && (
+              <span className="text-[10px] bg-white/90 text-[#111827] px-1 rounded font-black border border-black/20">
+                ({match.translation})
+              </span>
+            )}
           </mark>
         );
       }
@@ -558,7 +609,41 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         }}
                         className="px-2.5 py-1 rounded-lg border-2 text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all"
                       >
+                        <button
+                          type="button"
+                          onClick={() => speakGermanText(h.text)}
+                          className="hover:scale-125 cursor-pointer text-[#2563EB] font-black p-0.5 rounded hover:bg-black/10 transition-transform"
+                          title="Phát âm tiếng Đức chuẩn (de-DE)"
+                        >
+                          <Volume2 className="w-3.5 h-3.5" />
+                        </button>
                         <span>"{h.text}"</span>
+                        {h.isTranslating ? (
+                          <span className="px-2 py-0.5 bg-white/90 text-blue-900 rounded border border-blue-300 text-[10px] font-bold animate-pulse">
+                            ⏳ Đang dịch...
+                          </span>
+                        ) : h.translation ? (
+                          <span className="px-2 py-0.5 bg-white/95 text-emerald-950 rounded border border-emerald-400 text-[11px] font-black shadow-2xs flex items-center gap-1">
+                            👉 {h.translation}
+                            <button
+                              type="button"
+                              onClick={() => translateGermanInline(h.id, h.text)}
+                              className="text-slate-400 hover:text-slate-700 ml-1 text-[9px] font-bold"
+                              title="Ẩn dịch"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => translateGermanInline(h.id, h.text)}
+                            className="px-1.5 py-0.5 bg-white/90 hover:bg-white rounded text-[10px] text-blue-900 font-black border border-blue-300 cursor-pointer ml-0.5 shadow-2xs transition-all hover:scale-105 active:scale-95"
+                            title="Dịch nghĩa Tiếng Việt trực tiếp tại đây"
+                          >
+                            🌐 Dịch
+                          </button>
+                        )}
                         <div className="flex items-center gap-0.5 ml-1">
                           {HIGHLIGHT_COLORS_LIST.map((c) => (
                             <button
