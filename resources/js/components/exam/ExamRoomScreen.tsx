@@ -196,19 +196,71 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return () => clearInterval(interval);
   }, [examState.answers, examState.examCode, highlights, draftNote, isReviewMode]);
 
+  // Color switch handler: updates selected color AND immediately recolors active/existing highlights
+  const handleColorChange = (newColorId: string) => {
+    setSelectedColor(newColorId);
+
+    // 1. If user has active text selection in DOM, apply new color to it
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+      const selectedText = selection.toString().trim();
+      if (selectedText.length >= 2) {
+        setHighlights((prev) => {
+          const existingIndex = prev.findIndex((h) => h.text.toLowerCase() === selectedText.toLowerCase());
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = { ...updated[existingIndex], colorId: newColorId };
+            return updated;
+          } else {
+            return [
+              ...prev,
+              {
+                id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                text: selectedText,
+                colorId: newColorId,
+              },
+            ];
+          }
+        });
+        return;
+      }
+    }
+
+    // 2. If no active selection, update all existing highlights to the newly picked color
+    setHighlights((prev) => {
+      if (prev.length === 0) return prev;
+      return prev.map((h) => ({ ...h, colorId: newColorId }));
+    });
+  };
+
   // Highlight Text Handler inside reading context
   const handleHighlightSelection = () => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) return;
     const selectedText = selection.toString().trim();
-    if (selectedText.length >= 2 && !highlights.some((h) => h.text.toLowerCase() === selectedText.toLowerCase())) {
-      const newItem: HighlightItem = {
-        id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-        text: selectedText,
-        colorId: selectedColor,
-      };
-      setHighlights((prev) => [...prev, newItem]);
+    if (selectedText.length >= 2) {
+      setHighlights((prev) => {
+        const existingIndex = prev.findIndex((h) => h.text.toLowerCase() === selectedText.toLowerCase());
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = { ...updated[existingIndex], colorId: selectedColor };
+          return updated;
+        } else {
+          const newItem: HighlightItem = {
+            id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            text: selectedText,
+            colorId: selectedColor,
+          };
+          return [...prev, newItem];
+        }
+      });
     }
+  };
+
+  const updateSingleHighlightColor = (id: string, colorId: string) => {
+    setHighlights((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, colorId } : h))
+    );
   };
 
   const removeHighlight = (idOrText: string) => {
@@ -234,12 +286,17 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         return (
           <mark
             key={index}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateSingleHighlightColor(match.id, selectedColor);
+            }}
             style={{
               backgroundColor: colorMeta.bg,
               borderColor: colorMeta.border,
               color: colorMeta.text,
             }}
-            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all"
+            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all cursor-pointer hover:opacity-90"
+            title="Click để đổi sang màu đang chọn"
           >
             {part}
           </mark>
@@ -422,12 +479,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => setSelectedColor(c.id)}
+                    onClick={() => handleColorChange(c.id)}
                     style={{ backgroundColor: c.bg, borderColor: c.border }}
                     className={`w-5 h-5 rounded-full border-2 cursor-pointer transition-transform flex items-center justify-center ${
                       selectedColor === c.id ? 'scale-125 ring-2 ring-[#111827]' : 'hover:scale-110 opacity-80'
                     }`}
-                    title={`Tô màu ${c.label}`}
+                    title={`Chuyển màu ${c.label}`}
                   >
                     {selectedColor === c.id && <div className="w-1.5 h-1.5 rounded-full bg-[#111827]" />}
                   </button>
@@ -502,10 +559,22 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         className="px-2.5 py-1 rounded-lg border-2 text-[11px] font-bold flex items-center gap-1.5 shadow-xs transition-all"
                       >
                         <span>"{h.text}"</span>
+                        <div className="flex items-center gap-0.5 ml-1">
+                          {HIGHLIGHT_COLORS_LIST.map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => updateSingleHighlightColor(h.id, c.id)}
+                              style={{ backgroundColor: c.bg, borderColor: c.border }}
+                              className={`w-3 h-3 rounded-full border cursor-pointer transition-transform ${h.colorId === c.id ? 'scale-125 ring-1 ring-[#111827]' : 'opacity-60 hover:opacity-100'}`}
+                              title={`Đổi sang màu ${c.label}`}
+                            />
+                          ))}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeHighlight(h.id)}
-                          className="hover:opacity-75 cursor-pointer font-black ml-1"
+                          className="hover:opacity-75 cursor-pointer font-black ml-1 text-red-600"
                           title="Xóa highlight"
                         >
                           <X className="w-3.5 h-3.5" />
