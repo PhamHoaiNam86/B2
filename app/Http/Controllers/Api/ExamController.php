@@ -115,20 +115,24 @@ class ExamController extends Controller
             'sections' => 'nullable|array',
         ]);
 
-        $exam = Exam::create([
-            'exam_code' => $validated['exam_code'],
-            'name' => $validated['name'],
-            'level' => $validated['level'] ?? 'TELC B2',
-            'duration_minutes' => $validated['duration_minutes'] ?? 90,
-            'description' => $validated['description'] ?? '',
-            'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
-            'target_score' => 225,
-            'pass_rate' => '88%',
-            'is_active' => true,
-            'sections_json' => $validated['sections'] ?? null,
-        ]);
+        $exam = Exam::updateOrCreate(
+            ['exam_code' => $validated['exam_code']],
+            [
+                'name' => $validated['name'],
+                'level' => $validated['level'] ?? 'TELC B2',
+                'duration_minutes' => $validated['duration_minutes'] ?? 90,
+                'description' => $validated['description'] ?? '',
+                'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+                'target_score' => 225,
+                'pass_rate' => '88%',
+                'is_active' => true,
+                'sections_json' => $validated['sections'] ?? null,
+            ]
+        );
 
-        if (! empty($validated['questions'])) {
+        if (isset($validated['questions']) && is_array($validated['questions'])) {
+            Question::where('exam_code', $exam->exam_code)->delete();
+
             foreach ($validated['questions'] as $index => $q) {
                 $options = isset($q['options']) ? array_map(function ($opt) {
                     return [
