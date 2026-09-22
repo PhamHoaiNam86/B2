@@ -99,108 +99,153 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   // Calculate Total Questions Count across all sections
   const totalQuestionsCount = sections.reduce((acc, sec) => acc + sec.questions.length, 0);
 
-  // Pre-fill fields on Edit Mode
+  // Pre-fill fields on Edit Mode or Reset on Create Mode
   useEffect(() => {
-    if (!editingItem) return;
+    if (editingItem) {
+      if (type === 'vocab') {
+        setWord(editingItem.word || '');
+        setArticle(editingItem.article || 'der');
+        setPlural(editingItem.plural || '');
+        setPos(editingItem.pos || 'Nomen');
+        setPhonetic(editingItem.phonetic || '');
+        setMeaningVi(editingItem.meaningVi || '');
+        setExampleDe(editingItem.exampleDe || '');
+        setExampleVi(editingItem.exampleVi || '');
+        setTopic(editingItem.topic || 'Arbeit & Beruf');
+      } else if (type === 'exam') {
+        setExamName(editingItem.name || '');
+        setExamCode(editingItem.examCode || '');
+        setLevel(editingItem.level || initialLevel || 'TELC B2');
+        setDurationMinutes(editingItem.durationMinutes || 90);
+        setDescription(editingItem.description || '');
 
-    if (type === 'vocab') {
-      setWord(editingItem.word || '');
-      setArticle(editingItem.article || 'der');
-      setPlural(editingItem.plural || '');
-      setPos(editingItem.pos || 'Nomen');
-      setPhonetic(editingItem.phonetic || '');
-      setMeaningVi(editingItem.meaningVi || '');
-      setExampleDe(editingItem.exampleDe || '');
-      setExampleVi(editingItem.exampleVi || '');
-      setTopic(editingItem.topic || 'Arbeit & Beruf');
-    } else if (type === 'exam') {
-      setExamName(editingItem.name || '');
-      setExamCode(editingItem.examCode || '');
-      setLevel(editingItem.level || 'TELC B2');
-      setDurationMinutes(editingItem.durationMinutes || 90);
-      setDescription(editingItem.description || '');
-
-      if (editingItem.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
-        const sectionsMap: Record<string, ExamQuestion[]> = {};
-        editingItem.questions.forEach((q: any, idx: number) => {
-          const mappedQ: ExamQuestion = {
-            id: String(q.id || `q-${idx + 1}`),
-            type: q.type || 'choice',
-            questionText: q.questionText || q.title || `Câu ${idx + 1}: `,
-            contextText: q.contextText || q.context_text || '',
-            audioUrl: q.audioUrl || q.audio_url || '',
-            explanation: q.explanation || '',
-            options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
-          };
-          const secName = q.section || 'Phần 1';
-          if (!sectionsMap[secName]) {
-            sectionsMap[secName] = [];
-          }
-          sectionsMap[secName].push(mappedQ);
-        });
-
-        const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
-          id: `sec-${sIdx + 1}`,
-          name: secName,
-          duration: '30 phút',
-          questions: sectionsMap[secName],
-        }));
-
-        if (builtSections.length > 0) {
-          setSections(builtSections);
-        }
-      }
-
-      if (editingItem.examCode) {
-        fetch(`/api/v1/questions/${editingItem.examCode}`)
-          .then((res) => res.json())
-          .then((res) => {
-            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              const sectionsMap: Record<string, ExamQuestion[]> = {};
-
-              res.data.forEach((q: any, idx: number) => {
-                const mappedQ: ExamQuestion = {
-                  id: String(q.id || `q-${idx + 1}`),
-                  type: q.type || 'choice',
-                  questionText: q.title || `Câu ${idx + 1}: `,
-                  contextText: q.context_text || q.contextText || '',
-                  audioUrl: q.audio_url || q.audioUrl || '',
-                  explanation: q.explanation || '',
-                  options: q.options_json
-                    ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
-                    : [],
-                };
-
-                const secName = q.section || 'Phần 1';
-                if (!sectionsMap[secName]) {
-                  sectionsMap[secName] = [];
-                }
-                sectionsMap[secName].push(mappedQ);
-              });
-
-              const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
-                id: `sec-${sIdx + 1}`,
-                name: secName,
-                duration: '30 phút',
-                questions: sectionsMap[secName],
-              }));
-
-              if (builtSections.length > 0) {
-                setSections(builtSections);
-              }
+        if (editingItem.questions && Array.isArray(editingItem.questions) && editingItem.questions.length > 0) {
+          const sectionsMap: Record<string, ExamQuestion[]> = {};
+          editingItem.questions.forEach((q: any, idx: number) => {
+            const mappedQ: ExamQuestion = {
+              id: String(q.id || `q-${idx + 1}`),
+              type: q.type || 'choice',
+              questionText: q.questionText || q.title || `Câu ${idx + 1}: `,
+              contextText: q.contextText || q.context_text || '',
+              audioUrl: q.audioUrl || q.audio_url || '',
+              explanation: q.explanation || '',
+              options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
+            };
+            const secName = q.section || 'Phần 1';
+            if (!sectionsMap[secName]) {
+              sectionsMap[secName] = [];
             }
-          })
-          .catch(() => {});
+            sectionsMap[secName].push(mappedQ);
+          });
+
+          const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
+            id: `sec-${sIdx + 1}`,
+            name: secName,
+            duration: '30 phút',
+            questions: sectionsMap[secName],
+          }));
+
+          if (builtSections.length > 0) {
+            setSections(builtSections);
+          }
+        }
+
+        if (editingItem.examCode) {
+          fetch(`/api/v1/questions/${editingItem.examCode}`)
+            .then((res) => res.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+                const sectionsMap: Record<string, ExamQuestion[]> = {};
+
+                res.data.forEach((q: any, idx: number) => {
+                  const mappedQ: ExamQuestion = {
+                    id: String(q.id || `q-${idx + 1}`),
+                    type: q.type || 'choice',
+                    questionText: q.title || `Câu ${idx + 1}: `,
+                    contextText: q.context_text || q.contextText || '',
+                    audioUrl: q.audio_url || q.audioUrl || '',
+                    explanation: q.explanation || '',
+                    options: q.options_json
+                      ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
+                      : [],
+                  };
+
+                  const secName = q.section || 'Phần 1';
+                  if (!sectionsMap[secName]) {
+                    sectionsMap[secName] = [];
+                  }
+                  sectionsMap[secName].push(mappedQ);
+                });
+
+                const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
+                  id: `sec-${sIdx + 1}`,
+                  name: secName,
+                  duration: '30 phút',
+                  questions: sectionsMap[secName],
+                }));
+
+                if (builtSections.length > 0) {
+                  setSections(builtSections);
+                }
+              }
+            })
+            .catch(() => {});
+        }
+      } else if (type === 'grammar') {
+        setGrammarTitle(editingItem.title || '');
+        setGrammarLevel(editingItem.level || 'B2');
+        setGrammarCategory(editingItem.category || 'Verben & Modi');
+        setGrammarSummary(editingItem.summary || '');
+        setGrammarContent(editingItem.content || '');
+        setGrammarRules(editingItem.rulePoints ? editingItem.rulePoints.join('\n') : '');
       }
-    } else if (type === 'grammar') {
-      setGrammarTitle(editingItem.title || '');
-      setGrammarLevel(editingItem.level || 'B2');
-      setGrammarCategory(editingItem.category || 'Verben & Modi');
-      setGrammarSummary(editingItem.summary || '');
-      setGrammarContent(editingItem.content || '');
-      setGrammarRules(editingItem.rulePoints ? editingItem.rulePoints.join('\n') : '');
+    } else {
+      // Reset to fresh blank form for creating new item
+      if (type === 'vocab') {
+        setWord('');
+        setArticle('der');
+        setPlural('');
+        setPos('Nomen');
+        setPhonetic('');
+        setMeaningVi('');
+        setExampleDe('');
+        setExampleVi('');
+        setTopic('Arbeit & Beruf');
+      } else if (type === 'exam') {
+        setExamName('');
+        setExamCode(`MOCK-${Date.now().toString().slice(-4)}`);
+        setLevel(initialLevel || 'TELC B2');
+        setDurationMinutes(90);
+        setDescription('');
+        setSections([
+          {
+            id: `sec-${Date.now()}`,
+            name: '',
+            duration: '30 phút',
+            questions: [
+              {
+                id: `q-1-1`,
+                questionText: '',
+                contextText: '',
+                explanation: '',
+                options: [
+                  { id: `opt-1-1-1`, text: '', isCorrect: true },
+                  { id: `opt-1-1-2`, text: '', isCorrect: false },
+                ],
+              },
+            ],
+          },
+        ]);
+      } else if (type === 'grammar') {
+        setGrammarTitle('');
+        setGrammarLevel('B2');
+        setGrammarCategory('Verben & Modi');
+        setGrammarSummary('');
+        setGrammarContent('');
+        setGrammarRules('');
+      }
     }
-  }, [editingItem, type]);
+  }, [editingItem, type, initialLevel]);
 
   // Section Handlers
   const handleAddSection = () => {
