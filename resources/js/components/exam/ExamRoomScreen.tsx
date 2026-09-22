@@ -278,7 +278,19 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       }
     }
 
-    // 2. Call live online translation API (MyMemory DE -> VI API)
+    // 2. Call backend translation API (/api/v1/translate)
+    try {
+      const res = await fetch(`/api/v1/translate?q=${encodeURIComponent(cleanQuery)}`);
+      const data = await res.json();
+      if (data.success && data.translation) {
+        setHighlights((prev) =>
+          prev.map((h) => (h.id === highlightId ? { ...h, translation: data.translation, isTranslating: false } : h))
+        );
+        return;
+      }
+    } catch (err) {}
+
+    // 3. Fallback client-side call
     try {
       const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanQuery)}&langpair=de|vi`);
       const data = await res.json();
@@ -291,7 +303,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       }
     } catch {}
 
-    // 3. Fallback format if API is unreachable
+    // 4. Fallback format if API is unreachable
     setHighlights((prev) =>
       prev.map((h) =>
         h.id === highlightId ? { ...h, translation: `Dịch: "${cleanQuery}"`, isTranslating: false } : h

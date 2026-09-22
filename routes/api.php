@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/results', [ExamController::class, 'getResults']);
     Route::post('/exams/submit', [ExamController::class, 'submit']);
     Route::post('/upload-audio', [ExamController::class, 'uploadAudio']);
+    Route::get('/translate', [ExamController::class, 'translate']);
 
     // Vocabularies
     Route::get('/vocabs', [VocabController::class, 'index']);

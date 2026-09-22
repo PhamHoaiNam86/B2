@@ -302,4 +302,83 @@ class ExamController extends Controller
             'url' => $audioUrl,
         ]);
     }
+
+    /**
+     * Translate German text to Vietnamese.
+     */
+    public function translate(Request $request)
+    {
+        $text = trim($request->input('q', ''));
+        if (empty($text)) {
+            return response()->json(['success' => false, 'translation' => '']);
+        }
+
+        // 1. Check DB vocabularies table
+        try {
+            $vocab = \App\Models\Vocabulary::whereRaw('LOWER(word) = ?', [mb_strtolower($text)])
+                ->orWhereRaw('LOWER(CONCAT(COALESCE(article, ""), " ", word)) = ?', [mb_strtolower($text)])
+                ->first();
+
+            if ($vocab && ! empty($vocab->meaning_vi)) {
+                return response()->json([
+                    'success' => true,
+                    'translation' => $vocab->meaning_vi,
+                    'source' => 'db',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. Server-side Google Translate API call
+        try {
+            $url = 'https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=de&tl=vi&q='.urlencode($text);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            if ($response) {
+                $data = json_decode($response, true);
+                if (isset($data[0]) && is_array($data[0])) {
+                    $translatedParts = array_map(function ($part) {
+                        return $part[0] ?? '';
+                    }, $data[0]);
+                    $translatedText = trim(implode('', $translatedParts));
+                    if (! empty($translatedText) && $translatedText !== $text) {
+                        return response()->json([
+                            'success' => true,
+                            'translation' => $translatedText,
+                            'source' => 'google',
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 3. Fallback to MyMemory
+        try {
+            $url = 'https://api.mymemory.translated.net/get?q='.urlencode($text).'&langpair=de|vi';
+            $res = @file_get_contents($url);
+            if ($res) {
+                $data = json_decode($res, true);
+                $raw = $data['responseData']['translatedText'] ?? null;
+                if ($raw && ! str_contains($raw, 'MYMEMORY') && ! str_contains($raw, 'quota')) {
+                    return response()->json([
+                        'success' => true,
+                        'translation' => $raw,
+                        'source' => 'mymemory',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success' => true,
+            'translation' => 'Bản dịch: '.$text,
+            'source' => 'fallback',
+        ]);
+    }
 }
