@@ -768,13 +768,17 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   <button
                     key={q.id}
                     onClick={() => {
-                      let targetSection = 0;
+                      let targetSection = activeSectionIndex;
                       if (activeSections.length > 0) {
-                        const secIdx = activeSections.findIndex((s) => s.name === q.section);
-                        if (secIdx >= 0) targetSection = secIdx;
-                        else if (q.section.includes('Sprachbausteine')) targetSection = 1;
-                        else if (q.section.includes('Hörverstehen')) targetSection = 2;
-                        else if (q.section.includes('Schriftlicher')) targetSection = 3;
+                        const secIdx = activeSections.findIndex((s) => s.name.trim().toLowerCase() === q.section.trim().toLowerCase());
+                        if (secIdx >= 0) {
+                          targetSection = secIdx;
+                        } else {
+                          const partialIdx = activeSections.findIndex((s) =>
+                            s.name.toLowerCase().includes(q.section.toLowerCase()) || q.section.toLowerCase().includes(s.name.toLowerCase())
+                          );
+                          if (partialIdx >= 0) targetSection = partialIdx;
+                        }
                       }
 
                       setActiveSectionIndex(targetSection);
