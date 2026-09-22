@@ -648,11 +648,12 @@ export default function App() {
   };
 
   const handleUpdateExam = (updatedExam: ExamModel) => {
-    setExams((prev) => prev.map((e) => (e.id === updatedExam.id ? updatedExam : e)));
-    fetch(`/api/v1/exams/${updatedExam.id}`, {
+    setExams((prev) => prev.map((e) => (e.id === updatedExam.id || e.examCode === updatedExam.examCode ? updatedExam : e)));
+    fetch(`/api/v1/exams/${encodeURIComponent(updatedExam.examCode || updatedExam.id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        exam_code: updatedExam.examCode,
         name: updatedExam.name,
         level: updatedExam.level,
         duration_minutes: updatedExam.durationMinutes,

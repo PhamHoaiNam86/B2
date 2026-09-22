@@ -180,9 +180,14 @@ class ExamController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $exam = Exam::where('id', $id)->orWhere('exam_code', $id)->firstOrFail();
+        $examCode = $request->input('exam_code', $id);
+        $exam = Exam::where('id', $id)
+            ->orWhere('exam_code', $id)
+            ->orWhere('exam_code', $examCode)
+            ->first();
 
         $validated = $request->validate([
+            'exam_code' => 'nullable|string',
             'name' => 'sometimes|required|string',
             'level' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
@@ -191,6 +196,21 @@ class ExamController extends Controller
             'questions' => 'nullable|array',
             'sections' => 'nullable|array',
         ]);
+
+        if (! $exam) {
+            $exam = Exam::create([
+                'exam_code' => $validated['exam_code'] ?? $examCode,
+                'name' => $validated['name'] ?? 'Đề thi mới',
+                'level' => $validated['level'] ?? 'TELC B2',
+                'duration_minutes' => $validated['duration_minutes'] ?? 90,
+                'description' => $validated['description'] ?? '',
+                'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+                'target_score' => 225,
+                'pass_rate' => '88%',
+                'is_active' => true,
+                'sections_json' => $validated['sections'] ?? null,
+            ]);
+        }
 
         if (isset($validated['name'])) {
             $exam->name = $validated['name'];
