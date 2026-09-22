@@ -726,7 +726,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
             {/* Grid numbers */}
             <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
-              {questions.map((q) => {
+              {questions.map((q, qIndex) => {
                 const userAns = examState.answers[q.id];
                 const isAnswered = Boolean(userAns);
                 const isCorrect = userAns === (q.correctOptionId || 'A');
@@ -774,7 +774,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     }}
                     className={`h-8 rounded-lg border-2 font-black text-xs transition-all cursor-pointer flex items-center justify-center ${gridStyle}`}
                   >
-                    {q.id}
+                    {qIndex + 1}
                   </button>
                 );
               })}
@@ -792,6 +792,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 const userChoice = examState.answers[q.id] || '';
                 const isAnswered = Boolean(userChoice.trim());
                 const isWritingQuestion = q.type === 'writing';
+                const globalIdx = questions.findIndex((item) => item.id === q.id);
+                const displayQuestionNum = globalIdx >= 0 ? globalIdx + 1 : q.id;
 
                 return (
                   <div
@@ -806,7 +808,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB] text-white text-xs font-black">
-                            Câu {q.id}
+                            Câu {displayQuestionNum}
                           </span>
                           {q.subSection && (
                             <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded border border-slate-300">
