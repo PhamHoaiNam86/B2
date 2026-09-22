@@ -600,15 +600,18 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 )}
               </div>
 
-              {sectionQuestions[0]?.contextText ? (
-                <div className="whitespace-pre-line leading-relaxed">
-                  {renderHighlightedText(sectionQuestions[0].contextText)}
-                </div>
-              ) : (
-                <p className="text-slate-500 italic text-center py-8">
-                  Đề bài phần thi này hiển thị theo từng câu hỏi ở cột bên phải.
-                </p>
-              )}
+              {(() => {
+                const activeContextText = currentQuestion?.contextText || sectionQuestions.find((q) => Boolean(q.contextText?.trim()))?.contextText || '';
+                return activeContextText ? (
+                  <div className="whitespace-pre-line leading-relaxed">
+                    {renderHighlightedText(activeContextText)}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic text-center py-8">
+                    Đề bài phần thi này hiển thị theo từng câu hỏi ở cột bên phải.
+                  </p>
+                );
+              })()}
             </div>
 
             {/* Highlighted Words Chips */}
