@@ -16,7 +16,7 @@ class ExamController extends Controller
      */
     public function index()
     {
-        $exams = Exam::where('is_active', true)->orderBy('id', 'asc')->get();
+        $exams = Exam::orderBy('id', 'asc')->get();
 
         return response()->json([
             'success' => true,

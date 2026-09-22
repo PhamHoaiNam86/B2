@@ -929,10 +929,10 @@ export default function App() {
                 />
               )}
 
-              {/* TAB 2: EXAM REPOSITORY (B2, B1, A2, A1) */}
+              {/* TAB 2: EXAM REPOSITORY (B2, B1, A2, A1, C1) */}
               {activeTab === 'exam' && (
                 <ExamsView
-                  exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
+                  exams={exams.filter((e) => !e.level || e.level.toUpperCase().includes('B2'))}
                   levelLabel="B2"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam');
@@ -950,7 +950,7 @@ export default function App() {
 
               {activeTab === 'exam-c1' && (
                 <ExamsView
-                  exams={exams.filter((e) => e.level.includes('C1'))}
+                  exams={exams.filter((e) => e.level && e.level.toUpperCase().includes('C1'))}
                   levelLabel="C1"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam-c1');
@@ -968,7 +968,7 @@ export default function App() {
 
               {activeTab === 'exam-b1' && (
                 <ExamsView
-                  exams={exams.filter((e) => e.level.includes('B1'))}
+                  exams={exams.filter((e) => e.level && e.level.toUpperCase().includes('B1'))}
                   levelLabel="B1"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam-b1');
@@ -986,7 +986,7 @@ export default function App() {
 
               {activeTab === 'exam-a2' && (
                 <ExamsView
-                  exams={exams.filter((e) => e.level.includes('A2'))}
+                  exams={exams.filter((e) => e.level && e.level.toUpperCase().includes('A2'))}
                   levelLabel="A2"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam-a2');
@@ -1004,7 +1004,7 @@ export default function App() {
 
               {activeTab === 'exam-a1' && (
                 <ExamsView
-                  exams={exams.filter((e) => e.level.includes('A1'))}
+                  exams={exams.filter((e) => e.level && e.level.toUpperCase().includes('A1'))}
                   levelLabel="A1"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam-a1');
