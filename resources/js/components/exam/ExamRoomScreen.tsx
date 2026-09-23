@@ -128,6 +128,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
   const [isLockedByAntiCheat, setIsLockedByAntiCheat] = useState<boolean>(false);
   const [lastAutoSavedTime, setLastAutoSavedTime] = useState<string>('Vừa xong');
+  const [previewBannerUrl, setPreviewBannerUrl] = useState<string | null>(null);
 
   // Load Questions from API if available
   useEffect(() => {
@@ -388,6 +389,13 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   const currentSectionMeta = activeSections[activeSectionIndex] || activeSections[0] || SECTIONS[0];
 
+  const matchingExamSection = selectedExam?.sections?.find(
+    (s: any) => s.name === currentSectionMeta?.name ||
+      currentSectionMeta?.name?.toLowerCase().includes((s.name || '').toLowerCase()) ||
+      (s.name || '').toLowerCase().includes((currentSectionMeta?.name || '').toLowerCase())
+  );
+  const activeSectionImageUrl = matchingExamSection?.imageUrl || matchingExamSection?.image_url || matchingExamSection?.bannerUrl || '';
+
   const sectionQuestions = questions.filter((q) => {
     if (activeSections.length > 0 && activeSections[activeSectionIndex]) {
       return q.section === activeSections[activeSectionIndex].name;
@@ -554,6 +562,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 ))}
               </div>
             </div>
+
+            {/* SECTION BANNER IMAGE AT TOP OF SECTION */}
+            {Boolean(activeSectionImageUrl) && (
+              <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] group shrink-0 shadow-xs">
+                <img
+                  src={activeSectionImageUrl}
+                  alt={`Banner ${currentSectionMeta?.name}`}
+                  className="w-full max-h-64 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer"
+                  onClick={() => setPreviewBannerUrl(activeSectionImageUrl)}
+                />
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 text-white flex items-center justify-between">
+                  <span className="text-[11px] font-black font-heading uppercase tracking-wide flex items-center gap-1.5 drop-shadow">
+                    🖼️ Banner / Hình Ảnh Phần Thi: {currentSectionMeta?.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewBannerUrl(activeSectionImageUrl)}
+                    className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white rounded-lg text-[10px] font-black border border-white/50 cursor-pointer backdrop-blur-sm transition-all"
+                  >
+                    🔍 Phóng To Ảnh
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Audio Player for Listening Exams / Hörverstehen (Dynamic Media Detection) */}
             {Boolean(
@@ -1028,6 +1060,44 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             </p>
             <div className="px-4 py-2 bg-red-100 text-red-900 rounded-xl font-black text-xs border border-red-300">
               Đang chuyển tới trang Kết quả...
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. FULLSCREEN SECTION BANNER IMAGE PREVIEW MODAL */}
+      {previewBannerUrl && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="relative bg-white border-4 border-[#111827] rounded-2xl max-w-5xl w-full p-4 brutal-shadow-lg space-y-3 max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+              <h3 className="text-sm font-black text-[#111827] font-heading flex items-center gap-2">
+                🖼️ Hình Ảnh Banner Phần Thi - {currentSectionMeta?.name}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPreviewBannerUrl(null)}
+                className="p-1.5 bg-[#e11d48] text-white rounded-lg border-2 border-[#111827] hover:bg-red-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto flex items-center justify-center p-2 bg-slate-950 rounded-xl">
+              <img
+                src={previewBannerUrl}
+                alt="Banner phần thi phóng to"
+                className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPreviewBannerUrl(null)}
+                className="px-5 py-2 bg-[#111827] text-white border-2 border-[#111827] rounded-xl text-xs font-black cursor-pointer uppercase font-heading hover:bg-slate-800"
+              >
+                Đóng Ảnh
+              </button>
             </div>
           </div>
         </div>

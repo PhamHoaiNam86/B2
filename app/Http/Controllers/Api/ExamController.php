@@ -325,6 +325,33 @@ class ExamController extends Controller
     }
 
     /**
+     * Upload an image file for section banner or questions.
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,webp,gif,svg|max:15360',
+        ]);
+
+        $file = $request->file('image');
+        $fileName = time().'_'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->getClientOriginalExtension();
+
+        $destinationPath = public_path('uploads/images');
+        if (! file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        $file->move($destinationPath, $fileName);
+        $imageUrl = '/uploads/images/'.$fileName;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tải ảnh banner phần thi lên thành công!',
+            'url' => $imageUrl,
+        ]);
+    }
+
+    /**
      * Translate German text to Vietnamese.
      */
     public function translate(Request $request)

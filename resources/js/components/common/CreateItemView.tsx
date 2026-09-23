@@ -22,6 +22,7 @@ interface ExamSection {
   id: string;
   name: string;
   duration: string;
+  imageUrl?: string;
   questions: ExamQuestion[];
 }
 
@@ -72,6 +73,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
+  const [uploadingImageSecId, setUploadingImageSecId] = useState<string | null>(null);
 
   // Dynamic Exam Sections State (Admin freely creates and names sections)
   const [sections, setSections] = useState<ExamSection[]>(() => {
@@ -138,12 +140,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
             sectionsMap[secName].push(mappedQ);
           });
 
-          const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
-            id: `sec-${sIdx + 1}`,
-            name: secName,
-            duration: '30 phút',
-            questions: sectionsMap[secName],
-          }));
+          const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => {
+            const existingSec = Array.isArray(editingItem.sections)
+              ? editingItem.sections.find((s: any) => s.name === secName) || editingItem.sections[sIdx]
+              : null;
+            return {
+              id: `sec-${sIdx + 1}`,
+              name: secName,
+              duration: existingSec?.duration || '30 phút',
+              imageUrl: existingSec?.imageUrl || existingSec?.image_url || existingSec?.bannerUrl || '',
+              questions: sectionsMap[secName],
+            };
+          });
 
           if (builtSections.length > 0) {
             setSections(builtSections);
@@ -177,12 +185,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                   sectionsMap[secName].push(mappedQ);
                 });
 
-                const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => ({
-                  id: `sec-${sIdx + 1}`,
-                  name: secName,
-                  duration: '30 phút',
-                  questions: sectionsMap[secName],
-                }));
+                const builtSections: ExamSection[] = Object.keys(sectionsMap).map((secName, sIdx) => {
+                  const existingSec = Array.isArray(editingItem.sections)
+                    ? editingItem.sections.find((s: any) => s.name === secName) || editingItem.sections[sIdx]
+                    : null;
+                  return {
+                    id: `sec-${sIdx + 1}`,
+                    name: secName,
+                    duration: existingSec?.duration || '30 phút',
+                    imageUrl: existingSec?.imageUrl || existingSec?.image_url || existingSec?.bannerUrl || '',
+                    questions: sectionsMap[secName],
+                  };
+                });
 
                 if (builtSections.length > 0) {
                   setSections(builtSections);
@@ -275,6 +289,40 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   const handleSectionDurationChange = (secId: string, duration: string) => {
     setSections((prev) => prev.map((s) => (s.id === secId ? { ...s, duration } : s)));
+  };
+
+  const handleSectionImageUrlChange = (secId: string, imageUrl: string) => {
+    setSections((prev) => prev.map((s) => (s.id === secId ? { ...s, imageUrl } : s)));
+  };
+
+  const handleSectionImageUpload = async (secId: string, file: File) => {
+    if (file.size > 15 * 1024 * 1024) {
+      onShowToast('File quá lớn', 'Dung lượng ảnh vượt quá 15MB. Vui lòng chọn file nhỏ hơn.', 'warning');
+      return;
+    }
+
+    setUploadingImageSecId(secId);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/v1/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success && data.url) {
+        handleSectionImageUrlChange(secId, data.url);
+        onShowToast('Tải ảnh thành công!', 'Đã tải ảnh banner cho phần thi.', 'success');
+      } else {
+        onShowToast('Lỗi tải ảnh', data.message || 'Không thể tải ảnh. Vui lòng chọn file ảnh hợp lệ.', 'warning');
+      }
+    } catch (err) {
+      onShowToast('Lỗi tải ảnh', 'Có lỗi xảy ra khi tải ảnh banner.', 'warning');
+    } finally {
+      setUploadingImageSecId(null);
+    }
   };
 
   // Question Handlers inside targeted section
@@ -601,6 +649,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       name: sec.name.trim() || `Phần ${sIdx + 1}`,
       questionCount: sec.questions.length,
       duration: sec.duration || '30 phút',
+      imageUrl: sec.imageUrl || '',
     }));
 
     const examData: ExamModel = {
@@ -982,6 +1031,60 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+                    </div>
+
+                    {/* Section Banner Image Upload / Input Bar */}
+                    <div className="bg-white p-3 border-2 border-[#111827] rounded-xl space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label className="text-xs font-black text-[#111827] flex items-center gap-1.5 font-heading">
+                          <FileText className="w-4 h-4 text-[#2563EB]" />
+                          <span>🖼️ Ảnh Banner Đầu Phần Thi (Tùy chọn - Hiển thị ở đầu phần thi)</span>
+                        </label>
+
+                        <label className="px-3 py-1 bg-[#2563EB] text-white rounded-lg text-xs font-black border border-[#111827] cursor-pointer hover:bg-[#1d4ed8] transition-all flex items-center gap-1 shrink-0">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingImageSecId === sec.id ? 'Đang tải ảnh...' : 'Tải Ảnh Banner'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingImageSecId === sec.id}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleSectionImageUpload(sec.id, file);
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      <input
+                        type="text"
+                        value={sec.imageUrl || ''}
+                        onChange={(e) => handleSectionImageUrlChange(sec.id, e.target.value)}
+                        placeholder="Hoặc dán link đường dẫn ảnh URL (https://...)"
+                        className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-lg text-xs font-bold font-mono"
+                      />
+
+                      {sec.imageUrl && (
+                        <div className="relative mt-2 rounded-lg overflow-hidden border-2 border-[#111827] group">
+                          <img
+                            src={sec.imageUrl}
+                            alt={`Banner ${sec.name}`}
+                            className="w-full max-h-48 object-cover rounded-lg"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSectionImageUrlChange(sec.id, '')}
+                            className="absolute top-2 right-2 px-2.5 py-1 bg-[#e11d48] text-white border border-black rounded-lg text-xs font-black hover:bg-red-700 cursor-pointer shadow-md flex items-center gap-1"
+                            title="Xóa ảnh banner này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Xóa banner
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Questions List Inside This Section */}

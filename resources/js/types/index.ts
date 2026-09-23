@@ -62,7 +62,7 @@ export interface ExamModel {
   durationMinutes: number;
   totalQuestions: number;
   description: string;
-  sections: Array<{ name: string; questionCount: number; duration: string }>;
+  sections: Array<{ name: string; questionCount: number; duration: string; imageUrl?: string }>;
   targetScore: number;
   passRate: string;
   questions?: any[];
