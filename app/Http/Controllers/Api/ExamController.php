@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\Question;
+use App\Models\Vocabulary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -335,7 +336,7 @@ class ExamController extends Controller
 
         // 1. Check DB vocabularies table
         try {
-            $vocab = \App\Models\Vocabulary::whereRaw('LOWER(word) = ?', [mb_strtolower($text)])
+            $vocab = Vocabulary::whereRaw('LOWER(word) = ?', [mb_strtolower($text)])
                 ->orWhereRaw('LOWER(CONCAT(COALESCE(article, ""), " ", word)) = ?', [mb_strtolower($text)])
                 ->first();
 
@@ -346,7 +347,8 @@ class ExamController extends Controller
                     'source' => 'db',
                 ]);
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // 2. Server-side Google Translate API call
         try {
@@ -376,7 +378,8 @@ class ExamController extends Controller
                     }
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // 3. Fallback to MyMemory
         try {
@@ -393,7 +396,8 @@ class ExamController extends Controller
                     ]);
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return response()->json([
             'success' => true,

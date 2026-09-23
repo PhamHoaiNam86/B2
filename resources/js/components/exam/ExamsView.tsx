@@ -6,6 +6,7 @@ import { AdminExamsView } from '../admin/AdminExamsView';
 interface ExamsViewProps {
   exams: ExamModel[];
   levelLabel?: string;
+  initialLevelFilter?: string;
   onSelectExam: (exam: ExamModel) => void;
   onStartExam: (exam: ExamModel) => void;
   onOpenNewExamModal: () => void;
@@ -18,6 +19,7 @@ interface ExamsViewProps {
 export const ExamsView: React.FC<ExamsViewProps> = ({
   exams,
   levelLabel = 'B2',
+  initialLevelFilter,
   onSelectExam,
   onStartExam,
   onOpenNewExamModal,
@@ -27,7 +29,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onDeleteExam,
 }) => {
   const [selectedProvider, setSelectedProvider] = useState<'ALL' | 'TELC' | 'GOETHE'>('ALL');
-  const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
+  const [selectedLevel, setSelectedLevel] = useState<string>(initialLevelFilter || levelLabel || 'ALL');
 
   if (currentUser === 'admin') {
     return (
