@@ -53,8 +53,9 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
     const matchesProvider = selectedProvider === 'ALL' || examProvider === selectedProvider;
 
     // Level match
-    const examLevel = exam.level || 'B2';
-    const matchesLevel = selectedLevel === 'ALL' || examLevel.toUpperCase().includes(selectedLevel);
+    const examLevel = (exam.level || 'TELC B2').toUpperCase();
+    const targetLevel = selectedLevel.toUpperCase();
+    const matchesLevel = selectedLevel === 'ALL' || examLevel.includes(targetLevel);
 
     return matchesProvider && matchesLevel;
   });

@@ -44,14 +44,12 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.examCode.toLowerCase().includes(search.toLowerCase());
 
-    const examLevel = (e.level || '').toUpperCase();
-    const examName = (e.name || '').toUpperCase();
+    const examLevel = (e.level || 'TELC B2').toUpperCase();
     const targetLevel = selectedLevel.toUpperCase();
 
     const matchesLevel =
       selectedLevel === 'ALL' ||
-      examLevel.includes(targetLevel) ||
-      examName.includes(targetLevel);
+      examLevel.includes(targetLevel);
 
     return matchesSearch && matchesLevel;
   });

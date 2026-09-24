@@ -98,6 +98,9 @@ export default function App() {
   };
 
   const setActiveTab = (tab: ActiveTab) => {
+    if (tab.startsWith('exam') && tab !== 'exam-detail') {
+      setPreviousExamTab(tab);
+    }
     setActiveTabState(tab);
     sessionStorage.setItem('activeTab', tab);
     localStorage.setItem('activeTab', tab);
@@ -452,7 +455,7 @@ export default function App() {
   const handleOpenCreateExam = (editing: ExamModel | null = null) => {
     const originTab = editing
       ? getExamTabFromLevel(editing.level, activeTab.startsWith('exam') ? activeTab : 'exam')
-      : (activeTab.startsWith('exam') ? activeTab : 'exam');
+      : (activeTab.startsWith('exam') && activeTab !== 'exam-detail' ? activeTab : previousExamTab);
     setPreviousExamTab(originTab);
     setEditingItem(editing);
     setCreateItemType('exam');
@@ -464,7 +467,7 @@ export default function App() {
       case 'exam-a1': return 'TELC A1';
       case 'exam-a2': return 'TELC A2';
       case 'exam-b1': return 'TELC B1';
-      case 'exam-c1': return 'GOETHE C1';
+      case 'exam-c1': return 'TELC C1';
       case 'exam':
       default: return 'TELC B2';
     }
@@ -631,7 +634,7 @@ export default function App() {
             id: String(res.data.id || res.data.exam_code),
             name: res.data.name || res.data.title,
             examCode: res.data.exam_code,
-            level: res.data.level || 'TELC B2',
+            level: res.data.level || newExam.level || 'TELC B2',
             durationMinutes: res.data.duration_minutes || 90,
             totalQuestions: res.data.total_questions || (newExam.questions ? newExam.questions.length : 0),
             description: res.data.description || '',

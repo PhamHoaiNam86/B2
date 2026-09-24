@@ -56,6 +56,17 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 }) => {
   const isEditMode = !!editingItem;
 
+  const normalizeExamLevel = (rawLevel?: string): string => {
+    if (!rawLevel) return 'TELC B2';
+    const upper = rawLevel.toUpperCase();
+    if (upper.includes('A1')) return 'TELC A1';
+    if (upper.includes('A2')) return 'TELC A2';
+    if (upper.includes('B1')) return 'TELC B1';
+    if (upper.includes('C1')) return 'TELC C1';
+    if (upper.includes('B2')) return 'TELC B2';
+    return rawLevel;
+  };
+
   // Vocab State
   const [word, setWord] = useState(editingItem?.word || '');
   const [article, setArticle] = useState(editingItem?.article || 'der');
@@ -70,7 +81,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
   const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
-  const [level, setLevel] = useState(editingItem?.level || initialLevel || 'TELC B2');
+  const [level, setLevel] = useState(normalizeExamLevel(editingItem?.level || initialLevel));
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
@@ -118,7 +129,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       } else if (type === 'exam') {
         setExamName(editingItem.name || '');
         setExamCode(editingItem.examCode || '');
-        setLevel(editingItem.level || initialLevel || 'TELC B2');
+        setLevel(normalizeExamLevel(editingItem.level || initialLevel));
         setDurationMinutes(editingItem.durationMinutes || 90);
         setDescription(editingItem.description || '');
 
@@ -231,7 +242,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       } else if (type === 'exam') {
         setExamName('');
         setExamCode(`MOCK-${Date.now().toString().slice(-4)}`);
-        setLevel(initialLevel || 'TELC B2');
+        setLevel(normalizeExamLevel(initialLevel));
         setDurationMinutes(90);
         setDescription('');
         setSections([
