@@ -4,6 +4,8 @@ import { Plus, Search, Edit3, Trash2, Eye, ChevronLeft, ChevronRight } from 'luc
 
 interface AdminExamsViewProps {
   exams: ExamModel[];
+  levelLabel?: string;
+  initialLevelFilter?: string;
   onSelectExam: (exam: ExamModel) => void;
   onOpenNewExamModal: () => void;
   onShowToast: (title: string, msg: string, type?: 'success' | 'info' | 'warning') => void;
@@ -15,6 +17,8 @@ const ITEMS_PER_PAGE = 10;
 
 export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   exams,
+  levelLabel = 'B2',
+  initialLevelFilter,
   onSelectExam,
   onOpenNewExamModal,
   onShowToast,
@@ -22,18 +26,34 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   onEditExam,
 }) => {
   const [search, setSearch] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState<string>(initialLevelFilter || levelLabel || 'ALL');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Sync selected level if props change
+  useEffect(() => {
+    setSelectedLevel(initialLevelFilter || levelLabel || 'ALL');
+  }, [initialLevelFilter, levelLabel]);
 
   // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, selectedLevel]);
 
   const filteredExams = exams.filter((e) => {
-    return (
+    const matchesSearch =
       e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.examCode.toLowerCase().includes(search.toLowerCase())
-    );
+      e.examCode.toLowerCase().includes(search.toLowerCase());
+
+    const examLevel = (e.level || '').toUpperCase();
+    const examName = (e.name || '').toUpperCase();
+    const targetLevel = selectedLevel.toUpperCase();
+
+    const matchesLevel =
+      selectedLevel === 'ALL' ||
+      examLevel.includes(targetLevel) ||
+      examName.includes(targetLevel);
+
+    return matchesSearch && matchesLevel;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredExams.length / ITEMS_PER_PAGE));
@@ -59,7 +79,7 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
             QUẢN TRỊ VIÊN / ADMIN
           </span>
           <h2 className="text-2xl font-black text-[#111827] mt-1 font-heading">
-            Quản Lý Danh Sách Bộ Đề Thi TELC
+            Quản Lý Danh Sách Bộ Đề Thi
           </h2>
           <p className="text-xs text-[#4b5563] mt-0.5">
             Quản lý, tạo mới, chỉnh sửa nội dung và cấu trúc đề thi mô phỏng tiêu chuẩn (10 bản ghi / trang)
@@ -75,9 +95,9 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs">
-        <div className="relative w-full">
+      {/* Search & Filter Bar */}
+      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
           <input
             type="text"
@@ -86,6 +106,24 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
             placeholder="Tìm kiếm mã đề thi, tên bộ đề..."
             className="w-full pl-9 pr-3 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
           />
+        </div>
+
+        {/* Level Quick Switcher */}
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+          <span className="text-xs font-black text-slate-500 uppercase mr-1 whitespace-nowrap">Trình độ:</span>
+          {['ALL', 'A1', 'A2', 'B1', 'B2', 'C1'].map((lvl) => (
+            <button
+              key={lvl}
+              onClick={() => setSelectedLevel(lvl)}
+              className={`px-3 py-1.5 rounded-lg border-2 text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                selectedLevel.toUpperCase() === lvl
+                  ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
+              }`}
+            >
+              {lvl === 'ALL' ? 'Tất cả' : lvl}
+            </button>
+          ))}
         </div>
       </div>
 

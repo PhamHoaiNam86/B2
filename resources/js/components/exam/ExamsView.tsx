@@ -35,6 +35,8 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
     return (
       <AdminExamsView
         exams={exams}
+        levelLabel={levelLabel}
+        initialLevelFilter={initialLevelFilter}
         onSelectExam={onSelectExam}
         onOpenNewExamModal={onOpenNewExamModal}
         onShowToast={onShowToast}
