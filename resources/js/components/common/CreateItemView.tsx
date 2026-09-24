@@ -684,22 +684,23 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     const flattenedQuestions: any[] = [];
     sections.forEach((sec, sIdx) => {
       const fallbackSecName = sec.name.trim() || `Phần ${sIdx + 1}`;
-      sec.questions.forEach((q) => {
+      sec.questions.forEach((q, qIdx) => {
+        const questionTitle = q.questionText?.trim() || (q.imageUrl ? `[Hình ảnh câu hỏi ${qIdx + 1}]` : `Câu ${qIdx + 1}`);
         flattenedQuestions.push({
           id: q.id,
           section: fallbackSecName,
           type: q.type || 'choice',
-          questionText: q.questionText,
+          questionText: questionTitle,
           contextText: q.contextText || '',
           audioUrl: q.audioUrl || '',
           imageUrl: q.imageUrl || '',
           explanation: q.explanation || '',
-          options: q.options.map((opt, optIndex) => {
+          options: (q.options || []).map((opt, optIndex) => {
             const letter = String.fromCharCode(65 + optIndex);
             const clean = getCleanOptionText(opt.text);
             return {
               ...opt,
-              text: clean ? `${letter}: ${clean}` : `${letter}: `,
+              text: `${letter}: ${clean || `Phương án ${letter}`}`,
             };
           }),
         });
@@ -718,7 +719,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       name: examName,
       examCode,
       level,
-      durationMinutes,
+      durationMinutes: durationMinutes || 90,
       totalQuestions: flattenedQuestions.length || totalQuestionsCount,
       description: description || 'Đề thi thử tiếng Đức chuẩn hóa.',
       sections: formattedSections,
@@ -1275,7 +1276,6 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                               </label>
                               <input
                                 type="text"
-                                required={!q.imageUrl}
                                 value={q.questionText}
                                 onChange={(e) => handleQuestionTextChange(sec.id, q.id, e.target.value)}
                                 placeholder={q.type === 'writing' ? 'Ví dụ: Bài thi Viết thư phàn nàn B2 (Schriftlicher Ausdruck)' : `Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
@@ -1389,7 +1389,6 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                         </span>
                                         <input
                                           type="text"
-                                          required
                                           value={cleanText}
                                           onChange={(e) => handleOptionTextChange(sec.id, q.id, opt.id, optIndex, e.target.value)}
                                           placeholder={`Nội dung phương án ${letter}...`}
