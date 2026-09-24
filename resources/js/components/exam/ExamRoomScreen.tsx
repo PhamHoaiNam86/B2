@@ -460,8 +460,40 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return questions.find((q) => Boolean(q.audioUrl?.trim()))?.audioUrl?.trim() || '';
   };
 
+  const formatImageUrl = (url?: string): string => {
+    if (!url || !url.trim()) return '';
+    const clean = url.trim();
+    if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
+      return clean;
+    }
+    return clean.startsWith('/') ? clean : `/${clean}`;
+  };
+
+  // Dynamic Image URL Resolution for Currently Active Question / Section
+  const getActiveImageUrl = (): string => {
+    if (currentQuestion?.imageUrl?.trim()) {
+      return formatImageUrl(currentQuestion.imageUrl.trim());
+    }
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].imageUrl?.trim()) {
+            return formatImageUrl(sectionQuestions[i].imageUrl!.trim());
+          }
+        }
+      }
+      const firstWithImg = sectionQuestions.find((q) => Boolean(q.imageUrl?.trim()));
+      if (firstWithImg?.imageUrl?.trim()) {
+        return formatImageUrl(firstWithImg.imageUrl.trim());
+      }
+    }
+    return formatImageUrl(activeSectionImageUrl);
+  };
+
   const activeContextText = getActiveContextText();
   const activeAudioUrl = getActiveAudioUrl();
+  const activeImageUrl = getActiveImageUrl();
 
   // Extract all unique contextText passages in this section
   const sectionPassages = Array.from(
@@ -668,22 +700,25 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               </div>
             </div>
 
-            {/* SECTION BANNER IMAGE AT TOP OF SECTION */}
-            {Boolean(activeSectionImageUrl) && (
-              <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] group shrink-0 shadow-xs">
+            {/* DYNAMIC IMAGE IN LEFT COLUMN (SECTION BANNER OR QUESTION ATTACHED IMAGE) */}
+            {Boolean(activeImageUrl) && (
+              <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] group shrink-0 shadow-xs my-1">
                 <img
-                  src={activeSectionImageUrl}
-                  alt={`Banner ${currentSectionMeta?.name}`}
-                  className="w-full max-h-64 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer"
-                  onClick={() => setPreviewBannerUrl(activeSectionImageUrl)}
+                  src={activeImageUrl}
+                  alt={`Hình ảnh bài đọc / đề thi câu ${displayQuestionNum}`}
+                  className="w-full max-h-80 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer p-1"
+                  onClick={() => setPreviewBannerUrl(activeImageUrl)}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 text-white flex items-center justify-between">
-                  <span className="text-[11px] font-black font-heading uppercase tracking-wide flex items-center gap-1.5 drop-shadow">
-                    🖼️ Banner / Hình Ảnh Phần Thi: {currentSectionMeta?.name}
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2 text-white flex items-center justify-between">
+                  <span className="text-[10px] font-black font-heading uppercase tracking-wide flex items-center gap-1">
+                    🖼️ Hình Ảnh Đề Bài / Ngữ Cảnh (Câu #{displayQuestionNum})
                   </span>
                   <button
                     type="button"
-                    onClick={() => setPreviewBannerUrl(activeSectionImageUrl)}
+                    onClick={() => setPreviewBannerUrl(activeImageUrl)}
                     className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white rounded-lg text-[10px] font-black border border-white/50 cursor-pointer backdrop-blur-sm transition-all"
                   >
                     🔍 Phóng To Ảnh
@@ -737,7 +772,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             {/* Reading Context Text Content with Highlight Capability */}
             <div
               onMouseUp={handleHighlightSelection}
-              className="flex-1 p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-xs sm:text-sm text-[#111827] leading-relaxed space-y-3 overflow-y-auto max-h-[500px] select-text font-medium"
+              className="flex-1 p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-sm sm:text-base text-[#111827] leading-relaxed space-y-4 overflow-y-auto max-h-[550px] select-text font-medium"
             >
               <div className="p-2 bg-[#fff8e7] border border-[#d97706]/30 rounded-lg text-[11px] font-bold text-[#b45309] flex items-center justify-between">
                 <span>💡 Bôi đen văn bản bên dưới để dùng tool Tô Màu Highlight!</span>
@@ -1019,10 +1054,13 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     {Boolean(q.imageUrl) && (
                       <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] my-3 group shrink-0">
                         <img
-                          src={q.imageUrl}
+                          src={formatImageUrl(q.imageUrl)}
                           alt={`Hình ảnh câu hỏi ${displayQuestionNum}`}
                           className="w-full max-h-72 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer p-1"
-                          onClick={() => setPreviewBannerUrl(q.imageUrl || null)}
+                          onClick={() => setPreviewBannerUrl(formatImageUrl(q.imageUrl))}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
                         />
                         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2 text-white flex items-center justify-between">
                           <span className="text-[10px] font-black font-heading uppercase tracking-wide flex items-center gap-1">
@@ -1030,10 +1068,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                           </span>
                           <button
                             type="button"
-                            onClick={() => setPreviewBannerUrl(q.imageUrl || null)}
+                            onClick={() => setPreviewBannerUrl(formatImageUrl(q.imageUrl))}
                             className="px-2 py-0.5 bg-white/20 hover:bg-white/40 text-white rounded text-[10px] font-black border border-white/40 cursor-pointer backdrop-blur-sm"
                           >
-                            🔍 Xem Phóng To
+                            🔍 Phóng To
                           </button>
                         </div>
                       </div>
