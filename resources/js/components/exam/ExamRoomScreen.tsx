@@ -130,6 +130,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [isLockedByAntiCheat, setIsLockedByAntiCheat] = useState<boolean>(false);
   const [lastAutoSavedTime, setLastAutoSavedTime] = useState<string>('Vừa xong');
   const [previewBannerUrl, setPreviewBannerUrl] = useState<string | null>(null);
+  const [leftImageFailed, setLeftImageFailed] = useState<boolean>(false);
 
   // Load Questions from API if available
   useEffect(() => {
@@ -460,6 +461,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return questions.find((q) => Boolean(q.audioUrl?.trim()))?.audioUrl?.trim() || '';
   };
 
+  const isValidImageUrl = (url?: string): boolean => {
+    if (!url || !url.trim()) return false;
+    const clean = url.trim().toLowerCase();
+    if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:image/')) return true;
+    if (clean.startsWith('/uploads/') || clean.startsWith('uploads/') || clean.startsWith('/images/') || clean.startsWith('images/') || clean.startsWith('/storage/') || clean.startsWith('storage/')) return true;
+    const validExts = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.bmp', '.ico'];
+    return validExts.some((ext) => clean.endsWith(ext));
+  };
+
   const formatImageUrl = (url?: string): string => {
     if (!url || !url.trim()) return '';
     const clean = url.trim();
@@ -471,24 +481,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   // Dynamic Image URL Resolution for Currently Active Question / Section
   const getActiveImageUrl = (): string => {
-    if (currentQuestion?.imageUrl?.trim()) {
-      return formatImageUrl(currentQuestion.imageUrl.trim());
+    // 1. Check section banner / reading image URL
+    if (isValidImageUrl(activeSectionImageUrl)) {
+      return formatImageUrl(activeSectionImageUrl);
     }
+    // 2. Check currently active question image URL
+    if (isValidImageUrl(currentQuestion?.imageUrl)) {
+      return formatImageUrl(currentQuestion.imageUrl);
+    }
+    // 3. Search backwards in section questions for a valid image URL
     if (sectionQuestions.length > 0) {
       const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
       if (qIdx > 0) {
         for (let i = qIdx - 1; i >= 0; i--) {
-          if (sectionQuestions[i].imageUrl?.trim()) {
-            return formatImageUrl(sectionQuestions[i].imageUrl!.trim());
+          if (isValidImageUrl(sectionQuestions[i].imageUrl)) {
+            return formatImageUrl(sectionQuestions[i].imageUrl!);
           }
         }
       }
-      const firstWithImg = sectionQuestions.find((q) => Boolean(q.imageUrl?.trim()));
-      if (firstWithImg?.imageUrl?.trim()) {
-        return formatImageUrl(firstWithImg.imageUrl.trim());
+      const firstWithImg = sectionQuestions.find((q) => isValidImageUrl(q.imageUrl));
+      if (firstWithImg?.imageUrl) {
+        return formatImageUrl(firstWithImg.imageUrl);
       }
     }
-    return formatImageUrl(activeSectionImageUrl);
+    return '';
   };
 
   const activeContextText = getActiveContextText();
@@ -503,6 +519,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [selectedPassageIndex, setSelectedPassageIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    setLeftImageFailed(false);
     if (sectionPassages.length > 1 && activeContextText) {
       const passIdx = sectionPassages.indexOf(activeContextText);
       if (passIdx >= 0) {
@@ -701,16 +718,14 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             </div>
 
             {/* DYNAMIC IMAGE IN LEFT COLUMN (SECTION BANNER OR QUESTION ATTACHED IMAGE) */}
-            {Boolean(activeImageUrl) && (
+            {Boolean(activeImageUrl) && !leftImageFailed && (
               <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] group shrink-0 shadow-xs my-1">
                 <img
                   src={activeImageUrl}
                   alt={`Hình ảnh bài đọc / đề thi câu ${displayQuestionNum}`}
                   className="w-full max-h-80 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer p-1"
                   onClick={() => setPreviewBannerUrl(activeImageUrl)}
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  onError={() => setLeftImageFailed(true)}
                 />
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2 text-white flex items-center justify-between">
                   <span className="text-[10px] font-black font-heading uppercase tracking-wide flex items-center gap-1">
@@ -1051,7 +1066,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     </div>
 
                     {/* QUESTION ATTACHED IMAGE (Supports Only Image, or Image + Text) */}
-                    {Boolean(q.imageUrl) && (
+                    {Boolean(isValidImageUrl(q.imageUrl)) && (
                       <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] my-3 group shrink-0">
                         <img
                           src={formatImageUrl(q.imageUrl)}
