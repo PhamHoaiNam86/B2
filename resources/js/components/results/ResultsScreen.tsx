@@ -85,7 +85,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             onClick={onBackToDashboard}
             className="px-5 py-2.5 bg-white border-2 border-[#111827] text-[#111827] rounded-xl text-xs font-bold hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-2"
           >
-            <ArrowLeft className="w-4 h-4" /> Quay Về Trang Chủ
+            <ArrowLeft className="w-4 h-4" /> Quay Về Danh Sách Đề Thi
           </button>
         </div>
       </div>

@@ -742,6 +742,12 @@ export default function App() {
   };
 
   const handleStartExamRoom = (exam?: ExamModel) => {
+    if (activeTab.startsWith('exam') && activeTab !== 'exam-detail') {
+      setPreviousExamTab(activeTab);
+    } else if (exam?.level) {
+      setPreviousExamTab(getExamTabFromLevel(exam.level, previousExamTab));
+    }
+
     if (exam) {
       setSelectedExam(exam);
       const newExamState: UserExamState = {
@@ -787,7 +793,6 @@ export default function App() {
     });
     setIsExamReviewMode(false);
     setIsExamRoomActive(true);
-    setActiveTab('exam');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -861,7 +866,8 @@ export default function App() {
               setIsExamReviewMode(false);
               setActiveTab('results');
             } else {
-              setActiveTab('dashboard');
+              const returnTab = previousExamTab || getExamTabFromLevel(selectedExam?.level, 'exam');
+              setActiveTab(returnTab);
             }
           }}
           formattedCountdown={formatCountdown(examState.timeRemainingSeconds)}
@@ -1046,7 +1052,10 @@ export default function App() {
                 <ResultsScreen
                   examState={examState}
                   onRetakeExam={handleRetakeExam}
-                  onBackToDashboard={() => setActiveTab('dashboard')}
+                  onBackToDashboard={() => {
+                    const returnTab = previousExamTab || getExamTabFromLevel(selectedExam?.level, 'exam');
+                    setActiveTab(returnTab);
+                  }}
                   onReviewExam={handleReviewExam}
                 />
               )}
