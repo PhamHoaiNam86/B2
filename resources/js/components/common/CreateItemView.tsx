@@ -972,11 +972,11 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                   onChange={(e) => setLevel(e.target.value)}
                   className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
                 >
-                  <option value="TELC A1">Goethe / TELC A1</option>
-                  <option value="TELC A2">Goethe / TELC A2</option>
-                  <option value="TELC B1">Goethe / TELC B1</option>
-                  <option value="TELC B2">TELC B2 Deutsch</option>
-                  <option value="TELC C1">TELC C1 Hochschule</option>
+                  <option value="TELC A1">Trình độ A1 (Goethe / TELC A1)</option>
+                  <option value="TELC A2">Trình độ A2 (Goethe / TELC A2)</option>
+                  <option value="TELC B1">Trình độ B1 (Goethe / TELC B1)</option>
+                  <option value="TELC B2">Trình độ B2 (TELC B2 Deutsch)</option>
+                  <option value="TELC C1">Trình độ C1 (TELC C1 Hochschule)</option>
                 </select>
               </div>
             </div>
