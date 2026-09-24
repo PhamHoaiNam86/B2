@@ -18,6 +18,7 @@ class Question extends Model
         'title',
         'context_text',
         'audio_url',
+        'image_url',
         'options_json',
         'correct_option_id',
         'explanation',

@@ -86,6 +86,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       title: q.title || q.questionText || `Câu ${idx + 1}`,
       contextText: q.contextText || q.context_text || '',
       audioUrl: q.audioUrl || q.audio_url || '',
+      imageUrl: q.imageUrl || q.image_url || '',
       options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
       correctOptionId: q.correctOptionId || q.correct_option_id || 'A',
       explanation: q.explanation || '',
@@ -144,6 +145,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             title: q.title,
             contextText: q.context_text || '',
             audioUrl: q.audio_url || '',
+            imageUrl: q.image_url || q.imageUrl || '',
             options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
             correctOptionId: q.correct_option_id || 'A',
             explanation: q.explanation || '',
@@ -878,6 +880,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         </span>
                       )}
                     </div>
+
+                    {/* QUESTION ATTACHED IMAGE (Supports Only Image, or Image + Text) */}
+                    {Boolean(q.imageUrl) && (
+                      <div className="relative rounded-xl overflow-hidden border-2 border-[#111827] bg-[#111827] my-3 group shrink-0">
+                        <img
+                          src={q.imageUrl}
+                          alt={`Hình ảnh câu hỏi ${displayQuestionNum}`}
+                          className="w-full max-h-72 object-contain mx-auto bg-slate-900 transition-transform duration-300 group-hover:scale-102 cursor-pointer p-1"
+                          onClick={() => setPreviewBannerUrl(q.imageUrl || null)}
+                        />
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2 text-white flex items-center justify-between">
+                          <span className="text-[10px] font-black font-heading uppercase tracking-wide flex items-center gap-1">
+                            🖼️ Hình Ảnh Câu Hỏi #{displayQuestionNum}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewBannerUrl(q.imageUrl || null)}
+                            className="px-2 py-0.5 bg-white/20 hover:bg-white/40 text-white rounded text-[10px] font-black border border-white/40 cursor-pointer backdrop-blur-sm"
+                          >
+                            🔍 Xem Phóng To
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* WRITING QUESTION TYPE */}
                     {isWritingQuestion ? (

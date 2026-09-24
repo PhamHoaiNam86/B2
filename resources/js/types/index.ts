@@ -103,6 +103,7 @@ export interface Question {
   title: string;
   contextText?: string;
   audioUrl?: string;
+  imageUrl?: string;
   wordLimit?: number;
   options: Array<{ id: string; text: string }>;
   correctOptionId: string;

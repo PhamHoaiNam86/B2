@@ -14,6 +14,7 @@ interface ExamQuestion {
   questionText: string;
   contextText?: string;
   audioUrl?: string;
+  imageUrl?: string;
   options: ExamQuestionOption[];
   explanation?: string;
 }
@@ -130,6 +131,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               questionText: q.questionText || q.title || `Câu ${idx + 1}: `,
               contextText: q.contextText || q.context_text || '',
               audioUrl: q.audioUrl || q.audio_url || '',
+              imageUrl: q.imageUrl || q.image_url || '',
               explanation: q.explanation || '',
               options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
             };
@@ -172,6 +174,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                     questionText: q.title || `Câu ${idx + 1}: `,
                     contextText: q.context_text || q.contextText || '',
                     audioUrl: q.audio_url || q.audioUrl || '',
+                    imageUrl: q.image_url || q.imageUrl || '',
                     explanation: q.explanation || '',
                     options: q.options_json
                       ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
@@ -415,6 +418,52 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     );
   };
 
+  const [uploadingImageQId, setUploadingImageQId] = useState<string | null>(null);
+
+  const handleQuestionImageUrlChange = (secId: string, qId: string, imageUrl: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, imageUrl } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
+  const handleQuestionImageUpload = async (secId: string, qId: string, file: File) => {
+    if (file.size > 15 * 1024 * 1024) {
+      onShowToast('File quá lớn', 'Dung lượng ảnh vượt quá 15MB. Vui lòng chọn file nhỏ hơn.', 'warning');
+      return;
+    }
+
+    setUploadingImageQId(qId);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/v1/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success && data.url) {
+        handleQuestionImageUrlChange(secId, qId, data.url);
+        onShowToast('Tải ảnh thành công!', 'Đã tải ảnh đính kèm cho câu hỏi.', 'success');
+      } else {
+        onShowToast('Lỗi tải ảnh', data.message || 'Không thể tải ảnh câu hỏi hợp lệ.', 'warning');
+      }
+    } catch (err) {
+      onShowToast('Lỗi tải ảnh', 'Có lỗi xảy ra khi tải ảnh câu hỏi.', 'warning');
+    } finally {
+      setUploadingImageQId(null);
+    }
+  };
+
   const handleFileUpload = async (secId: string, qId: string, file: File) => {
     if (file.size > 30 * 1024 * 1024) {
       onShowToast('File quá lớn', 'Dung lượng file âm thanh vượt quá giới hạn 30MB. Vui lòng nén file MP3 hoặc chọn file nhỏ hơn.', 'warning');
@@ -632,6 +681,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
           questionText: q.questionText,
           contextText: q.contextText || '',
           audioUrl: q.audioUrl || '',
+          imageUrl: q.imageUrl || '',
           explanation: q.explanation || '',
           options: q.options.map((opt, optIndex) => {
             const letter = String.fromCharCode(65 + optIndex);
@@ -1210,16 +1260,70 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                             {/* Question Content Input */}
                             <div>
                               <label className="block text-[11px] font-black text-[#111827] mb-1">
-                                Nội dung / Tiêu đề câu hỏi #{qIdx + 1} *
+                                Nội dung / Tiêu đề câu hỏi #{qIdx + 1} (Tùy chọn nếu đã có ảnh)
                               </label>
                               <input
                                 type="text"
-                                required
+                                required={!q.imageUrl}
                                 value={q.questionText}
                                 onChange={(e) => handleQuestionTextChange(sec.id, q.id, e.target.value)}
                                 placeholder={q.type === 'writing' ? 'Ví dụ: Bài thi Viết thư phàn nàn B2 (Schriftlicher Ausdruck)' : `Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
                                 className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                               />
+                            </div>
+
+                            {/* Question Image Upload Box */}
+                            <div className="p-3 bg-slate-50 border-2 border-[#111827] rounded-xl space-y-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <label className="text-[11px] font-black text-[#111827] flex items-center gap-1.5 font-heading">
+                                  <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+                                  <span>🖼️ Ảnh Đính Kèm Câu Hỏi (Có thể có cả ảnh + chữ, hoặc chỉ có mỗi ảnh)</span>
+                                </label>
+
+                                <label className="px-3 py-1 bg-[#2563EB] text-white rounded-lg text-xs font-black border border-[#111827] cursor-pointer hover:bg-[#1d4ed8] transition-all flex items-center gap-1 shrink-0">
+                                  <Upload className="w-3.5 h-3.5" />
+                                  <span>{uploadingImageQId === q.id ? 'Đang tải ảnh...' : 'Tải Ảnh Câu Hỏi'}</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    disabled={uploadingImageQId === q.id}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleQuestionImageUpload(sec.id, q.id, file);
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              <input
+                                type="text"
+                                value={q.imageUrl || ''}
+                                onChange={(e) => handleQuestionImageUrlChange(sec.id, q.id, e.target.value)}
+                                placeholder="Hoặc dán đường dẫn ảnh URL (https://...)"
+                                className="w-full p-2 bg-white border-2 border-[#111827] rounded-lg text-xs font-bold font-mono"
+                              />
+
+                              {q.imageUrl && (
+                                <div className="relative mt-2 rounded-lg overflow-hidden border-2 border-[#111827] group bg-slate-900 p-1">
+                                  <img
+                                    src={q.imageUrl}
+                                    alt={`Ảnh câu hỏi ${qIdx + 1}`}
+                                    className="w-full max-h-48 object-contain mx-auto rounded"
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).style.display = 'none';
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuestionImageUrlChange(sec.id, q.id, '')}
+                                    className="absolute top-2 right-2 px-2 py-1 bg-[#e11d48] text-white border border-black rounded-lg text-[10px] font-black hover:bg-red-700 cursor-pointer shadow-md flex items-center gap-1"
+                                    title="Xóa ảnh câu hỏi"
+                                  >
+                                    <Trash2 className="w-3 h-3" /> Xóa ảnh
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             {/* Context Text / Reading Text / Prompt Instructions */}
