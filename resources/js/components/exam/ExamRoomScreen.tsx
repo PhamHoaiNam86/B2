@@ -412,7 +412,110 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   }, [activeSectionIndex, sectionQuestions]);
 
   const currentQuestion = questions.find((q) => q.id === activeQuestionId) || sectionQuestions[0] || questions[0];
+  const currentQuestionGlobalIdx = questions.findIndex((q) => q.id === activeQuestionId);
+  const displayQuestionNum = currentQuestionGlobalIdx >= 0 ? currentQuestionGlobalIdx + 1 : (currentQuestion?.id || 1);
   const answeredCount = Object.keys(examState.answers).length;
+
+  // Dynamic Context Text Resolution for Currently Active Question
+  const getActiveContextText = (): string => {
+    if (currentQuestion?.contextText?.trim()) {
+      return currentQuestion.contextText.trim();
+    }
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].contextText?.trim()) {
+            return sectionQuestions[i].contextText.trim();
+          }
+        }
+      }
+      const firstWithContext = sectionQuestions.find((q) => Boolean(q.contextText?.trim()));
+      if (firstWithContext?.contextText?.trim()) {
+        return firstWithContext.contextText.trim();
+      }
+    }
+    return '';
+  };
+
+  // Dynamic Audio URL Resolution for Currently Active Question
+  const getActiveAudioUrl = (): string => {
+    if (currentQuestion?.audioUrl?.trim()) {
+      return currentQuestion.audioUrl.trim();
+    }
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].audioUrl?.trim()) {
+            return sectionQuestions[i].audioUrl.trim();
+          }
+        }
+      }
+      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
+      if (firstWithAudio?.audioUrl?.trim()) {
+        return firstWithAudio.audioUrl.trim();
+      }
+    }
+    return questions.find((q) => Boolean(q.audioUrl?.trim()))?.audioUrl?.trim() || '';
+  };
+
+  const activeContextText = getActiveContextText();
+  const activeAudioUrl = getActiveAudioUrl();
+
+  // Extract all unique contextText passages in this section
+  const sectionPassages = Array.from(
+    new Set(sectionQuestions.map((q) => q.contextText?.trim()).filter(Boolean))
+  ) as string[];
+
+  const [selectedPassageIndex, setSelectedPassageIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (sectionPassages.length > 1 && activeContextText) {
+      const passIdx = sectionPassages.indexOf(activeContextText);
+      if (passIdx >= 0) {
+        setSelectedPassageIndex(passIdx);
+      }
+    } else {
+      setSelectedPassageIndex(null);
+    }
+  }, [activeQuestionId, activeSectionIndex]);
+
+  const displayContextText = (selectedPassageIndex !== null && sectionPassages[selectedPassageIndex])
+    ? sectionPassages[selectedPassageIndex]
+    : activeContextText;
+
+  // IntersectionObserver to auto-update activeQuestionId as student scrolls down right column
+  const isUserClickingRef = useRef(false);
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (sectionQuestions.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isUserClickingRef.current) return;
+        const visible = entries.find((e) => e.isIntersecting && e.intersectionRatio >= 0.2);
+        if (visible) {
+          const attr = visible.target.getAttribute('data-question-id');
+          if (attr) {
+            const parsed = parseInt(attr, 10);
+            if (!isNaN(parsed) && parsed !== activeQuestionId) {
+              setActiveQuestionId(parsed);
+            }
+          }
+        }
+      },
+      { threshold: [0.2, 0.5] }
+    );
+
+    sectionQuestions.forEach((q) => {
+      const el = document.getElementById(`question-${q.id}`);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [activeSectionIndex, sectionQuestions, activeQuestionId]);
 
   const toggleAudio = () => {
     setIsPlayingAudio((prev) => !prev);
@@ -591,7 +694,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
             {/* Audio Player for Listening Exams / Hörverstehen (Dynamic Media Detection) */}
             {Boolean(
-              (currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl) ||
+              activeAudioUrl ||
               currentSectionMeta?.name?.toLowerCase().includes('hör') ||
               currentSectionMeta?.name?.toLowerCase().includes('nghe') ||
               activeSectionIndex === 2
@@ -602,25 +705,24 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     <Headphones className="w-5 h-5 text-[#2563EB]" />
                     <div>
                       <h4 className="text-xs font-black text-[#111827] font-heading uppercase">
-                        File Âm Thanh Bài Nghe Goethe / TELC
+                        File Âm Thanh Bài Nghe Goethe / TELC (Câu {displayQuestionNum})
                       </h4>
                       <span className="text-[10px] font-bold text-[#1e40af]">Bài nghe kiểm tra kỹ năng Hörverstehen</span>
                     </div>
                   </div>
                 </div>
 
-                {(currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl) ? (
-                  ((currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl || '').includes('.mp4') ||
-                   (currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl || '').includes('.webm')) ? (
+                {activeAudioUrl ? (
+                  (activeAudioUrl.includes('.mp4') || activeAudioUrl.includes('.webm')) ? (
                     <video
                       controls
-                      src={currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl}
+                      src={activeAudioUrl}
                       className="w-full max-h-52 rounded-lg border-2 border-[#111827]"
                     />
                   ) : (
                     <audio
                       controls
-                      src={currentQuestion?.audioUrl || sectionQuestions.find((q) => q.audioUrl)?.audioUrl || questions.find((q) => q.audioUrl)?.audioUrl}
+                      src={activeAudioUrl}
                       className="w-full h-10 rounded-lg border border-[#2563eb]/40"
                     />
                   )
@@ -646,18 +748,39 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 )}
               </div>
 
-              {(() => {
-                const activeContextText = currentQuestion?.contextText || sectionQuestions.find((q) => Boolean(q.contextText?.trim()))?.contextText || '';
-                return activeContextText ? (
-                  <div className="whitespace-pre-line leading-relaxed">
-                    {renderHighlightedText(activeContextText)}
-                  </div>
-                ) : (
-                  <p className="text-slate-500 italic text-center py-8">
-                    Đề bài phần thi này hiển thị theo từng câu hỏi ở cột bên phải.
-                  </p>
-                );
-              })()}
+              {/* Passage Tabs when section has multiple distinct reading texts */}
+              {sectionPassages.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 border-b border-slate-200">
+                  <span className="text-[10px] font-black text-slate-500 uppercase shrink-0">Các bài đọc:</span>
+                  {sectionPassages.map((pText, pIdx) => {
+                    const isSelected = (selectedPassageIndex === pIdx || (selectedPassageIndex === null && pText === activeContextText));
+                    return (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        onClick={() => setSelectedPassageIndex(pIdx)}
+                        className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
+                          isSelected
+                            ? 'bg-[#2563EB] text-white border-[#111827] font-black shadow-xs'
+                            : 'bg-slate-100 text-slate-700 border-slate-300 hover:border-slate-400'
+                        }`}
+                      >
+                        Bài Đọc {pIdx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {displayContextText ? (
+                <div className="whitespace-pre-line leading-relaxed">
+                  {renderHighlightedText(displayContextText)}
+                </div>
+              ) : (
+                <p className="text-slate-500 italic text-center py-8">
+                  Đề bài phần thi này hiển thị theo từng câu hỏi ở cột bên phải.
+                </p>
+              )}
             </div>
 
             {/* Highlighted Words Chips */}
@@ -852,8 +975,19 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                   <div
                     key={q.id}
                     id={`question-${q.id}`}
-                    className={`p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24 ${
-                      q.id === activeQuestionId ? 'ring-2 ring-[#2563EB]' : ''
+                    data-question-id={q.id}
+                    onClick={() => {
+                      if (activeQuestionId !== q.id) {
+                        isUserClickingRef.current = true;
+                        setActiveQuestionId(q.id);
+                        if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+                        scrollTimerRef.current = setTimeout(() => {
+                          isUserClickingRef.current = false;
+                        }, 700);
+                      }
+                    }}
+                    className={`p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24 cursor-pointer hover:border-[#2563EB] ${
+                      q.id === activeQuestionId ? 'ring-2 ring-[#2563EB] border-[#2563EB]' : ''
                     }`}
                   >
                     {/* Title */}
