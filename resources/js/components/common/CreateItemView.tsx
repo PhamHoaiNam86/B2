@@ -58,13 +58,13 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   const normalizeExamLevel = (rawLevel?: string): string => {
     if (!rawLevel) return 'TELC B2';
-    const upper = rawLevel.toUpperCase();
-    if (upper.includes('A1')) return 'TELC A1';
-    if (upper.includes('A2')) return 'TELC A2';
-    if (upper.includes('B1')) return 'TELC B1';
-    if (upper.includes('C1')) return 'TELC C1';
-    if (upper.includes('B2')) return 'TELC B2';
-    return rawLevel;
+    const upper = String(rawLevel).toUpperCase().trim();
+    if (/\bB2\b/.test(upper) || upper === 'TELC B2' || upper === 'B2') return 'TELC B2';
+    if (/\bB1\b/.test(upper) || upper === 'TELC B1' || upper === 'B1') return 'TELC B1';
+    if (/\bA2\b/.test(upper) || upper === 'TELC A2' || upper === 'A2') return 'TELC A2';
+    if (/\bA1\b/.test(upper) || upper === 'TELC A1' || upper === 'A1') return 'TELC A1';
+    if (/\bC1\b/.test(upper) || upper === 'TELC C1' || upper === 'C1') return 'TELC C1';
+    return 'TELC B2';
   };
 
   // Vocab State

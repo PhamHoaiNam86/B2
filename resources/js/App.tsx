@@ -443,12 +443,12 @@ export default function App() {
 
   const getExamTabFromLevel = (levelStr?: string, defaultTab: ActiveTab = 'exam'): ActiveTab => {
     if (!levelStr) return defaultTab;
-    const upper = levelStr.toUpperCase();
-    if (upper.includes('A1')) return 'exam-a1';
-    if (upper.includes('A2')) return 'exam-a2';
-    if (upper.includes('B1')) return 'exam-b1';
-    if (upper.includes('C1')) return 'exam-c1';
-    if (upper.includes('B2')) return 'exam';
+    const upper = String(levelStr).toUpperCase().trim();
+    if (/\bB2\b/.test(upper) || upper === 'TELC B2' || upper === 'B2') return 'exam';
+    if (/\bB1\b/.test(upper) || upper === 'TELC B1' || upper === 'B1') return 'exam-b1';
+    if (/\bA2\b/.test(upper) || upper === 'TELC A2' || upper === 'A2') return 'exam-a2';
+    if (/\bA1\b/.test(upper) || upper === 'TELC A1' || upper === 'A1') return 'exam-a1';
+    if (/\bC1\b/.test(upper) || upper === 'TELC C1' || upper === 'C1') return 'exam-c1';
     return defaultTab;
   };
 
