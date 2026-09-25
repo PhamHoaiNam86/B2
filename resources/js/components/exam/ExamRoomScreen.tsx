@@ -426,7 +426,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       return currentQuestion.contextText.trim();
     }
     const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
     if (qIdx > 0) {
       for (let i = qIdx - 1; i >= 0; i--) {
         if (pool[i].contextText?.trim()) {
@@ -438,6 +438,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (firstWithContext?.contextText?.trim()) {
       return firstWithContext.contextText.trim();
     }
+    const globalFirst = questions.find((q) => Boolean(q.contextText?.trim()));
+    if (globalFirst?.contextText?.trim()) {
+      return globalFirst.contextText.trim();
+    }
     return '';
   };
 
@@ -447,7 +451,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       return currentQuestion.audioUrl.trim();
     }
     const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
     if (qIdx > 0) {
       for (let i = qIdx - 1; i >= 0; i--) {
         if (pool[i].audioUrl?.trim()) {
@@ -492,7 +496,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     }
     // 3. Search backwards in pool for a valid image URL
     const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
     if (qIdx > 0) {
       for (let i = qIdx - 1; i >= 0; i--) {
         if (isValidImageUrl(pool[i].imageUrl)) {
@@ -503,6 +507,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     const firstWithImg = pool.find((q) => isValidImageUrl(q.imageUrl));
     if (firstWithImg?.imageUrl) {
       return formatImageUrl(firstWithImg.imageUrl);
+    }
+    const globalFirstImg = questions.find((q) => isValidImageUrl(q.imageUrl));
+    if (globalFirstImg?.imageUrl) {
+      return formatImageUrl(globalFirstImg.imageUrl);
     }
     return '';
   };
