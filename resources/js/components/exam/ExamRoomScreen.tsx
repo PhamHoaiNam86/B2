@@ -807,7 +807,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               </div>
 
               {/* Dynamic Prominent Passage Notice / Annotation Callout Box */}
-              <div className="p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white border-2 border-[#111827] rounded-xl shadow-xs space-y-1 my-1">
+              <div className="p-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white border-2 border-[#111827] rounded-xl shadow-xs space-y-2 my-1">
                 <div className="flex items-center justify-between flex-wrap gap-1.5">
                   <div className="flex items-center gap-1.5 font-black font-heading text-xs uppercase tracking-wide">
                     <span className="p-1 bg-white/20 rounded-md backdrop-blur-xs text-xs">📌</span>
@@ -819,6 +819,17 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     </span>
                   )}
                 </div>
+
+                {/* Custom Admin Note (if provided by Admin in form) */}
+                {Boolean(currentQuestion?.subSection?.trim()) && (
+                  <div className="p-2.5 bg-yellow-300 text-slate-900 border-2 border-[#111827] rounded-lg text-xs font-black shadow-xs leading-relaxed">
+                    <span className="uppercase text-[10px] tracking-wider block text-amber-900 font-extrabold mb-0.5">
+                      ✍️ Ghi chú từ giáo viên:
+                    </span>
+                    {currentQuestion.subSection}
+                  </div>
+                )}
+
                 <p className="text-xs sm:text-sm font-semibold leading-relaxed text-amber-50">
                   {sectionPassages.length > 1 ? (
                     <>

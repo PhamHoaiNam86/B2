@@ -13,6 +13,7 @@ interface ExamQuestion {
   type?: 'choice' | 'writing' | 'listening';
   questionText: string;
   contextText?: string;
+  subSection?: string;
   audioUrl?: string;
   imageUrl?: string;
   options: ExamQuestionOption[];
@@ -618,6 +619,20 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     );
   };
 
+  const handleSubSectionChange = (secId: string, qId: string, text: string) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id === secId) {
+          return {
+            ...sec,
+            questions: sec.questions.map((q) => (q.id === qId ? { ...q, subSection: text } : q)),
+          };
+        }
+        return sec;
+      })
+    );
+  };
+
   const handleExplanationChange = (secId: string, qId: string, text: string) => {
     setSections((prev) =>
       prev.map((sec) => {
@@ -689,6 +704,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         flattenedQuestions.push({
           id: q.id,
           section: fallbackSecName,
+          subSection: q.subSection || '',
           type: q.type || 'choice',
           questionText: questionTitle,
           contextText: q.contextText || '',
@@ -1348,6 +1364,21 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                 onChange={(e) => handleContextTextChange(sec.id, q.id, e.target.value)}
                                 placeholder={q.type === 'writing' ? 'Nhập chi tiết yêu cầu bài viết, các ý bắt buộc cần có trong thư B2...' : 'Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này...'}
                                 className="w-full p-2 bg-[#fff8e7] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                              />
+                            </div>
+
+                            {/* SubSection / Custom Passage Note / Admin Annotation */}
+                            <div className="mt-2">
+                              <label className="block text-[11px] font-black text-[#111827] mb-1 flex items-center gap-1.5">
+                                <span className="px-1.5 py-0.5 bg-amber-400 rounded text-slate-900 font-black text-[10px]">📌 GHI CHÚ BÀI ĐỌC</span>
+                                <span>Ghi chú / Chú thích riêng cho bài đọc (Hiển thị ở khung Chú Thích Nổi Bật cho Học Viên):</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={q.subSection || ''}
+                                onChange={(e) => handleSubSectionChange(sec.id, q.id, e.target.value)}
+                                placeholder="Ví dụ: Chú ý: Bài đọc này áp dụng cho các câu từ 1 đến 5. Hãy chú ý từ vựng mốc thời gian..."
+                                className="w-full p-2 bg-[#fefce8] border-2 border-[#111827] rounded-xl text-xs font-bold text-[#854d0e] focus:outline-none focus:ring-2 focus:ring-[#d97706]"
                               />
                             </div>
 
