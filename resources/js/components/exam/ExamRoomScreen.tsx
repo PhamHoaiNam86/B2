@@ -401,7 +401,10 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   const sectionQuestions = questions.filter((q) => {
     if (activeSections.length > 0 && activeSections[activeSectionIndex]) {
-      return q.section === activeSections[activeSectionIndex].name;
+      const activeName = (activeSections[activeSectionIndex].name || '').toLowerCase().trim();
+      const qSection = (q.section || '').toLowerCase().trim();
+      if (!qSection) return true;
+      return qSection === activeName || qSection.includes(activeName) || activeName.includes(qSection);
     }
     return true;
   });
@@ -422,19 +425,18 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (currentQuestion?.contextText?.trim()) {
       return currentQuestion.contextText.trim();
     }
-    if (sectionQuestions.length > 0) {
-      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
-      if (qIdx > 0) {
-        for (let i = qIdx - 1; i >= 0; i--) {
-          if (sectionQuestions[i].contextText?.trim()) {
-            return sectionQuestions[i].contextText.trim();
-          }
+    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
+    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    if (qIdx > 0) {
+      for (let i = qIdx - 1; i >= 0; i--) {
+        if (pool[i].contextText?.trim()) {
+          return pool[i].contextText!.trim();
         }
       }
-      const firstWithContext = sectionQuestions.find((q) => Boolean(q.contextText?.trim()));
-      if (firstWithContext?.contextText?.trim()) {
-        return firstWithContext.contextText.trim();
-      }
+    }
+    const firstWithContext = pool.find((q) => Boolean(q.contextText?.trim()));
+    if (firstWithContext?.contextText?.trim()) {
+      return firstWithContext.contextText.trim();
     }
     return '';
   };
@@ -444,19 +446,18 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (currentQuestion?.audioUrl?.trim()) {
       return currentQuestion.audioUrl.trim();
     }
-    if (sectionQuestions.length > 0) {
-      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
-      if (qIdx > 0) {
-        for (let i = qIdx - 1; i >= 0; i--) {
-          if (sectionQuestions[i].audioUrl?.trim()) {
-            return sectionQuestions[i].audioUrl.trim();
-          }
+    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
+    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    if (qIdx > 0) {
+      for (let i = qIdx - 1; i >= 0; i--) {
+        if (pool[i].audioUrl?.trim()) {
+          return pool[i].audioUrl!.trim();
         }
       }
-      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
-      if (firstWithAudio?.audioUrl?.trim()) {
-        return firstWithAudio.audioUrl.trim();
-      }
+    }
+    const firstWithAudio = pool.find((q) => Boolean(q.audioUrl?.trim()));
+    if (firstWithAudio?.audioUrl?.trim()) {
+      return firstWithAudio.audioUrl.trim();
     }
     return questions.find((q) => Boolean(q.audioUrl?.trim()))?.audioUrl?.trim() || '';
   };
@@ -489,20 +490,19 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (isValidImageUrl(currentQuestion?.imageUrl)) {
       return formatImageUrl(currentQuestion.imageUrl);
     }
-    // 3. Search backwards in section questions for a valid image URL
-    if (sectionQuestions.length > 0) {
-      const qIdx = sectionQuestions.findIndex((q) => q.id === currentQuestion?.id);
-      if (qIdx > 0) {
-        for (let i = qIdx - 1; i >= 0; i--) {
-          if (isValidImageUrl(sectionQuestions[i].imageUrl)) {
-            return formatImageUrl(sectionQuestions[i].imageUrl!);
-          }
+    // 3. Search backwards in pool for a valid image URL
+    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
+    const qIdx = pool.findIndex((q) => q.id === currentQuestion?.id);
+    if (qIdx > 0) {
+      for (let i = qIdx - 1; i >= 0; i--) {
+        if (isValidImageUrl(pool[i].imageUrl)) {
+          return formatImageUrl(pool[i].imageUrl!);
         }
       }
-      const firstWithImg = sectionQuestions.find((q) => isValidImageUrl(q.imageUrl));
-      if (firstWithImg?.imageUrl) {
-        return formatImageUrl(firstWithImg.imageUrl);
-      }
+    }
+    const firstWithImg = pool.find((q) => isValidImageUrl(q.imageUrl));
+    if (firstWithImg?.imageUrl) {
+      return formatImageUrl(firstWithImg.imageUrl);
     }
     return '';
   };
@@ -513,7 +513,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   // Extract all unique contextText passages in this section
   const sectionPassages = Array.from(
-    new Set(sectionQuestions.map((q) => q.contextText?.trim()).filter(Boolean))
+    new Set((sectionQuestions.length > 0 ? sectionQuestions : questions).map((q) => q.contextText?.trim()).filter(Boolean))
   ) as string[];
 
   const [selectedPassageIndex, setSelectedPassageIndex] = useState<number | null>(null);
