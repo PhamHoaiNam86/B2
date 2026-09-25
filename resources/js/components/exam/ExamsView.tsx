@@ -29,7 +29,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
   onDeleteExam,
 }) => {
   const [selectedProvider, setSelectedProvider] = useState<'ALL' | 'TELC' | 'GOETHE'>('ALL');
-  const [selectedLevel, setSelectedLevel] = useState<string>(initialLevelFilter || levelLabel || 'ALL');
+  const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
 
   if (currentUser === 'admin') {
     return (
@@ -124,22 +124,26 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
           </span>
         </div>
 
-        {/* Level Filters */}
+        {/* Type / Provider Filters */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <span className="text-xs font-black text-slate-500 uppercase shrink-0 flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Trình độ:
+            <Filter className="w-3.5 h-3.5" /> Phân loại:
           </span>
-          {['ALL', 'A1', 'A2', 'B1', 'B2', 'C1'].map((lvl) => (
+          {[
+            { id: 'ALL', label: 'Tất cả loại đề' },
+            { id: 'TELC', label: '📜 Đề TELC' },
+            { id: 'GOETHE', label: '🏛️ Đề Goethe' },
+          ].map((item) => (
             <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
+              key={item.id}
+              onClick={() => setSelectedLevel(item.id)}
               className={`px-3 py-1 rounded-lg border-2 text-xs font-black cursor-pointer transition-all ${
-                selectedLevel === lvl
+                selectedLevel === item.id
                   ? 'bg-[#F97316] text-white border-[#111827] brutal-shadow-xs'
                   : 'bg-slate-100 text-slate-700 border-slate-300 hover:border-[#111827]'
               }`}
             >
-              {lvl === 'ALL' ? 'Tất cả cấp độ' : `Trình độ ${lvl}`}
+              {item.label}
             </button>
           ))}
         </div>

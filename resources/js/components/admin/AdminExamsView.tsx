@@ -26,13 +26,8 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   onEditExam,
 }) => {
   const [search, setSearch] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState<string>(initialLevelFilter || levelLabel || 'ALL');
+  const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Sync selected level if props change
-  useEffect(() => {
-    setSelectedLevel(initialLevelFilter || levelLabel || 'ALL');
-  }, [initialLevelFilter, levelLabel]);
 
   // Reset pagination on filter change
   useEffect(() => {
@@ -44,17 +39,14 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.examCode.toLowerCase().includes(search.toLowerCase());
 
-    const examLevel = String(e.level || 'TELC B2').toUpperCase().trim();
+    const examLevel = String(e.level || 'TELC').toUpperCase().trim();
+    const examProvider = String(e.provider || (e.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
     const targetLevel = selectedLevel.toUpperCase().trim();
 
     const matchesLevel =
       selectedLevel === 'ALL' ||
       examLevel.includes(targetLevel) ||
-      (targetLevel === 'B2' && examLevel.includes('B2')) ||
-      (targetLevel === 'B1' && examLevel.includes('B1')) ||
-      (targetLevel === 'A1' && examLevel.includes('A1')) ||
-      (targetLevel === 'A2' && examLevel.includes('A2')) ||
-      (targetLevel === 'C1' && examLevel.includes('C1'));
+      examProvider === targetLevel;
 
     return matchesSearch && matchesLevel;
   });
@@ -113,18 +105,22 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
 
         {/* Level Quick Switcher */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
-          <span className="text-xs font-black text-slate-500 uppercase mr-1 whitespace-nowrap">Trình độ:</span>
-          {['ALL', 'A1', 'A2', 'B1', 'B2', 'C1'].map((lvl) => (
+          <span className="text-xs font-black text-slate-500 uppercase mr-1 whitespace-nowrap">Loại đề:</span>
+          {[
+            { id: 'ALL', label: 'Tất cả' },
+            { id: 'TELC', label: 'TELC' },
+            { id: 'GOETHE', label: 'Goethe' },
+          ].map((lvl) => (
             <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
+              key={lvl.id}
+              onClick={() => setSelectedLevel(lvl.id)}
               className={`px-3 py-1.5 rounded-lg border-2 text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
-                selectedLevel.toUpperCase() === lvl
+                selectedLevel.toUpperCase() === lvl.id
                   ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
               }`}
             >
-              {lvl === 'ALL' ? 'Tất cả' : lvl}
+              {lvl.label}
             </button>
           ))}
         </div>

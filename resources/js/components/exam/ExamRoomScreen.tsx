@@ -397,7 +397,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       currentSectionMeta?.name?.toLowerCase().includes((s.name || '').toLowerCase()) ||
       (s.name || '').toLowerCase().includes((currentSectionMeta?.name || '').toLowerCase())
   );
-  const activeSectionImageUrl = matchingExamSection?.imageUrl || matchingExamSection?.image_url || matchingExamSection?.bannerUrl || '';
+  const activeSectionImageUrl = matchingExamSection?.imageUrl || (matchingExamSection as any)?.image_url || (matchingExamSection as any)?.bannerUrl || '';
 
   const sectionQuestions = questions.filter((q) => {
     if (activeSections.length > 0 && activeSections[activeSectionIndex]) {

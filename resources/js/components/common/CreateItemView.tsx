@@ -86,18 +86,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [examName, setExamName] = useState(editingItem?.name || '');
   const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
   const [provider, setProvider] = useState<'GOETHE' | 'TELC'>(() => {
-    return editingItem?.provider || (editingItem?.name?.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
-  });
-  const [examLevelOnly, setExamLevelOnly] = useState<string>(() => {
-    const raw = editingItem?.level || initialLevel || 'B2';
+    const raw = editingItem?.provider || editingItem?.level || initialLevel || 'TELC';
     const upper = String(raw).toUpperCase();
-    if (upper.includes('A1')) return 'A1';
-    if (upper.includes('A2')) return 'A2';
-    if (upper.includes('B1')) return 'B1';
-    if (upper.includes('B2')) return 'B2';
-    if (upper.includes('C1')) return 'C1';
-    return 'B2';
+    return upper.includes('GOETHE') ? 'GOETHE' : 'TELC';
   });
+
+  const applyExamLevel = (rawLevel?: string) => {
+    const raw = rawLevel || 'TELC';
+    const upper = String(raw).toUpperCase();
+    if (upper.includes('GOETHE')) setProvider('GOETHE');
+    else setProvider('TELC');
+  };
+
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
@@ -145,7 +145,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       } else if (type === 'exam') {
         setExamName(editingItem.name || '');
         setExamCode(editingItem.examCode || '');
-        setLevel(normalizeExamLevel(editingItem.level || initialLevel));
+        applyExamLevel(editingItem.level || initialLevel);
         setDurationMinutes(editingItem.durationMinutes || 90);
         setDescription(editingItem.description || '');
 
@@ -258,7 +258,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       } else if (type === 'exam') {
         setExamName('');
         setExamCode(`MOCK-${Date.now().toString().slice(-4)}`);
-        setLevel(normalizeExamLevel(initialLevel));
+        applyExamLevel(initialLevel);
         setDurationMinutes(90);
         setDescription('');
         setSections([
@@ -745,13 +745,9 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       imageUrl: sec.imageUrl || '',
     }));
 
-    const isGoethe = level.toUpperCase().includes('GOETHE');
-    let cleanLevel = 'B2';
-    if (level.toUpperCase().includes('A1')) cleanLevel = 'A1';
-    else if (level.toUpperCase().includes('A2')) cleanLevel = 'A2';
-    else if (level.toUpperCase().includes('B1')) cleanLevel = 'B1';
-    else if (level.toUpperCase().includes('B2')) cleanLevel = 'B2';
-    else if (level.toUpperCase().includes('C1')) cleanLevel = 'C1';
+    const isGoethe = provider === 'GOETHE';
+    const cleanLevel = isGoethe ? 'Goethe' : 'TELC';
+    const level = cleanLevel;
 
     const examData: ExamModel = {
       id: editingItem?.id || `exam-${Date.now()}`,
@@ -761,7 +757,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       provider: isGoethe ? 'GOETHE' : 'TELC',
       durationMinutes: durationMinutes || 90,
       totalQuestions: flattenedQuestions.length || totalQuestionsCount,
-      description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} ${cleanLevel} chuẩn hóa.`,
+      description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} chuẩn hóa.`,
       sections: formattedSections,
       targetScore: editingItem?.targetScore || 225,
       passRate: editingItem?.passRate || '85%',
@@ -992,7 +988,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         {/* 2. DYNAMIC ADMIN EXAM BUILDER (ADMIN TỰ TẠO VÀ ĐẶT TÊN CÁC PHẦN THI) */}
         {type === 'exam' && (
           <form onSubmit={handleSubmitExam} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-black text-[#111827] mb-1">Mã bộ đề thi (Exam Code) *</label>
                 <input
@@ -1000,13 +996,13 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                   required
                   value={examCode}
                   onChange={(e) => setExamCode(e.target.value)}
-                  placeholder="Ví dụ: TELC-B2-MOCK-05"
+                  placeholder="Ví dụ: TELC-MOCK-05"
                   className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold font-mono uppercase"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Loại Đề Thi (Provider) *</label>
+                <label className="block text-xs font-black text-[#111827] mb-1">Loại Đề Thi (Phần Thi) *</label>
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as 'GOETHE' | 'TELC')}
@@ -1014,21 +1010,6 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                 >
                   <option value="GOETHE">🏛️ Đề Goethe (Goethe-Zertifikat)</option>
                   <option value="TELC">📜 Đề TELC (TELC Deutsch)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Trình độ (Level) *</label>
-                <select
-                  value={examLevelOnly}
-                  onChange={(e) => setExamLevelOnly(e.target.value)}
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                >
-                  <option value="A1">Trình độ A1</option>
-                  <option value="A2">Trình độ A2</option>
-                  <option value="B1">Trình độ B1</option>
-                  <option value="B2">Trình độ B2</option>
-                  <option value="C1">Trình độ C1</option>
                 </select>
               </div>
             </div>
