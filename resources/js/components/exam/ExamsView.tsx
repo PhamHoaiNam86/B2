@@ -95,7 +95,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
               }`}
             >
-              Tất Cả Đề Thi
+              Tất Cả Đề Thi {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
             </button>
             <button
               onClick={() => setSelectedProvider('TELC')}
@@ -105,7 +105,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
               }`}
             >
-              <Award className="w-4 h-4 text-blue-200" /> Nhánh Luyện Thi TELC
+              <Award className="w-4 h-4 text-blue-200" /> Đề Thi TELC {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
             </button>
             <button
               onClick={() => setSelectedProvider('GOETHE')}
@@ -115,7 +115,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
               }`}
             >
-              <Sparkles className="w-4 h-4 text-amber-300" /> Goethe-Zertifikat A1-C1
+              <Sparkles className="w-4 h-4 text-amber-300" /> Đề Thi GOETHE {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
             </button>
           </div>
 

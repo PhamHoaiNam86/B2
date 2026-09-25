@@ -57,15 +57,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 }) => {
   const isEditMode = !!editingItem;
 
-  const normalizeExamLevel = (rawLevel?: string): string => {
+  const normalizeExamLevel = (rawLevel?: string, rawProvider?: string): string => {
     if (!rawLevel) return 'TELC B2';
-    const upper = String(rawLevel).toUpperCase().trim();
-    if (/\bB2\b/.test(upper) || upper === 'TELC B2' || upper === 'B2') return 'TELC B2';
-    if (/\bB1\b/.test(upper) || upper === 'TELC B1' || upper === 'B1') return 'TELC B1';
-    if (/\bA2\b/.test(upper) || upper === 'TELC A2' || upper === 'A2') return 'TELC A2';
-    if (/\bA1\b/.test(upper) || upper === 'TELC A1' || upper === 'A1') return 'TELC A1';
-    if (/\bC1\b/.test(upper) || upper === 'TELC C1' || upper === 'C1') return 'TELC C1';
-    return 'TELC B2';
+    const upperLevel = String(rawLevel).toUpperCase().trim();
+    const upperProvider = String(rawProvider || '').toUpperCase().trim();
+    const isGoethe = upperProvider === 'GOETHE' || upperLevel.includes('GOETHE');
+
+    if (upperLevel.includes('A1')) return isGoethe ? 'GOETHE A1' : 'TELC A1';
+    if (upperLevel.includes('A2')) return isGoethe ? 'GOETHE A2' : 'TELC A2';
+    if (upperLevel.includes('B1')) return isGoethe ? 'GOETHE B1' : 'TELC B1';
+    if (upperLevel.includes('B2')) return isGoethe ? 'GOETHE B2' : 'TELC B2';
+    if (upperLevel.includes('C1')) return isGoethe ? 'GOETHE C1' : 'TELC C1';
+    return isGoethe ? 'GOETHE B2' : 'TELC B2';
   };
 
   // Vocab State
@@ -82,7 +85,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
   const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
-  const [level, setLevel] = useState(normalizeExamLevel(editingItem?.level || initialLevel));
+  const [level, setLevel] = useState(normalizeExamLevel(editingItem?.level || initialLevel, editingItem?.provider));
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
@@ -730,14 +733,23 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       imageUrl: sec.imageUrl || '',
     }));
 
+    const isGoethe = level.toUpperCase().includes('GOETHE');
+    let cleanLevel = 'B2';
+    if (level.toUpperCase().includes('A1')) cleanLevel = 'A1';
+    else if (level.toUpperCase().includes('A2')) cleanLevel = 'A2';
+    else if (level.toUpperCase().includes('B1')) cleanLevel = 'B1';
+    else if (level.toUpperCase().includes('B2')) cleanLevel = 'B2';
+    else if (level.toUpperCase().includes('C1')) cleanLevel = 'C1';
+
     const examData: ExamModel = {
       id: editingItem?.id || `exam-${Date.now()}`,
       name: examName,
       examCode,
-      level,
+      level: cleanLevel,
+      provider: isGoethe ? 'GOETHE' : 'TELC',
       durationMinutes: durationMinutes || 90,
       totalQuestions: flattenedQuestions.length || totalQuestionsCount,
-      description: description || 'Đề thi thử tiếng Đức chuẩn hóa.',
+      description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} ${cleanLevel} chuẩn hóa.`,
       sections: formattedSections,
       targetScore: editingItem?.targetScore || 225,
       passRate: editingItem?.passRate || '85%',
@@ -982,17 +994,34 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Trình độ (Level)</label>
+                <label className="block text-xs font-black text-[#111827] mb-1">
+                  Trình độ & Loại đề thi (Level & Provider) *
+                </label>
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
                   className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
                 >
-                  <option value="TELC A1">Trình độ A1 (Goethe / TELC A1)</option>
-                  <option value="TELC A2">Trình độ A2 (Goethe / TELC A2)</option>
-                  <option value="TELC B1">Trình độ B1 (Goethe / TELC B1)</option>
-                  <option value="TELC B2">Trình độ B2 (TELC B2 Deutsch)</option>
-                  <option value="TELC C1">Trình độ C1 (TELC C1 Hochschule)</option>
+                  <optgroup label="TRÌNH ĐỘ A1">
+                    <option value="GOETHE A1">Trình độ A1 - Đề Goethe (Goethe-Zertifikat A1)</option>
+                    <option value="TELC A1">Trình độ A1 - Đề TELC (TELC Deutsch A1)</option>
+                  </optgroup>
+                  <optgroup label="TRÌNH ĐỘ A2">
+                    <option value="GOETHE A2">Trình độ A2 - Đề Goethe (Goethe-Zertifikat A2)</option>
+                    <option value="TELC A2">Trình độ A2 - Đề TELC (TELC Deutsch A2)</option>
+                  </optgroup>
+                  <optgroup label="TRÌNH ĐỘ B1">
+                    <option value="GOETHE B1">Trình độ B1 - Đề Goethe (Goethe-Zertifikat B1)</option>
+                    <option value="TELC B1">Trình độ B1 - Đề TELC (TELC Deutsch B1)</option>
+                  </optgroup>
+                  <optgroup label="TRÌNH ĐỘ B2">
+                    <option value="GOETHE B2">Trình độ B2 - Đề Goethe (Goethe-Zertifikat B2)</option>
+                    <option value="TELC B2">Trình độ B2 - Đề TELC (TELC Deutsch B2)</option>
+                  </optgroup>
+                  <optgroup label="TRÌNH ĐỘ C1">
+                    <option value="GOETHE C1">Trình độ C1 - Đề Goethe (Goethe-Zertifikat C1)</option>
+                    <option value="TELC C1">Trình độ C1 - Đề TELC (TELC Deutsch C1)</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
