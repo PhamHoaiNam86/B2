@@ -806,6 +806,34 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 )}
               </div>
 
+              {/* Dynamic Prominent Passage Notice / Annotation Callout Box */}
+              <div className="p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white border-2 border-[#111827] rounded-xl shadow-xs space-y-1 my-1">
+                <div className="flex items-center justify-between flex-wrap gap-1.5">
+                  <div className="flex items-center gap-1.5 font-black font-heading text-xs uppercase tracking-wide">
+                    <span className="p-1 bg-white/20 rounded-md backdrop-blur-xs text-xs">📌</span>
+                    <span>CHÚ THÍCH & HƯỚNG DẪN BÀI ĐỌC</span>
+                  </div>
+                  {sectionPassages.length > 1 && (
+                    <span className="px-2.5 py-0.5 bg-yellow-300 text-slate-900 text-[11px] font-black rounded-full border border-yellow-400 shadow-xs uppercase tracking-wider">
+                      Đang xem: Bài Đọc {(selectedPassageIndex !== null ? selectedPassageIndex : Math.max(0, sectionPassages.indexOf(activeContextText))) + 1} / {sectionPassages.length}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm font-semibold leading-relaxed text-amber-50">
+                  {sectionPassages.length > 1 ? (
+                    <>
+                      <strong>Mẹo làm bài:</strong> Phần thi này bao gồm <mark className="bg-yellow-300 text-slate-900 font-extrabold px-1.5 py-0.5 rounded mx-1 shadow-xs">
+                        {sectionPassages.length} bài đọc khác nhau
+                      </mark>. Học viên vui lòng bấm các nút tab <strong className="text-white underline decoration-2 underline-offset-2 font-black">[Bài Đọc 1]</strong>, <strong className="text-white underline decoration-2 underline-offset-2 font-black">[Bài Đọc 2]</strong>... bên dưới để chuyển văn bản tương ứng với từng câu hỏi bên phải!
+                    </>
+                  ) : (
+                    <>
+                      <strong>Hướng dẫn:</strong> Đọc kỹ văn bản bên dưới để đối chiếu thông tin với các câu hỏi ở cột bên phải. Bôi đen văn bản để tra từ hoặc dùng công cụ <mark className="bg-yellow-300 text-slate-900 font-extrabold px-1.5 py-0.5 rounded mx-1 shadow-xs">Tô Màu Highlight</mark> ghi chú!
+                    </>
+                  )}
+                </p>
+              </div>
+
               {/* Passage Tabs when section has multiple distinct reading texts */}
               {sectionPassages.length > 1 && (
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 border-b border-slate-200">
