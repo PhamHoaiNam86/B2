@@ -48,16 +48,8 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
 
   // Filter logic
   const filteredExams = exams.filter((exam) => {
-    // Provider match
-    const examProvider = exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
-    const matchesProvider = selectedProvider === 'ALL' || examProvider === selectedProvider;
-
-    // Level match
-    const examLevel = (exam.level || 'TELC B2').toUpperCase();
-    const targetLevel = selectedLevel.toUpperCase();
-    const matchesLevel = selectedLevel === 'ALL' || examLevel.includes(targetLevel);
-
-    return matchesProvider && matchesLevel;
+    const examProvider = (exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase();
+    return selectedProvider === 'ALL' || examProvider === selectedProvider;
   });
 
   return (
@@ -70,7 +62,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
               KHO ĐỀ THI THỬ MÔ PHỎNG TRỰC TUYẾN
             </span>
             <span className="px-2.5 py-0.5 rounded-md bg-[#dcfce7] text-[#166534] text-xs font-black border border-[#166534]">
-              CHUẨN TELC & GOETHE (A1 - C1)
+              CHUẨN TELC & GOETHE
             </span>
           </div>
           <h2 className="text-2xl font-black text-[#1c1b1b] mt-1.5 font-heading">
@@ -82,71 +74,44 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
         </div>
       </div>
 
-      {/* DUAL BRANCHING FILTER: TELC VS GOETHE & LEVEL SELECTION */}
-      <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-4 brutal-shadow space-y-4">
-        {/* Provider Switcher Tabs */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b-2 border-slate-100 pb-3">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setSelectedProvider('ALL')}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl border-2 text-xs font-black transition-all cursor-pointer font-heading ${
-                selectedProvider === 'ALL'
-                  ? 'bg-[#111827] text-white border-[#111827] brutal-shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
-              }`}
-            >
-              Tất Cả Đề Thi {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
-            </button>
-            <button
-              onClick={() => setSelectedProvider('TELC')}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading ${
-                selectedProvider === 'TELC'
-                  ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
-              }`}
-            >
-              <Award className="w-4 h-4 text-blue-200" /> Đề Thi TELC {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
-            </button>
-            <button
-              onClick={() => setSelectedProvider('GOETHE')}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading ${
-                selectedProvider === 'GOETHE'
-                  ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" /> Đề Thi GOETHE {selectedLevel !== 'ALL' ? `(${selectedLevel})` : ''}
-            </button>
-          </div>
-
-          <span className="text-xs font-bold text-slate-500">
-            Hiển thị {filteredExams.length} đề thi
-          </span>
+      {/* FILTER BAR: TELC VS GOETHE */}
+      <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-4 brutal-shadow flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setSelectedProvider('ALL')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl border-2 text-xs font-black transition-all cursor-pointer font-heading ${
+              selectedProvider === 'ALL'
+                ? 'bg-[#111827] text-white border-[#111827] brutal-shadow-xs'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
+            }`}
+          >
+            Tất Cả Đề Thi
+          </button>
+          <button
+            onClick={() => setSelectedProvider('TELC')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading ${
+              selectedProvider === 'TELC'
+                ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
+            }`}
+          >
+            <Award className="w-4 h-4 text-blue-200" /> Đề Thi TELC
+          </button>
+          <button
+            onClick={() => setSelectedProvider('GOETHE')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl border-2 text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 font-heading ${
+              selectedProvider === 'GOETHE'
+                ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#111827]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" /> Đề Thi GOETHE
+          </button>
         </div>
 
-        {/* Type / Provider Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-black text-slate-500 uppercase shrink-0 flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Phân loại:
-          </span>
-          {[
-            { id: 'ALL', label: 'Tất cả loại đề' },
-            { id: 'TELC', label: '📜 Đề TELC' },
-            { id: 'GOETHE', label: '🏛️ Đề Goethe' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setSelectedLevel(item.id)}
-              className={`px-3 py-1 rounded-lg border-2 text-xs font-black cursor-pointer transition-all ${
-                selectedLevel === item.id
-                  ? 'bg-[#F97316] text-white border-[#111827] brutal-shadow-xs'
-                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:border-[#111827]'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <span className="text-xs font-bold text-slate-500">
+          Hiển thị <b className="text-[#111827]">{filteredExams.length}</b> đề thi
+        </span>
       </div>
 
       {/* EXAMS GRID */}
