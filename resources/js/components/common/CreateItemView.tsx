@@ -85,7 +85,19 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
   const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
-  const [level, setLevel] = useState(normalizeExamLevel(editingItem?.level || initialLevel, editingItem?.provider));
+  const [provider, setProvider] = useState<'GOETHE' | 'TELC'>(() => {
+    return editingItem?.provider || (editingItem?.name?.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
+  });
+  const [examLevelOnly, setExamLevelOnly] = useState<string>(() => {
+    const raw = editingItem?.level || initialLevel || 'B2';
+    const upper = String(raw).toUpperCase();
+    if (upper.includes('A1')) return 'A1';
+    if (upper.includes('A2')) return 'A2';
+    if (upper.includes('B1')) return 'B1';
+    if (upper.includes('B2')) return 'B2';
+    if (upper.includes('C1')) return 'C1';
+    return 'B2';
+  });
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
   const [description, setDescription] = useState(editingItem?.description || '');
   const [uploadingAudioQId, setUploadingAudioQId] = useState<string | null>(null);
@@ -980,7 +992,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         {/* 2. DYNAMIC ADMIN EXAM BUILDER (ADMIN TỰ TẠO VÀ ĐẶT TÊN CÁC PHẦN THI) */}
         {type === 'exam' && (
           <form onSubmit={handleSubmitExam} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-black text-[#111827] mb-1">Mã bộ đề thi (Exam Code) *</label>
                 <input
@@ -994,34 +1006,29 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">
-                  Trình độ & Loại đề thi (Level & Provider) *
-                </label>
+                <label className="block text-xs font-black text-[#111827] mb-1">Loại Đề Thi (Provider) *</label>
                 <select
-                  value={level}
-                  onChange={(e) => setLevel(e.target.value)}
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value as 'GOETHE' | 'TELC')}
                   className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
                 >
-                  <optgroup label="TRÌNH ĐỘ A1">
-                    <option value="GOETHE A1">Trình độ A1 - Đề Goethe (Goethe-Zertifikat A1)</option>
-                    <option value="TELC A1">Trình độ A1 - Đề TELC (TELC Deutsch A1)</option>
-                  </optgroup>
-                  <optgroup label="TRÌNH ĐỘ A2">
-                    <option value="GOETHE A2">Trình độ A2 - Đề Goethe (Goethe-Zertifikat A2)</option>
-                    <option value="TELC A2">Trình độ A2 - Đề TELC (TELC Deutsch A2)</option>
-                  </optgroup>
-                  <optgroup label="TRÌNH ĐỘ B1">
-                    <option value="GOETHE B1">Trình độ B1 - Đề Goethe (Goethe-Zertifikat B1)</option>
-                    <option value="TELC B1">Trình độ B1 - Đề TELC (TELC Deutsch B1)</option>
-                  </optgroup>
-                  <optgroup label="TRÌNH ĐỘ B2">
-                    <option value="GOETHE B2">Trình độ B2 - Đề Goethe (Goethe-Zertifikat B2)</option>
-                    <option value="TELC B2">Trình độ B2 - Đề TELC (TELC Deutsch B2)</option>
-                  </optgroup>
-                  <optgroup label="TRÌNH ĐỘ C1">
-                    <option value="GOETHE C1">Trình độ C1 - Đề Goethe (Goethe-Zertifikat C1)</option>
-                    <option value="TELC C1">Trình độ C1 - Đề TELC (TELC Deutsch C1)</option>
-                  </optgroup>
+                  <option value="GOETHE">🏛️ Đề Goethe (Goethe-Zertifikat)</option>
+                  <option value="TELC">📜 Đề TELC (TELC Deutsch)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Trình độ (Level) *</label>
+                <select
+                  value={examLevelOnly}
+                  onChange={(e) => setExamLevelOnly(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="A1">Trình độ A1</option>
+                  <option value="A2">Trình độ A2</option>
+                  <option value="B1">Trình độ B1</option>
+                  <option value="B2">Trình độ B2</option>
+                  <option value="C1">Trình độ C1</option>
                 </select>
               </div>
             </div>
