@@ -34,21 +34,21 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
     setCurrentPage(1);
   }, [search, selectedLevel]);
 
+  const activeTabLevel = (initialLevelFilter && initialLevelFilter !== 'ALL') ? initialLevelFilter.toUpperCase().trim() : null;
+
   const filteredExams = exams.filter((e) => {
     const matchesSearch =
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.examCode.toLowerCase().includes(search.toLowerCase());
 
-    const examLevel = String(e.level || 'TELC').toUpperCase().trim();
-    const examProvider = String(e.provider || (e.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
-    const targetLevel = selectedLevel.toUpperCase().trim();
+    const examLevel = String(e.level || 'TELC B2').toUpperCase().trim();
+    const examProvider = String(e.provider || (e.name.toUpperCase().includes('GOETHE') || examLevel.includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
+    const targetFilter = selectedLevel.toUpperCase().trim();
 
-    const matchesLevel =
-      selectedLevel === 'ALL' ||
-      examLevel.includes(targetLevel) ||
-      examProvider === targetLevel;
+    const matchesProvider = targetFilter === 'ALL' || targetFilter === examProvider || examLevel.includes(targetFilter);
+    const matchesLevel = !activeTabLevel || new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examLevel) || examLevel.includes(activeTabLevel) || e.name.toUpperCase().includes(activeTabLevel);
 
-    return matchesSearch && matchesLevel;
+    return matchesSearch && matchesProvider && matchesLevel;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredExams.length / ITEMS_PER_PAGE));

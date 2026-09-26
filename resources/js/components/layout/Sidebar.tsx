@@ -69,11 +69,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'dashboard' as ActiveTab, label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'leaderboard' as ActiveTab, label: 'Bảng Xếp Hạng 🏆', icon: Trophy },
-    { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', icon: FileCheck2 },
-    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', icon: FileCheck2 },
-    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', icon: FileCheck2 },
-    { id: 'exam' as ActiveTab, label: 'Thi thử B2', icon: FileCheck2 },
-    { id: 'exam-c1' as ActiveTab, label: 'Thi thử C1', icon: FileCheck2 },
+    { id: 'exam-a1' as ActiveTab, label: 'Thi thử A1', badge: 'A1', icon: FileCheck2 },
+    { id: 'exam-a2' as ActiveTab, label: 'Thi thử A2', badge: 'A2', icon: FileCheck2 },
+    { id: 'exam-b1' as ActiveTab, label: 'Thi thử B1', badge: 'B1', icon: FileCheck2 },
+    { id: 'exam' as ActiveTab, label: 'Thi thử B2', badge: 'B2', icon: FileCheck2 },
+    { id: 'exam-c1' as ActiveTab, label: 'Thi thử C1', badge: 'C1', icon: FileCheck2 },
     { id: 'docs-b2' as ActiveTab, label: 'Thư viện Tài liệu B2', icon: BookOpen },
     { id: 'docs-schreiben' as ActiveTab, label: 'Tài liệu Schreiben', icon: PenTool },
     { id: 'docs-sprechen' as ActiveTab, label: 'Tài liệu Sprechen', icon: Sparkles },
@@ -151,6 +151,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLockedForStudent ? 'text-slate-400' : 'text-[#4b5563] group-hover:text-[#2563EB]'}`} />
                   <span>{item.label}</span>
                 </div>
+                {item.badge && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border ${
+                    isActive ? 'bg-white text-[#2563EB] border-white' : 'bg-[#eff6ff] text-[#1d4ed8] border-[#93c5fd]'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
                 {isLockedForStudent && (
                   <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
                     🔒 Admin

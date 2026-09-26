@@ -91,11 +91,28 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     return upper.includes('GOETHE') ? 'GOETHE' : 'TELC';
   });
 
-  const applyExamLevel = (rawLevel?: string) => {
-    const raw = rawLevel || 'TELC';
+  const [examLevelOnly, setExamLevelOnly] = useState<string>(() => {
+    const raw = editingItem?.level || initialLevel || 'B2';
     const upper = String(raw).toUpperCase();
-    if (upper.includes('GOETHE')) setProvider('GOETHE');
+    if (upper.includes('A1')) return 'A1';
+    if (upper.includes('A2')) return 'A2';
+    if (upper.includes('B1')) return 'B1';
+    if (upper.includes('B2')) return 'B2';
+    if (upper.includes('C1')) return 'C1';
+    return 'B2';
+  });
+
+  const applyExamLevel = (rawLevel?: string) => {
+    const raw = String(rawLevel || initialLevel || 'TELC B2').toUpperCase();
+    if (raw.includes('GOETHE')) setProvider('GOETHE');
     else setProvider('TELC');
+
+    if (raw.includes('A1')) setExamLevelOnly('A1');
+    else if (raw.includes('A2')) setExamLevelOnly('A2');
+    else if (raw.includes('B1')) setExamLevelOnly('B1');
+    else if (raw.includes('B2')) setExamLevelOnly('B2');
+    else if (raw.includes('C1')) setExamLevelOnly('C1');
+    else setExamLevelOnly('B2');
   };
 
   const [durationMinutes, setDurationMinutes] = useState(editingItem?.durationMinutes || 90);
@@ -746,18 +763,17 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     }));
 
     const isGoethe = provider === 'GOETHE';
-    const cleanLevel = isGoethe ? 'Goethe' : 'TELC';
-    const level = cleanLevel;
+    const levelStr = `${provider} ${examLevelOnly}`;
 
     const examData: ExamModel = {
       id: editingItem?.id || `exam-${Date.now()}`,
       name: examName,
       examCode,
-      level: cleanLevel,
+      level: levelStr,
       provider: isGoethe ? 'GOETHE' : 'TELC',
       durationMinutes: durationMinutes || 90,
       totalQuestions: flattenedQuestions.length || totalQuestionsCount,
-      description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} chuẩn hóa.`,
+      description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} ${examLevelOnly} chuẩn hóa.`,
       sections: formattedSections,
       targetScore: editingItem?.targetScore || 225,
       passRate: editingItem?.passRate || '85%',
@@ -771,7 +787,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       onAddExam(examData);
       onShowToast('Thành công', `Đã tạo bộ đề thi mới "${examName}".`, 'success');
     }
-    onBack(level);
+    onBack(levelStr);
   };
 
   const handleSubmitGrammar = (e: React.FormEvent) => {
@@ -988,7 +1004,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         {/* 2. DYNAMIC ADMIN EXAM BUILDER (ADMIN TỰ TẠO VÀ ĐẶT TÊN CÁC PHẦN THI) */}
         {type === 'exam' && (
           <form onSubmit={handleSubmitExam} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-black text-[#111827] mb-1">Mã bộ đề thi (Exam Code) *</label>
                 <input
@@ -1002,7 +1018,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Loại Đề Thi (Phần Thi) *</label>
+                <label className="block text-xs font-black text-[#111827] mb-1">Loại Đề Thi (Hãng Thi) *</label>
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as 'GOETHE' | 'TELC')}
@@ -1011,6 +1027,14 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                   <option value="GOETHE">🏛️ Đề Goethe (Goethe-Zertifikat)</option>
                   <option value="TELC">📜 Đề TELC (TELC Deutsch)</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Trình Độ Đề Thi (Tự động theo phần thi)</label>
+                <div className="w-full p-2.5 bg-slate-100 border-2 border-[#111827] rounded-xl text-xs font-black text-[#2563EB] flex items-center justify-between">
+                  <span>🎓 Trình độ {examLevelOnly}</span>
+                  <span className="text-[10px] px-2 py-0.5 bg-[#2563EB] text-white rounded font-bold uppercase">Cố định</span>
+                </div>
               </div>
             </div>
 

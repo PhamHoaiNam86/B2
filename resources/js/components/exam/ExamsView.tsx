@@ -46,10 +46,32 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
     );
   }
 
-  // Filter logic
+  // Target level filter (e.g., 'B1', 'B2', 'A1', 'A2', 'C1')
+  const targetLevel = (initialLevelFilter && initialLevelFilter !== 'ALL')
+    ? initialLevelFilter.toUpperCase().trim()
+    : (levelLabel && levelLabel !== 'Tất cả đề' && levelLabel !== 'ALL')
+    ? levelLabel.toUpperCase().trim()
+    : null;
+
+  // Filter logic: Provider (TELC/GOETHE) AND Level (A1, A2, B1, B2, C1)
   const filteredExams = exams.filter((exam) => {
-    const examProvider = (exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase();
-    return selectedProvider === 'ALL' || examProvider === selectedProvider;
+    const examProvider = (
+      exam.provider ||
+      (exam.name.toUpperCase().includes('GOETHE') || String(exam.level).toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')
+    ).toUpperCase();
+
+    const matchesProvider = selectedProvider === 'ALL' || examProvider === selectedProvider;
+
+    if (!targetLevel) return matchesProvider;
+
+    const examLevelStr = String(exam.level || '').toUpperCase();
+    const examNameStr = String(exam.name || '').toUpperCase();
+    const fullText = `${examLevelStr} ${examNameStr}`;
+
+    // Match exact level token (e.g. B1, B2, A1, A2, C1)
+    const matchesLevel = new RegExp(`\\b${targetLevel}\\b`, 'i').test(fullText) || fullText.includes(targetLevel);
+
+    return matchesProvider && matchesLevel;
   });
 
   return (
@@ -122,7 +144,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
           </div>
           <h3 className="text-xl font-black text-[#111827] font-heading">Chưa có đề thi phù hợp</h3>
           <p className="text-xs text-[#4b5563] max-w-md mx-auto leading-relaxed font-medium">
-            Không tìm thấy đề thi khớp với bộ lọc ({selectedProvider} - Trình độ {selectedLevel}). Vui lòng chọn bộ lọc khác!
+            Không tìm thấy đề thi khớp với bộ lọc ({selectedProvider} - Trình độ {targetLevel || 'Tất cả'}). Vui lòng chọn bộ lọc khác!
           </p>
         </div>
       ) : (
