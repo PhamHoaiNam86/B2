@@ -8,6 +8,7 @@ use App\Models\ExamResult;
 use App\Models\Question;
 use App\Models\Vocabulary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ExamController extends Controller
@@ -116,65 +117,80 @@ class ExamController extends Controller
             'sections' => 'nullable|array',
         ]);
 
-        $exam = Exam::updateOrCreate(
-            ['exam_code' => $validated['exam_code']],
-            [
-                'name' => $validated['name'],
-                'level' => $validated['level'] ?? 'TELC B2',
-                'duration_minutes' => $validated['duration_minutes'] ?? 90,
-                'description' => $validated['description'] ?? '',
-                'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
-                'target_score' => 225,
-                'pass_rate' => '88%',
-                'is_active' => true,
-                'sections_json' => $validated['sections'] ?? null,
-            ]
-        );
+        try {
+            DB::beginTransaction();
 
-        if (isset($validated['questions']) && is_array($validated['questions'])) {
-            Question::where('exam_code', $exam->exam_code)->delete();
+            $exam = Exam::updateOrCreate(
+                ['exam_code' => $validated['exam_code']],
+                [
+                    'name' => $validated['name'],
+                    'level' => $validated['level'] ?? 'TELC B2',
+                    'duration_minutes' => $validated['duration_minutes'] ?? 90,
+                    'description' => $validated['description'] ?? '',
+                    'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+                    'target_score' => 225,
+                    'pass_rate' => '88%',
+                    'is_active' => true,
+                    'sections_json' => $validated['sections'] ?? null,
+                ]
+            );
 
-            foreach ($validated['questions'] as $index => $q) {
-                $options = isset($q['options']) ? array_map(function ($opt) {
-                    return [
-                        'id' => $opt['id'] ?? Str::random(4),
-                        'text' => $opt['text'] ?? '',
-                        'isCorrect' => ! empty($opt['isCorrect']),
-                    ];
-                }, $q['options']) : [];
+            if (isset($validated['questions']) && is_array($validated['questions'])) {
+                Question::where('exam_code', $exam->exam_code)->delete();
 
-                $correctOpt = null;
-                foreach ($options as $opt) {
-                    if (! empty($opt['isCorrect'])) {
-                        $correctOpt = $opt['id'];
-                        break;
+                foreach ($validated['questions'] as $index => $q) {
+                    $options = isset($q['options']) ? array_map(function ($opt) {
+                        $isCorrect = isset($opt['isCorrect']) && ($opt['isCorrect'] === true || $opt['isCorrect'] === 'true' || $opt['isCorrect'] === 1 || $opt['isCorrect'] === '1');
+
+                        return [
+                            'id' => $opt['id'] ?? Str::random(4),
+                            'text' => $opt['text'] ?? '',
+                            'isCorrect' => $isCorrect,
+                        ];
+                    }, $q['options']) : [];
+
+                    $correctOpt = null;
+                    foreach ($options as $opt) {
+                        if (! empty($opt['isCorrect'])) {
+                            $correctOpt = $opt['id'];
+                            break;
+                        }
                     }
+
+                    $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
+
+                    Question::create([
+                        'exam_code' => $exam->exam_code,
+                        'section' => $q['section'] ?? 'Phần 1',
+                        'sub_section' => $q['subSection'] ?? '',
+                        'type' => $q['type'] ?? 'choice',
+                        'question_number' => $index + 1,
+                        'title' => $title,
+                        'context_text' => $q['contextText'] ?? null,
+                        'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
+                        'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
+                        'options_json' => $options,
+                        'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
+                        'explanation' => $q['explanation'] ?? null,
+                    ]);
                 }
-
-                $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
-
-                Question::create([
-                    'exam_code' => $exam->exam_code,
-                    'section' => $q['section'] ?? 'Leseverstehen',
-                    'sub_section' => $q['subSection'] ?? 'Teil 1',
-                    'type' => $q['type'] ?? 'choice',
-                    'question_number' => $index + 1,
-                    'title' => $title,
-                    'context_text' => $q['contextText'] ?? null,
-                    'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
-                    'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
-                    'options_json' => $options,
-                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
-                    'explanation' => $q['explanation'] ?? null,
-                ]);
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tạo bộ đề thi thành công trong CSDL!',
-            'data' => $exam,
-        ]);
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tạo bộ đề thi thành công trong CSDL!',
+                'data' => $exam,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi lưu CSDL: '.$e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -199,86 +215,101 @@ class ExamController extends Controller
             'sections' => 'nullable|array',
         ]);
 
-        if (! $exam) {
-            $exam = Exam::create([
-                'exam_code' => $validated['exam_code'] ?? $examCode,
-                'name' => $validated['name'] ?? 'Đề thi mới',
-                'level' => $validated['level'] ?? 'TELC B2',
-                'duration_minutes' => $validated['duration_minutes'] ?? 90,
-                'description' => $validated['description'] ?? '',
-                'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
-                'target_score' => 225,
-                'pass_rate' => '88%',
-                'is_active' => true,
-                'sections_json' => $validated['sections'] ?? null,
-            ]);
-        }
+        try {
+            DB::beginTransaction();
 
-        if (isset($validated['name'])) {
-            $exam->name = $validated['name'];
-        }
-        if (isset($validated['level'])) {
-            $exam->level = $validated['level'];
-        }
-        if (isset($validated['duration_minutes'])) {
-            $exam->duration_minutes = $validated['duration_minutes'];
-        }
-        if (isset($validated['description'])) {
-            $exam->description = $validated['description'];
-        }
-        if (isset($validated['total_questions'])) {
-            $exam->total_questions = $validated['total_questions'];
-        }
-        if (isset($validated['sections'])) {
-            $exam->sections_json = $validated['sections'];
-        }
-
-        $exam->save();
-
-        if (isset($validated['questions']) && is_array($validated['questions'])) {
-            Question::where('exam_code', $exam->exam_code)->delete();
-
-            foreach ($validated['questions'] as $index => $q) {
-                $options = isset($q['options']) ? array_map(function ($opt) {
-                    return [
-                        'id' => $opt['id'] ?? Str::random(4),
-                        'text' => $opt['text'] ?? '',
-                        'isCorrect' => ! empty($opt['isCorrect']),
-                    ];
-                }, $q['options']) : [];
-
-                $correctOpt = null;
-                foreach ($options as $opt) {
-                    if (! empty($opt['isCorrect'])) {
-                        $correctOpt = $opt['id'];
-                        break;
-                    }
-                }
-
-                $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
-
-                Question::create([
-                    'exam_code' => $exam->exam_code,
-                    'section' => $q['section'] ?? 'Leseverstehen',
-                    'sub_section' => $q['subSection'] ?? 'Teil 1',
-                    'type' => $q['type'] ?? 'choice',
-                    'question_number' => $index + 1,
-                    'title' => $title,
-                    'context_text' => $q['contextText'] ?? null,
-                    'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
-                    'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
-                    'options_json' => $options,
-                    'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
-                    'explanation' => $q['explanation'] ?? null,
+            if (! $exam) {
+                $exam = Exam::create([
+                    'exam_code' => $validated['exam_code'] ?? $examCode,
+                    'name' => $validated['name'] ?? 'Đề thi mới',
+                    'level' => $validated['level'] ?? 'TELC B2',
+                    'duration_minutes' => $validated['duration_minutes'] ?? 90,
+                    'description' => $validated['description'] ?? '',
+                    'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+                    'target_score' => 225,
+                    'pass_rate' => '88%',
+                    'is_active' => true,
+                    'sections_json' => $validated['sections'] ?? null,
                 ]);
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Cập nhật đề thi thành công!',
-            'data' => $exam,
-        ]);
+            if (isset($validated['name'])) {
+                $exam->name = $validated['name'];
+            }
+            if (isset($validated['level'])) {
+                $exam->level = $validated['level'];
+            }
+            if (isset($validated['duration_minutes'])) {
+                $exam->duration_minutes = $validated['duration_minutes'];
+            }
+            if (isset($validated['description'])) {
+                $exam->description = $validated['description'];
+            }
+            if (isset($validated['total_questions'])) {
+                $exam->total_questions = $validated['total_questions'];
+            }
+            if (isset($validated['sections'])) {
+                $exam->sections_json = $validated['sections'];
+            }
+
+            $exam->save();
+
+            if (isset($validated['questions']) && is_array($validated['questions'])) {
+                Question::where('exam_code', $exam->exam_code)->delete();
+
+                foreach ($validated['questions'] as $index => $q) {
+                    $options = isset($q['options']) ? array_map(function ($opt) {
+                        $isCorrect = isset($opt['isCorrect']) && ($opt['isCorrect'] === true || $opt['isCorrect'] === 'true' || $opt['isCorrect'] === 1 || $opt['isCorrect'] === '1');
+
+                        return [
+                            'id' => $opt['id'] ?? Str::random(4),
+                            'text' => $opt['text'] ?? '',
+                            'isCorrect' => $isCorrect,
+                        ];
+                    }, $q['options']) : [];
+
+                    $correctOpt = null;
+                    foreach ($options as $opt) {
+                        if (! empty($opt['isCorrect'])) {
+                            $correctOpt = $opt['id'];
+                            break;
+                        }
+                    }
+
+                    $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
+
+                    Question::create([
+                        'exam_code' => $exam->exam_code,
+                        'section' => $q['section'] ?? 'Phần 1',
+                        'sub_section' => $q['subSection'] ?? '',
+                        'type' => $q['type'] ?? 'choice',
+                        'question_number' => $index + 1,
+                        'title' => $title,
+                        'context_text' => $q['contextText'] ?? null,
+                        'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
+                        'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
+                        'options_json' => $options,
+                        'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
+                        'explanation' => $q['explanation'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật đề thi thành công!',
+                'data' => $exam,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi cập nhật CSDL: '.$e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
