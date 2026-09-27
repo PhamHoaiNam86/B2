@@ -512,19 +512,34 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   const activeContextText = getActiveContextText();
   const activeAudioUrl = getActiveAudioUrl();
-  const activeImageUrl = getActiveImageUrl();
+  const normalizePassageText = (str?: string): string => {
+    if (!str) return '';
+    return str.replace(/\r\n/g, '\n').replace(/\s+/g, ' ').trim();
+  };
 
-  // Extract all unique contextText passages in this section
-  const sectionPassages = Array.from(
-    new Set((sectionQuestions.length > 0 ? sectionQuestions : questions).map((q) => q.contextText?.trim()).filter(Boolean))
-  ) as string[];
+  // Extract all unique contextText passages in this section (normalized to merge duplicate whitespaces/newlines)
+  const sectionPassages = (() => {
+    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
+    const uniqueMap = new Map<string, string>();
+    pool.forEach((q) => {
+      const raw = q.contextText?.trim();
+      if (raw) {
+        const key = normalizePassageText(raw);
+        if (key && !uniqueMap.has(key)) {
+          uniqueMap.set(key, raw);
+        }
+      }
+    });
+    return Array.from(uniqueMap.values());
+  })();
 
   const [selectedPassageIndex, setSelectedPassageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setLeftImageFailed(false);
     if (sectionPassages.length > 1 && activeContextText) {
-      const passIdx = sectionPassages.indexOf(activeContextText);
+      const activeKey = normalizePassageText(activeContextText);
+      const passIdx = sectionPassages.findIndex((p) => normalizePassageText(p) === activeKey);
       if (passIdx >= 0) {
         setSelectedPassageIndex(passIdx);
       }
@@ -845,7 +860,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 border-b border-slate-200">
                   <span className="text-[10px] font-black text-slate-500 uppercase shrink-0">Các bài đọc:</span>
                   {sectionPassages.map((pText, pIdx) => {
-                    const isSelected = (selectedPassageIndex === pIdx || (selectedPassageIndex === null && pText === activeContextText));
+                    const activeKey = normalizePassageText(activeContextText);
+                    const passageKey = normalizePassageText(pText);
+                    const isSelected = (selectedPassageIndex === pIdx || (selectedPassageIndex === null && passageKey === activeKey));
                     return (
                       <button
                         key={pIdx}
