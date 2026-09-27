@@ -420,50 +420,48 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const displayQuestionNum = currentQuestionGlobalIdx >= 0 ? currentQuestionGlobalIdx + 1 : (currentQuestion?.id || 1);
   const answeredCount = Object.keys(examState.answers).length;
 
-  // Dynamic Context Text Resolution for Currently Active Question
+  // Dynamic Context Text Resolution for Currently Active Question (Strictly scoped to current section)
   const getActiveContextText = (): string => {
     if (currentQuestion?.contextText?.trim()) {
       return currentQuestion.contextText.trim();
     }
-    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
-    if (qIdx > 0) {
-      for (let i = qIdx - 1; i >= 0; i--) {
-        if (pool[i].contextText?.trim()) {
-          return pool[i].contextText!.trim();
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].contextText?.trim()) {
+            return sectionQuestions[i].contextText!.trim();
+          }
         }
       }
-    }
-    const firstWithContext = pool.find((q) => Boolean(q.contextText?.trim()));
-    if (firstWithContext?.contextText?.trim()) {
-      return firstWithContext.contextText.trim();
-    }
-    const globalFirst = questions.find((q) => Boolean(q.contextText?.trim()));
-    if (globalFirst?.contextText?.trim()) {
-      return globalFirst.contextText.trim();
+      const firstWithContext = sectionQuestions.find((q) => Boolean(q.contextText?.trim()));
+      if (firstWithContext?.contextText?.trim()) {
+        return firstWithContext.contextText.trim();
+      }
     }
     return '';
   };
 
-  // Dynamic Audio URL Resolution for Currently Active Question
+  // Dynamic Audio URL Resolution for Currently Active Question (Strictly scoped to current section)
   const getActiveAudioUrl = (): string => {
     if (currentQuestion?.audioUrl?.trim()) {
       return currentQuestion.audioUrl.trim();
     }
-    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
-    if (qIdx > 0) {
-      for (let i = qIdx - 1; i >= 0; i--) {
-        if (pool[i].audioUrl?.trim()) {
-          return pool[i].audioUrl!.trim();
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].audioUrl?.trim()) {
+            return sectionQuestions[i].audioUrl!.trim();
+          }
         }
       }
+      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
+      if (firstWithAudio?.audioUrl?.trim()) {
+        return firstWithAudio.audioUrl.trim();
+      }
     }
-    const firstWithAudio = pool.find((q) => Boolean(q.audioUrl?.trim()));
-    if (firstWithAudio?.audioUrl?.trim()) {
-      return firstWithAudio.audioUrl.trim();
-    }
-    return questions.find((q) => Boolean(q.audioUrl?.trim()))?.audioUrl?.trim() || '';
+    return '';
   };
 
   const isValidImageUrl = (url?: string): boolean => {
@@ -484,33 +482,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return clean.startsWith('/') ? clean : `/${clean}`;
   };
 
-  // Dynamic Image URL Resolution for Currently Active Question / Section
+  // Dynamic Image URL Resolution for Currently Active Question / Section (Strictly scoped to current section)
   const getActiveImageUrl = (): string => {
-    // 1. Check section banner / reading image URL
-    if (isValidImageUrl(activeSectionImageUrl)) {
-      return formatImageUrl(activeSectionImageUrl);
-    }
-    // 2. Check currently active question image URL
+    // 1. Check currently active question image URL
     if (isValidImageUrl(currentQuestion?.imageUrl)) {
       return formatImageUrl(currentQuestion.imageUrl);
     }
-    // 3. Search backwards in pool for a valid image URL
-    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
-    const qIdx = pool.findIndex((q) => String(q.id) === String(currentQuestion?.id));
-    if (qIdx > 0) {
-      for (let i = qIdx - 1; i >= 0; i--) {
-        if (isValidImageUrl(pool[i].imageUrl)) {
-          return formatImageUrl(pool[i].imageUrl!);
+    // 2. Check section banner / reading image URL
+    if (isValidImageUrl(activeSectionImageUrl)) {
+      return formatImageUrl(activeSectionImageUrl);
+    }
+    // 3. Search ONLY inside current sectionQuestions
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (isValidImageUrl(sectionQuestions[i].imageUrl)) {
+            return formatImageUrl(sectionQuestions[i].imageUrl!);
+          }
         }
       }
-    }
-    const firstWithImg = pool.find((q) => isValidImageUrl(q.imageUrl));
-    if (firstWithImg?.imageUrl) {
-      return formatImageUrl(firstWithImg.imageUrl);
-    }
-    const globalFirstImg = questions.find((q) => isValidImageUrl(q.imageUrl));
-    if (globalFirstImg?.imageUrl) {
-      return formatImageUrl(globalFirstImg.imageUrl);
+      const firstWithImg = sectionQuestions.find((q) => isValidImageUrl(q.imageUrl));
+      if (firstWithImg?.imageUrl) {
+        return formatImageUrl(firstWithImg.imageUrl);
+      }
     }
     return '';
   };
