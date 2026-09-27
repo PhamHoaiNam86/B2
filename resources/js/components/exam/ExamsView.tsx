@@ -55,21 +55,21 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
 
   // Filter logic: Provider (TELC/GOETHE) AND Level (A1, A2, B1, B2, C1)
   const filteredExams = exams.filter((exam) => {
-    const examProvider = (
-      exam.provider ||
-      (exam.name.toUpperCase().includes('GOETHE') || String(exam.level).toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')
-    ).toUpperCase();
+    const examLevelStr = String(exam.level || '').toUpperCase().trim();
+    const examNameStr = String(exam.name || '').toUpperCase().trim();
+
+    const isGoethe = exam.provider === 'GOETHE' || examLevelStr.includes('GOETHE') || examNameStr.includes('GOETHE');
+    const examProvider = isGoethe ? 'GOETHE' : 'TELC';
 
     const matchesProvider = selectedProvider === 'ALL' || examProvider === selectedProvider;
 
     if (!targetLevel) return matchesProvider;
 
-    const examLevelStr = String(exam.level || '').toUpperCase();
-    const examNameStr = String(exam.name || '').toUpperCase();
-    const fullText = `${examLevelStr} ${examNameStr}`;
-
-    // Match exact level token (e.g. B1, B2, A1, A2, C1)
-    const matchesLevel = new RegExp(`\\b${targetLevel}\\b`, 'i').test(fullText) || fullText.includes(targetLevel);
+    const matchesLevel = (
+      new RegExp(`\\b${targetLevel}\\b`, 'i').test(examLevelStr) ||
+      examLevelStr.includes(targetLevel) ||
+      new RegExp(`\\b${targetLevel}\\b`, 'i').test(examNameStr)
+    );
 
     return matchesProvider && matchesLevel;
   });

@@ -41,12 +41,17 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.examCode.toLowerCase().includes(search.toLowerCase());
 
-    const examLevel = String(e.level || 'TELC B2').toUpperCase().trim();
-    const examProvider = String(e.provider || (e.name.toUpperCase().includes('GOETHE') || examLevel.includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
+    const examLevel = String(e.level || '').toUpperCase().trim();
+    const examName = String(e.name || '').toUpperCase().trim();
+    const examProvider = String(e.provider || (examName.includes('GOETHE') || examLevel.includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
     const targetFilter = selectedLevel.toUpperCase().trim();
 
-    const matchesProvider = targetFilter === 'ALL' || targetFilter === examProvider || examLevel.includes(targetFilter);
-    const matchesLevel = !activeTabLevel || new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examLevel) || examLevel.includes(activeTabLevel) || e.name.toUpperCase().includes(activeTabLevel);
+    const matchesProvider = targetFilter === 'ALL' || targetFilter === examProvider;
+    const matchesLevel = !activeTabLevel || (
+      new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examLevel) ||
+      examLevel.includes(activeTabLevel) ||
+      new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examName)
+    );
 
     return matchesSearch && matchesProvider && matchesLevel;
   });
