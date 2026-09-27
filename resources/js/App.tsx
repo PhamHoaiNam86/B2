@@ -264,9 +264,9 @@ export default function App() {
             const providerName: 'GOETHE' | 'TELC' = isGoethe ? 'GOETHE' : 'TELC';
 
             return {
-              id: String(item.id || item.exam_code),
-              name: item.name || item.title,
-              examCode: item.exam_code,
+              id: String(item.id || item.exam_code || `exam-${Date.now()}`),
+              name: item.name || item.title || 'Bộ đề thi thử',
+              examCode: item.exam_code || 'EXAM-CODE',
               level: item.level || 'TELC B2',
               provider: providerName,
               durationMinutes: item.duration_minutes || 90,

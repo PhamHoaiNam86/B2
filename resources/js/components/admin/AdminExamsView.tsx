@@ -37,12 +37,13 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
   const activeTabLevel = (initialLevelFilter && initialLevelFilter !== 'ALL') ? initialLevelFilter.toUpperCase().trim() : null;
 
   const filteredExams = exams.filter((e) => {
+    const examName = String(e.name || '').toUpperCase().trim();
+    const examCode = String(e.examCode || '').toUpperCase().trim();
     const matchesSearch =
-      e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.examCode.toLowerCase().includes(search.toLowerCase());
+      examName.toLowerCase().includes(search.toLowerCase()) ||
+      examCode.toLowerCase().includes(search.toLowerCase());
 
     const examLevel = String(e.level || '').toUpperCase().trim();
-    const examName = String(e.name || '').toUpperCase().trim();
     const examProvider = String(e.provider || (examName.includes('GOETHE') || examLevel.includes('GOETHE') ? 'GOETHE' : 'TELC')).toUpperCase().trim();
     const targetFilter = selectedLevel.toUpperCase().trim();
 
