@@ -442,27 +442,42 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return '';
   };
 
-  // Dynamic Audio URL Resolution for Currently Active Question (Strictly scoped to current section)
-  const getActiveAudioUrl = (): string => {
-    if (currentQuestion?.audioUrl?.trim()) {
-      return currentQuestion.audioUrl.trim();
-    }
-    if (sectionQuestions.length > 0) {
-      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
-      if (qIdx > 0) {
-        for (let i = qIdx - 1; i >= 0; i--) {
-          if (sectionQuestions[i].audioUrl?.trim()) {
-            return sectionQuestions[i].audioUrl!.trim();
-          }
-        }
+  // Extract all unique audio files in this section with their associated question info
+  const sectionAudioList = (() => {
+    const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
+    const list: { questionNum: number; audioUrl: string; title: string }[] = [];
+    const seenUrls = new Set<string>();
+
+    pool.forEach((q, idx) => {
+      const url = q.audioUrl?.trim();
+      if (url && !seenUrls.has(url)) {
+        seenUrls.add(url);
+        list.push({
+          questionNum: idx + 1,
+          audioUrl: url,
+          title: `Audio Câu ${idx + 1}`,
+        });
       }
-      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
-      if (firstWithAudio?.audioUrl?.trim()) {
-        return firstWithAudio.audioUrl.trim();
+    });
+    return list;
+  })();
+
+  const [selectedAudioIndex, setSelectedAudioIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (sectionAudioList.length > 1 && activeAudioUrl) {
+      const audioIdx = sectionAudioList.findIndex((item) => item.audioUrl === activeAudioUrl);
+      if (audioIdx >= 0) {
+        setSelectedAudioIndex(audioIdx);
       }
+    } else {
+      setSelectedAudioIndex(null);
     }
-    return '';
-  };
+  }, [activeQuestionId, activeSectionIndex]);
+
+  const currentAudioUrl = (selectedAudioIndex !== null && sectionAudioList[selectedAudioIndex])
+    ? sectionAudioList[selectedAudioIndex].audioUrl
+    : (activeAudioUrl || sectionAudioList[0]?.audioUrl || '');
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url || !url.trim()) return false;
@@ -505,6 +520,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       const firstWithImg = sectionQuestions.find((q) => isValidImageUrl(q.imageUrl));
       if (firstWithImg?.imageUrl) {
         return formatImageUrl(firstWithImg.imageUrl);
+      }
+    }
+    return '';
+  };
+
+  // Dynamic Audio URL Resolution for Currently Active Question / Section (Strictly scoped to current section)
+  const getActiveAudioUrl = (): string => {
+    // 1. Check currently active question audio URL
+    if (currentQuestion?.audioUrl?.trim()) {
+      return currentQuestion.audioUrl.trim();
+    }
+    // 2. Search ONLY inside current sectionQuestions
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].audioUrl?.trim()) {
+            return sectionQuestions[i].audioUrl!.trim();
+          }
+        }
+      }
+      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
+      if (firstWithAudio?.audioUrl?.trim()) {
+        return firstWithAudio.audioUrl.trim();
       }
     }
     return '';
@@ -762,35 +801,58 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
             {/* Audio Player for Listening Exams / Hörverstehen (Dynamic Media Detection) */}
             {Boolean(
-              activeAudioUrl ||
+              currentAudioUrl ||
+              sectionAudioList.length > 0 ||
               currentSectionMeta?.name?.toLowerCase().includes('hör') ||
               currentSectionMeta?.name?.toLowerCase().includes('nghe') ||
               activeSectionIndex === 2
             ) && (
-              <div className="p-3.5 bg-[#eff6ff] border-2 border-[#111827] rounded-xl space-y-2">
-                <div className="flex items-center justify-between gap-3">
+              <div className="p-3.5 bg-[#eff6ff] border-2 border-[#111827] rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
                     <Headphones className="w-5 h-5 text-[#2563EB]" />
                     <div>
                       <h4 className="text-xs font-black text-[#111827] font-heading uppercase">
-                        File Âm Thanh Bài Nghe Goethe / TELC (Câu {displayQuestionNum})
+                        File Âm Thanh Bài Nghe Goethe / TELC {sectionAudioList.length > 1 ? `(Tùy chọn ${sectionAudioList.length} Audio)` : '(Dùng Chung Cho Các Câu Hỏi)'}
                       </h4>
                       <span className="text-[10px] font-bold text-[#1e40af]">Bài nghe kiểm tra kỹ năng Hörverstehen</span>
                     </div>
                   </div>
+
+                  {sectionAudioList.length > 1 && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {sectionAudioList.map((item, idx) => {
+                        const isSel = (selectedAudioIndex !== null ? selectedAudioIndex : 0) === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSelectedAudioIndex(idx)}
+                            className={`px-2 py-1 rounded-md text-[10px] font-black cursor-pointer border transition-all ${
+                              isSel
+                                ? 'bg-[#2563eb] text-white border-[#111827] shadow-xs'
+                                : 'bg-white text-slate-800 border-slate-300 hover:bg-blue-50'
+                            }`}
+                          >
+                            🔊 {item.title}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {activeAudioUrl ? (
-                  (activeAudioUrl.includes('.mp4') || activeAudioUrl.includes('.webm')) ? (
+                {currentAudioUrl ? (
+                  (currentAudioUrl.includes('.mp4') || currentAudioUrl.includes('.webm')) ? (
                     <video
                       controls
-                      src={activeAudioUrl}
+                      src={currentAudioUrl}
                       className="w-full max-h-52 rounded-lg border-2 border-[#111827]"
                     />
                   ) : (
                     <audio
                       controls
-                      src={activeAudioUrl}
+                      src={currentAudioUrl}
                       className="w-full h-10 rounded-lg border border-[#2563eb]/40"
                     />
                   )
