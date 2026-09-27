@@ -201,16 +201,17 @@ export default function App() {
   const [discussionComments, setDiscussionComments] = useState<DiscussionComment[]>([]);
 
   // Dynamic Leaderboard computed from MySQL CSDL records (students & liveFeed)
-  const leaderboardUsers: LeaderboardUser[] = students.map((st, idx) => {
-    const studentResults = liveFeed.filter((f) => f.studentName.toLowerCase() === st.name.toLowerCase());
+  const leaderboardUsers: LeaderboardUser[] = (students || []).map((st, idx) => {
+    const stName = String(st.name || '').toLowerCase();
+    const studentResults = (liveFeed || []).filter((f) => String(f.studentName || '').toLowerCase() === stName);
     const avgScore = studentResults.length > 0
-      ? Math.round(studentResults.reduce((acc, r) => acc + r.score, 0) / studentResults.length)
+      ? Math.round(studentResults.reduce((acc, r) => acc + (r.score || 0), 0) / studentResults.length)
       : Math.round(st.currentScore || 0);
 
     return {
-      id: st.id,
+      id: String(st.id || idx),
       rank: idx + 1,
-      name: st.name,
+      name: st.name || 'Học viên',
       avatarUrl: st.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       streakDays: 7,
       exp: avgScore * 5 + studentResults.length * 100,
@@ -1204,7 +1205,7 @@ export default function App() {
                   />
                 ) : (
                   <ExamsView
-                    exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
+                    exams={exams.filter((e) => String(e.level || '').includes('B2') || !e.level)}
                     levelLabel="B2"
                     onSelectExam={(exam) => {
                       setPreviousExamTab('exam');
@@ -1239,7 +1240,7 @@ export default function App() {
                   />
                 ) : (
                   <ExamsView
-                    exams={exams.filter((e) => e.level.includes('B2') || !e.level)}
+                    exams={exams.filter((e) => String(e.level || '').includes('B2') || !e.level)}
                     levelLabel="B2"
                     onSelectExam={(exam) => {
                       setSelectedExam(exam);

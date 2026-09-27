@@ -552,6 +552,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   };
 
   const activeContextText = getActiveContextText();
+  const activeImageUrl = getActiveImageUrl();
   const normalizePassageText = (str?: string): string => {
     if (!str) return '';
     return str.replace(/\r\n/g, '\n').replace(/\s+/g, ' ').trim();
