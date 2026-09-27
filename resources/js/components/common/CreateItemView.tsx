@@ -1030,11 +1030,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Trình Độ Đề Thi (Tự động theo phần thi)</label>
-                <div className="w-full p-2.5 bg-slate-100 border-2 border-[#111827] rounded-xl text-xs font-black text-[#2563EB] flex items-center justify-between">
-                  <span>🎓 Trình độ {examLevelOnly}</span>
-                  <span className="text-[10px] px-2 py-0.5 bg-[#2563EB] text-white rounded font-bold uppercase">Cố định</span>
-                </div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Trình Độ Đề Thi (Level) *</label>
+                <select
+                  value={examLevelOnly}
+                  onChange={(e) => setExamLevelOnly(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  <option value="A1">🎓 Trình độ A1</option>
+                  <option value="A2">🎓 Trình độ A2</option>
+                  <option value="B1">🎓 Trình độ B1</option>
+                  <option value="B2">🎓 Trình độ B2</option>
+                  <option value="C1">🎓 Trình độ C1</option>
+                </select>
               </div>
             </div>
 

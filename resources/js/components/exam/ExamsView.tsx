@@ -65,11 +65,20 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
 
     if (!targetLevel) return matchesProvider;
 
-    const matchesLevel = (
-      new RegExp(`\\b${targetLevel}\\b`, 'i').test(examLevelStr) ||
-      examLevelStr.includes(targetLevel) ||
-      new RegExp(`\\b${targetLevel}\\b`, 'i').test(examNameStr)
-    );
+    const fullText = `${examLevelStr} ${examNameStr}`;
+    let matchesLevel = true;
+
+    const hasExactTabLevel = new RegExp(`\\b${targetLevel}\\b`, 'i').test(fullText) || fullText.includes(targetLevel);
+    if (hasExactTabLevel) {
+      matchesLevel = true;
+    } else if (targetLevel === 'B2') {
+      const hasOtherExplicitLevel = ['A1', 'A2', 'B1', 'C1'].some((lvl) =>
+        new RegExp(`\\b${lvl}\\b`, 'i').test(fullText) || fullText.includes(lvl)
+      );
+      matchesLevel = !hasOtherExplicitLevel;
+    } else {
+      matchesLevel = false;
+    }
 
     return matchesProvider && matchesLevel;
   });

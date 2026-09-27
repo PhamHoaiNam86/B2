@@ -47,11 +47,24 @@ export const AdminExamsView: React.FC<AdminExamsViewProps> = ({
     const targetFilter = selectedLevel.toUpperCase().trim();
 
     const matchesProvider = targetFilter === 'ALL' || targetFilter === examProvider;
-    const matchesLevel = !activeTabLevel || (
-      new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examLevel) ||
-      examLevel.includes(activeTabLevel) ||
-      new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(examName)
-    );
+
+    const fullText = `${examLevel} ${examName}`;
+
+    let matchesLevel = true;
+    if (activeTabLevel) {
+      const hasExactTabLevel = new RegExp(`\\b${activeTabLevel}\\b`, 'i').test(fullText) || fullText.includes(activeTabLevel);
+
+      if (hasExactTabLevel) {
+        matchesLevel = true;
+      } else if (activeTabLevel === 'B2') {
+        const hasOtherExplicitLevel = ['A1', 'A2', 'B1', 'C1'].some((lvl) =>
+          new RegExp(`\\b${lvl}\\b`, 'i').test(fullText) || fullText.includes(lvl)
+        );
+        matchesLevel = !hasOtherExplicitLevel;
+      } else {
+        matchesLevel = false;
+      }
+    }
 
     return matchesSearch && matchesProvider && matchesLevel;
   });
