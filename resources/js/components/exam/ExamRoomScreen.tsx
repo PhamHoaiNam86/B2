@@ -442,6 +442,32 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return '';
   };
 
+  // Dynamic Audio URL Resolution for Currently Active Question / Section (Strictly scoped to current section)
+  const getActiveAudioUrl = (): string => {
+    // 1. Check currently active question audio URL
+    if (currentQuestion?.audioUrl?.trim()) {
+      return currentQuestion.audioUrl.trim();
+    }
+    // 2. Search ONLY inside current sectionQuestions
+    if (sectionQuestions.length > 0) {
+      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
+      if (qIdx > 0) {
+        for (let i = qIdx - 1; i >= 0; i--) {
+          if (sectionQuestions[i].audioUrl?.trim()) {
+            return sectionQuestions[i].audioUrl!.trim();
+          }
+        }
+      }
+      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
+      if (firstWithAudio?.audioUrl?.trim()) {
+        return firstWithAudio.audioUrl.trim();
+      }
+    }
+    return '';
+  };
+
+  const activeAudioUrl = getActiveAudioUrl();
+
   // Extract all unique audio files in this section with their associated question info
   const sectionAudioList = (() => {
     const pool = sectionQuestions.length > 0 ? sectionQuestions : questions;
@@ -525,32 +551,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     return '';
   };
 
-  // Dynamic Audio URL Resolution for Currently Active Question / Section (Strictly scoped to current section)
-  const getActiveAudioUrl = (): string => {
-    // 1. Check currently active question audio URL
-    if (currentQuestion?.audioUrl?.trim()) {
-      return currentQuestion.audioUrl.trim();
-    }
-    // 2. Search ONLY inside current sectionQuestions
-    if (sectionQuestions.length > 0) {
-      const qIdx = sectionQuestions.findIndex((q) => String(q.id) === String(currentQuestion?.id));
-      if (qIdx > 0) {
-        for (let i = qIdx - 1; i >= 0; i--) {
-          if (sectionQuestions[i].audioUrl?.trim()) {
-            return sectionQuestions[i].audioUrl!.trim();
-          }
-        }
-      }
-      const firstWithAudio = sectionQuestions.find((q) => Boolean(q.audioUrl?.trim()));
-      if (firstWithAudio?.audioUrl?.trim()) {
-        return firstWithAudio.audioUrl.trim();
-      }
-    }
-    return '';
-  };
-
   const activeContextText = getActiveContextText();
-  const activeAudioUrl = getActiveAudioUrl();
   const normalizePassageText = (str?: string): string => {
     if (!str) return '';
     return str.replace(/\r\n/g, '\n').replace(/\s+/g, ' ').trim();
