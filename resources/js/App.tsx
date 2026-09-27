@@ -978,8 +978,8 @@ export default function App() {
               {activeTab === 'exam' && (
                 <ExamsView
                   exams={exams}
-                  levelLabel="Tất cả đề"
-                  initialLevelFilter="ALL"
+                  levelLabel="B2"
+                  initialLevelFilter="B2"
                   onSelectExam={(exam) => {
                     setPreviousExamTab('exam');
                     setSelectedExam(exam);
