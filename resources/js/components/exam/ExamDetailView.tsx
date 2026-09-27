@@ -56,7 +56,7 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
     }
   }, [exam.examCode]);
 
-  const providerName = exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
+  const providerName = exam.provider || (String(exam.name || '').toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC');
 
   return (
     <div className="space-y-6 w-full">

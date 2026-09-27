@@ -159,7 +159,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredExams.map((exam) => {
-            const isGoethe = (exam.provider || (exam.name.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')) === 'GOETHE';
+            const isGoethe = (exam.provider || (String(exam.name || '').toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC')) === 'GOETHE';
 
             return (
               <div
