@@ -605,12 +605,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       const activeKey = normalizePassageText(activeContextText);
       const passIdx = sectionPassages.findIndex((p) => normalizePassageText(p) === activeKey);
       if (passIdx >= 0) {
-        setSelectedPassageIndex(passIdx);
+        setSelectedPassageIndex((prev) => (prev !== null ? prev : passIdx));
       }
     } else {
       setSelectedPassageIndex(null);
     }
-  }, [activeQuestionId, activeSectionIndex]);
+  }, [activeSectionIndex]);
 
   const displayContextText = (selectedPassageIndex !== null && sectionPassages[selectedPassageIndex])
     ? sectionPassages[selectedPassageIndex]

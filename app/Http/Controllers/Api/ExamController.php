@@ -9,6 +9,7 @@ use App\Models\Question;
 use App\Models\Vocabulary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ExamController extends Controller
@@ -359,9 +360,23 @@ class ExamController extends Controller
      */
     public function uploadAudio(Request $request)
     {
-        $request->validate([
+        if (! $request->hasFile('audio')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể nhận file âm thanh. Dung lượng file có thể vượt quá giới hạn tải lên của máy chủ (upload_max_filesize). Vui lòng nén file MP3 dưới 30MB.',
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
             'audio' => 'required|file|mimes:mp3,wav,ogg,m4a,aac,mp4|max:30720',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File âm thanh không hợp lệ (hỗ trợ MP3, WAV, OGG, M4A, AAC) hoặc vượt quá 30MB.',
+            ], 422);
+        }
 
         $file = $request->file('audio');
         $fileName = time().'_'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->getClientOriginalExtension();
@@ -386,9 +401,23 @@ class ExamController extends Controller
      */
     public function uploadImage(Request $request)
     {
-        $request->validate([
+        if (! $request->hasFile('image')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể nhận file hình ảnh. Dung lượng file có thể vượt quá giới hạn tải lên của máy chủ.',
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
             'image' => 'required|file|mimes:jpg,jpeg,png,webp,gif,svg|max:15360',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File hình ảnh không hợp lệ (hỗ trợ JPG, PNG, WEBP, GIF, SVG) hoặc vượt quá 15MB.',
+            ], 422);
+        }
 
         $file = $request->file('image');
         $fileName = time().'_'.Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$file->getClientOriginalExtension();
