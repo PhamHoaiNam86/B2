@@ -14,6 +14,7 @@ class Exam extends Model
         'name',
         'duration_minutes',
         'level',
+        'provider',
         'description',
         'total_questions',
         'target_score',

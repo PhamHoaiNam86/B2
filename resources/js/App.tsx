@@ -261,7 +261,8 @@ export default function App() {
           const mappedExams: ExamModel[] = res.data.map((item: any) => {
             const rawLevel = String(item.level || 'TELC B2').toUpperCase();
             const rawName = String(item.name || item.title || '').toUpperCase();
-            const isGoethe = item.provider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
+            const rawProvider = String(item.provider || '').toUpperCase();
+            const isGoethe = rawProvider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
             const providerName: 'GOETHE' | 'TELC' = isGoethe ? 'GOETHE' : 'TELC';
 
             return {
@@ -630,6 +631,7 @@ export default function App() {
         exam_code: newExam.examCode,
         name: newExam.name,
         level: newExam.level,
+        provider: newExam.provider || 'TELC',
         duration_minutes: newExam.durationMinutes,
         description: newExam.description,
         total_questions: newExam.totalQuestions,
@@ -642,7 +644,8 @@ export default function App() {
         if (res.success && res.data) {
           const rawLevel = String(res.data.level || newExam.level || 'TELC B2').toUpperCase();
           const rawName = String(res.data.name || res.data.title || newExam.name || '').toUpperCase();
-          const isGoethe = res.data.provider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
+          const rawProvider = String(res.data.provider || newExam.provider || '').toUpperCase();
+          const isGoethe = rawProvider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
 
           const created: ExamModel = {
             id: String(res.data.id || res.data.exam_code),
@@ -683,6 +686,7 @@ export default function App() {
         exam_code: updatedExam.examCode,
         name: updatedExam.name,
         level: updatedExam.level,
+        provider: updatedExam.provider || 'TELC',
         duration_minutes: updatedExam.durationMinutes,
         description: updatedExam.description,
         total_questions: updatedExam.totalQuestions,

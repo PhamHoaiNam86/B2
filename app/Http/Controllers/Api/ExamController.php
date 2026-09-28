@@ -110,6 +110,7 @@ class ExamController extends Controller
             'exam_code' => 'required|string',
             'name' => 'required|string',
             'level' => 'nullable|string',
+            'provider' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
             'description' => 'nullable|string',
             'total_questions' => 'nullable|integer',
@@ -125,6 +126,7 @@ class ExamController extends Controller
                 [
                     'name' => $validated['name'],
                     'level' => $validated['level'] ?? 'TELC B2',
+                    'provider' => $request->input('provider', 'TELC'),
                     'duration_minutes' => $validated['duration_minutes'] ?? 90,
                     'description' => $validated['description'] ?? '',
                     'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
