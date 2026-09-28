@@ -517,12 +517,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (sectionAudioList.length > 1 && activeAudioUrl) {
       const audioIdx = sectionAudioList.findIndex((item) => item.audioUrl === activeAudioUrl);
       if (audioIdx >= 0) {
-        setSelectedAudioIndex(audioIdx);
+        setSelectedAudioIndex((prev) => (prev !== null ? prev : audioIdx));
       }
     } else {
       setSelectedAudioIndex(null);
     }
-  }, [activeQuestionId, activeSectionIndex]);
+  }, [activeSectionIndex]);
 
   const currentAudioUrl = (selectedAudioIndex !== null && sectionAudioList[selectedAudioIndex])
     ? sectionAudioList[selectedAudioIndex].audioUrl

@@ -121,12 +121,19 @@ class ExamController extends Controller
         try {
             DB::beginTransaction();
 
+            $provider = $request->input('provider');
+            if (! $provider) {
+                $rawName = strtoupper($validated['name'] ?? '');
+                $rawLevel = strtoupper($validated['level'] ?? '');
+                $provider = (str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) ? 'GOETHE' : 'TELC';
+            }
+
             $exam = Exam::updateOrCreate(
                 ['exam_code' => $validated['exam_code']],
                 [
                     'name' => $validated['name'],
                     'level' => $validated['level'] ?? 'TELC B2',
-                    'provider' => $request->input('provider', 'TELC'),
+                    'provider' => $provider,
                     'duration_minutes' => $validated['duration_minutes'] ?? 90,
                     'description' => $validated['description'] ?? '',
                     'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
@@ -210,6 +217,7 @@ class ExamController extends Controller
             'exam_code' => 'nullable|string',
             'name' => 'sometimes|required|string',
             'level' => 'nullable|string',
+            'provider' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
             'description' => 'nullable|string',
             'total_questions' => 'nullable|integer',
@@ -221,10 +229,15 @@ class ExamController extends Controller
             DB::beginTransaction();
 
             if (! $exam) {
+                $rawName = strtoupper($validated['name'] ?? 'Đề thi mới');
+                $rawLevel = strtoupper($validated['level'] ?? 'TELC B2');
+                $provider = $validated['provider'] ?? ((str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) ? 'GOETHE' : 'TELC');
+
                 $exam = Exam::create([
                     'exam_code' => $validated['exam_code'] ?? $examCode,
                     'name' => $validated['name'] ?? 'Đề thi mới',
                     'level' => $validated['level'] ?? 'TELC B2',
+                    'provider' => $provider,
                     'duration_minutes' => $validated['duration_minutes'] ?? 90,
                     'description' => $validated['description'] ?? '',
                     'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
@@ -240,6 +253,15 @@ class ExamController extends Controller
             }
             if (isset($validated['level'])) {
                 $exam->level = $validated['level'];
+            }
+            if ($request->has('provider')) {
+                $exam->provider = $request->input('provider');
+            } elseif (isset($validated['name']) || isset($validated['level'])) {
+                $rawName = strtoupper($exam->name);
+                $rawLevel = strtoupper($exam->level);
+                if (str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) {
+                    $exam->provider = 'GOETHE';
+                }
             }
             if (isset($validated['duration_minutes'])) {
                 $exam->duration_minutes = $validated['duration_minutes'];
