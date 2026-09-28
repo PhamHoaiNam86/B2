@@ -325,6 +325,29 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     setHighlights((prev) => prev.filter((h) => h.id !== idOrText && h.text !== idOrText));
   };
 
+  const handleQuickTranslateText = (textToTranslate: string) => {
+    if (!textToTranslate || !textToTranslate.trim()) return;
+    const cleanText = textToTranslate.trim();
+
+    const existing = highlights.find((h) => h.text.toLowerCase() === cleanText.toLowerCase());
+    let targetId = existing?.id;
+
+    if (!existing) {
+      targetId = `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      const newItem: HighlightItem = {
+        id: targetId,
+        text: cleanText,
+        colorId: selectedColor,
+      };
+      setHighlights((prev) => [...prev, newItem]);
+    }
+
+    if (targetId) {
+      speakGermanText(cleanText);
+      translateGermanInline(targetId, cleanText);
+    }
+  };
+
   const renderHighlightedText = (text: string) => {
     if (!text) return null;
     if (!highlights || highlights.length === 0) {
@@ -1149,6 +1172,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     key={q.id}
                     id={`question-${q.id}`}
                     data-question-id={q.id}
+                    onMouseUp={handleHighlightSelection}
                     onClick={() => {
                       if (activeQuestionId !== q.id) {
                         isUserClickingRef.current = true;
@@ -1164,9 +1188,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     }`}
                   >
                     {/* Title */}
-                    <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2.5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2.5 flex-wrap">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="px-2.5 py-0.5 rounded-full bg-[#2563EB] text-white text-xs font-black">
                             Câu {displayQuestionNum}
                           </span>
@@ -1175,9 +1199,20 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                               {q.subSection}
                             </span>
                           )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuickTranslateText(q.title);
+                            }}
+                            className="px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded border border-blue-300 text-[10px] font-black cursor-pointer transition-all flex items-center gap-1 shadow-2xs"
+                            title="Tra từ & dịch Tiếng Việt toàn bộ câu hỏi này"
+                          >
+                            🌐 Dịch & Phát Âm Câu Hỏi
+                          </button>
                         </div>
-                        <h4 className="text-sm sm:text-base font-black text-[#111827] font-heading mt-1">
-                          {q.title}
+                        <h4 className="text-sm sm:text-base font-black text-[#111827] font-heading mt-1 leading-relaxed">
+                          {renderHighlightedText(q.title)}
                         </h4>
                       </div>
 
@@ -1228,7 +1263,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         />
                       </div>
                     ) : (
-                      /* MCQ OPTIONS */
+                      /* MCQ OPTIONS WITH INLINE TRANSLATE AND HIGHLIGHT SUPPORT */
                       <div className="space-y-2">
                         {q.options.map((opt) => {
                           const isSelected = userChoice === opt.id;
@@ -1249,7 +1284,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                               buttonStyle = 'bg-[#ecfdf5] text-[#047857] border-[#059669] font-bold';
                               badgeElement = <span className="text-[10px] px-2 py-0.5 rounded bg-[#059669] text-white font-black">✓ Đáp án đúng</span>;
                             } else {
-                              buttonStyle = 'bg-[#f8fafc] text-slate-400 border-slate-200 opacity-60';
+                              buttonStyle = 'bg-[#f8fafc] text-[#111827] border-slate-200 opacity-80';
                             }
                           } else if (isSelected) {
                             buttonStyle = 'bg-[#2563EB] text-white border-[#111827] brutal-shadow font-black';
@@ -1257,17 +1292,36 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                           }
 
                           return (
-                            <button
+                            <div
                               key={opt.id}
-                              disabled={isReviewMode}
                               onClick={() => !isReviewMode && onAnswerChange(q.id, opt.id)}
-                              className={`w-full text-left p-3 rounded-xl border-2 text-xs sm:text-sm transition-all flex items-center justify-between gap-2 ${
+                              className={`w-full text-left p-3 rounded-xl border-2 text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${
                                 isReviewMode ? 'cursor-default' : 'cursor-pointer'
                               } ${buttonStyle}`}
                             >
-                              <span>{opt.text}</span>
-                              {badgeElement}
-                            </button>
+                              <div className="flex-1 font-medium leading-normal">
+                                {renderHighlightedText(opt.text)}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuickTranslateText(opt.text);
+                                  }}
+                                  className={`px-1.5 py-0.5 rounded border text-[10px] font-bold cursor-pointer transition-all ${
+                                    isSelected
+                                      ? 'bg-white/20 text-white border-white/40 hover:bg-white/30'
+                                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-blue-50 hover:text-blue-700'
+                                  }`}
+                                  title="Dịch nghĩa Tiếng Việt đáp án này"
+                                >
+                                  🌐 Dịch
+                                </button>
+                                {badgeElement}
+                              </div>
+                            </div>
                           );
                         })}
                       </div>
@@ -1280,9 +1334,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                           <HelpCircle className="w-3.5 h-3.5 text-[#2563EB]" />
                           💡 Giải Thích Đáp Án:
                         </h5>
-                        <p className="text-xs text-[#1e293b] leading-relaxed font-medium">
-                          {q.explanation || `Đáp án chính xác là (${q.correctOptionId || 'A'}).`}
-                        </p>
+                        <div className="text-xs text-[#1e293b] leading-relaxed font-medium">
+                          {renderHighlightedText(q.explanation || `Đáp án chính xác là (${q.correctOptionId || 'A'}).`)}
+                        </div>
                       </div>
                     )}
                   </div>
