@@ -248,7 +248,14 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
                         const letter = String.fromCharCode(65 + optIdx);
                         const rawText = opt.text || '';
                         const cleanText = rawText.replace(/^(?:Đáp án\s*)?[A-Z][:.]\s*/i, '');
-                        const isCorrect = Boolean(opt.isCorrect);
+                        const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
+                        const optId = String(opt.id || '').trim().toUpperCase();
+                        const isCorrect = Boolean(opt.isCorrect) || (correctChoice !== '' && (
+                          optId === correctChoice ||
+                          letter === correctChoice ||
+                          rawText.trim().toUpperCase().startsWith(`${correctChoice}:`) ||
+                          rawText.trim().toUpperCase().startsWith(`${correctChoice}.`)
+                        ));
 
                         return (
                           <div

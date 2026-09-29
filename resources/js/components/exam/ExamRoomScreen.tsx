@@ -249,6 +249,39 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     }
   };
 
+  const isOptionCorrectForQuestion = (q: Question, opt: any, optIndex: number): boolean => {
+    if (Boolean(opt.isCorrect)) return true;
+
+    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
+    if (!correctChoice) return false;
+
+    const optId = String(opt.id || '').trim().toUpperCase();
+    if (optId && optId === correctChoice) return true;
+
+    const letter = String.fromCharCode(65 + optIndex).toUpperCase();
+    if (letter === correctChoice) return true;
+
+    const optText = String(opt.text || '').trim().toUpperCase();
+    if (optText.startsWith(`${correctChoice}:`) || optText.startsWith(`${correctChoice}.`)) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const isUserAnswerCorrect = (q: Question, userAns: any): boolean => {
+    if (!userAns) return false;
+    const userStr = String(userAns).trim().toUpperCase();
+    const optIdx = q.options.findIndex(
+      (o: any) => String(o.id).trim().toUpperCase() === userStr || o.id === userAns
+    );
+    if (optIdx >= 0) {
+      return isOptionCorrectForQuestion(q, q.options[optIdx], optIdx);
+    }
+    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
+    return userStr === correctChoice;
+  };
+
   const translateGermanInline = async (highlightId: string, text: string) => {
     const target = highlights.find((h) => h.id === highlightId);
     if (target?.translation) {
@@ -1097,7 +1130,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               {questions.map((q, qIndex) => {
                 const userAns = examState.answers[q.id];
                 const isAnswered = Boolean(userAns);
-                const isCorrect = userAns === (q.correctOptionId || 'A');
+                const isCorrect = isUserAnswerCorrect(q, userAns);
                 const isCurrent = q.id === activeQuestionId;
 
                 let gridStyle = 'bg-[#fcf9f8] text-[#111827] border-[#111827] hover:bg-[#e2e8f0]';
@@ -1265,10 +1298,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     ) : (
                       /* MCQ OPTIONS WITH INLINE TRANSLATE AND HIGHLIGHT SUPPORT */
                       <div className="space-y-2">
-                        {q.options.map((opt) => {
+                        {q.options.map((opt, optIdx) => {
                           const isSelected = userChoice === opt.id;
-                          const correctChoice = q.correctOptionId || 'A';
-                          const isCorrectOption = opt.id === correctChoice;
+                          const isCorrectOption = isOptionCorrectForQuestion(q, opt, optIdx);
 
                           let buttonStyle = 'bg-white text-[#111827] border-[#111827] hover:bg-[#f8fafc]';
                           let badgeElement = null;

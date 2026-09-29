@@ -146,6 +146,49 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   // Calculate Total Questions Count across all sections
   const totalQuestionsCount = sections.reduce((acc, sec) => acc + sec.questions.length, 0);
 
+  const parseQuestionOptions = (rawOptions: any[], targetCorrectId?: string): ExamQuestionOption[] => {
+    if (!Array.isArray(rawOptions) || rawOptions.length === 0) return [];
+    const targetStr = String(targetCorrectId || '').trim().toUpperCase();
+
+    let hasCorrect = false;
+    const mapped = rawOptions.map((opt: any, optIndex: number) => {
+      const letter = String.fromCharCode(65 + optIndex);
+      const cleanId = String(opt.id || `opt-${optIndex + 1}`);
+
+      let isCorrect = Boolean(
+        opt.isCorrect === true ||
+        opt.isCorrect === 'true' ||
+        opt.isCorrect === 1 ||
+        opt.isCorrect === '1'
+      );
+
+      if (!isCorrect && targetStr) {
+        if (
+          cleanId.toUpperCase() === targetStr ||
+          letter === targetStr ||
+          (opt.text && String(opt.text).trim().toUpperCase().startsWith(`${targetStr}:`)) ||
+          (opt.text && String(opt.text).trim().toUpperCase().startsWith(`${targetStr}.`))
+        ) {
+          isCorrect = true;
+        }
+      }
+
+      if (isCorrect) hasCorrect = true;
+
+      return {
+        id: cleanId,
+        text: opt.text || '',
+        isCorrect,
+      };
+    });
+
+    if (!hasCorrect && mapped.length > 0) {
+      mapped[0].isCorrect = true;
+    }
+
+    return mapped;
+  };
+
   // Pre-fill fields on Edit Mode or Reset on Create Mode
   useEffect(() => {
     if (editingItem) {
@@ -173,11 +216,15 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
               id: String(q.id || `q-${idx + 1}`),
               type: q.type || 'choice',
               questionText: q.questionText || q.title || `Câu ${idx + 1}: `,
+              subSection: q.subSection || q.sub_section || '',
               contextText: q.contextText || q.context_text || '',
               audioUrl: q.audioUrl || q.audio_url || '',
               imageUrl: q.imageUrl || q.image_url || '',
               explanation: q.explanation || '',
-              options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
+              options: parseQuestionOptions(
+                q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
+                q.correctOptionId || q.correct_option_id
+              ),
             };
             const secName = q.section || 'Phần 1';
             if (!sectionsMap[secName]) {
@@ -216,13 +263,17 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                     id: String(q.id || `q-${idx + 1}`),
                     type: q.type || 'choice',
                     questionText: q.title || `Câu ${idx + 1}: `,
+                    subSection: q.sub_section || q.subSection || '',
                     contextText: q.context_text || q.contextText || '',
                     audioUrl: q.audio_url || q.audioUrl || '',
                     imageUrl: q.image_url || q.imageUrl || '',
                     explanation: q.explanation || '',
-                    options: q.options_json
-                      ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
-                      : [],
+                    options: parseQuestionOptions(
+                      q.options_json
+                        ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json)
+                        : [],
+                      q.correct_option_id || q.correctOptionId
+                    ),
                   };
 
                   const secName = q.section || 'Phần 1';
@@ -733,6 +784,9 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       const fallbackSecName = sec.name.trim() || `Phần ${sIdx + 1}`;
       sec.questions.forEach((q, qIdx) => {
         const questionTitle = q.questionText?.trim() || (q.imageUrl ? `[Hình ảnh câu hỏi ${qIdx + 1}]` : `Câu ${qIdx + 1}`);
+        const correctOpt = (q.options || []).find((opt) => opt.isCorrect);
+        const correctOptId = correctOpt ? correctOpt.id : (q.options?.[0]?.id || 'A');
+
         flattenedQuestions.push({
           id: q.id,
           section: fallbackSecName,
@@ -743,12 +797,16 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
           audioUrl: q.audioUrl || '',
           imageUrl: q.imageUrl || '',
           explanation: q.explanation || '',
+          correctOptionId: correctOptId,
+          correct_option_id: correctOptId,
           options: (q.options || []).map((opt, optIndex) => {
             const letter = String.fromCharCode(65 + optIndex);
             const clean = getCleanOptionText(opt.text);
             return {
               ...opt,
+              id: opt.id || `opt-${q.id}-${optIndex + 1}`,
               text: `${letter}: ${clean || `Phương án ${letter}`}`,
+              isCorrect: Boolean(opt.isCorrect),
             };
           }),
         });

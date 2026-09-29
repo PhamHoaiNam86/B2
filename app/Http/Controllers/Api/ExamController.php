@@ -149,15 +149,17 @@ class ExamController extends Controller
                 Question::where('exam_code', $exam->exam_code)->delete();
 
                 foreach ($validated['questions'] as $index => $q) {
-                    $options = isset($q['options']) ? array_map(function ($opt) {
+                    $options = isset($q['options']) && is_array($q['options']) ? array_map(function ($opt, $optIdx) {
                         $isCorrect = isset($opt['isCorrect']) && ($opt['isCorrect'] === true || $opt['isCorrect'] === 'true' || $opt['isCorrect'] === 1 || $opt['isCorrect'] === '1');
+                        $letter = chr(65 + $optIdx);
 
                         return [
-                            'id' => $opt['id'] ?? Str::random(4),
+                            'id' => $opt['id'] ?? ('opt-'.($optIdx + 1)),
                             'text' => $opt['text'] ?? '',
                             'isCorrect' => $isCorrect,
+                            'letter' => $letter,
                         ];
-                    }, $q['options']) : [];
+                    }, $q['options'], array_keys($q['options'])) : [];
 
                     $correctOpt = null;
                     foreach ($options as $opt) {
@@ -167,20 +169,38 @@ class ExamController extends Controller
                         }
                     }
 
+                    if (! $correctOpt) {
+                        $passedCorrect = $q['correctOptionId'] ?? $q['correct_option_id'] ?? null;
+                        if ($passedCorrect) {
+                            foreach ($options as &$opt) {
+                                if (strtoupper((string) $opt['id']) === strtoupper((string) $passedCorrect) || strtoupper((string) $opt['letter']) === strtoupper((string) $passedCorrect)) {
+                                    $opt['isCorrect'] = true;
+                                    $correctOpt = $opt['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (! $correctOpt && ! empty($options)) {
+                        $options[0]['isCorrect'] = true;
+                        $correctOpt = $options[0]['id'];
+                    }
+
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
                     Question::create([
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
-                        'sub_section' => $q['subSection'] ?? '',
+                        'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
                         'type' => $q['type'] ?? 'choice',
                         'question_number' => $index + 1,
                         'title' => $title,
-                        'context_text' => $q['contextText'] ?? null,
+                        'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
                         'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                         'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
                         'options_json' => $options,
-                        'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
+                        'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
                     ]);
                 }
@@ -283,15 +303,17 @@ class ExamController extends Controller
                 Question::where('exam_code', $exam->exam_code)->delete();
 
                 foreach ($validated['questions'] as $index => $q) {
-                    $options = isset($q['options']) ? array_map(function ($opt) {
+                    $options = isset($q['options']) && is_array($q['options']) ? array_map(function ($opt, $optIdx) {
                         $isCorrect = isset($opt['isCorrect']) && ($opt['isCorrect'] === true || $opt['isCorrect'] === 'true' || $opt['isCorrect'] === 1 || $opt['isCorrect'] === '1');
+                        $letter = chr(65 + $optIdx);
 
                         return [
-                            'id' => $opt['id'] ?? Str::random(4),
+                            'id' => $opt['id'] ?? ('opt-'.($optIdx + 1)),
                             'text' => $opt['text'] ?? '',
                             'isCorrect' => $isCorrect,
+                            'letter' => $letter,
                         ];
-                    }, $q['options']) : [];
+                    }, $q['options'], array_keys($q['options'])) : [];
 
                     $correctOpt = null;
                     foreach ($options as $opt) {
@@ -301,20 +323,38 @@ class ExamController extends Controller
                         }
                     }
 
+                    if (! $correctOpt) {
+                        $passedCorrect = $q['correctOptionId'] ?? $q['correct_option_id'] ?? null;
+                        if ($passedCorrect) {
+                            foreach ($options as &$opt) {
+                                if (strtoupper((string) $opt['id']) === strtoupper((string) $passedCorrect) || strtoupper((string) $opt['letter']) === strtoupper((string) $passedCorrect)) {
+                                    $opt['isCorrect'] = true;
+                                    $correctOpt = $opt['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (! $correctOpt && ! empty($options)) {
+                        $options[0]['isCorrect'] = true;
+                        $correctOpt = $options[0]['id'];
+                    }
+
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
                     Question::create([
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
-                        'sub_section' => $q['subSection'] ?? '',
+                        'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
                         'type' => $q['type'] ?? 'choice',
                         'question_number' => $index + 1,
                         'title' => $title,
-                        'context_text' => $q['contextText'] ?? null,
+                        'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
                         'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
                         'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
                         'options_json' => $options,
-                        'correct_option_id' => $correctOpt ?? ($options[0]['id'] ?? null),
+                        'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
                     ]);
                 }
