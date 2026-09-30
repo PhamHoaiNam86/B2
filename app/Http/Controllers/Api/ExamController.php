@@ -9,6 +9,7 @@ use App\Models\Question;
 use App\Models\Vocabulary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -129,24 +130,35 @@ class ExamController extends Controller
                 $provider = (str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) ? 'GOETHE' : 'TELC';
             }
 
+            $examData = [
+                'name' => $validated['name'],
+                'level' => $validated['level'] ?? 'TELC B2',
+                'duration_minutes' => $validated['duration_minutes'] ?? 90,
+                'description' => $validated['description'] ?? '',
+                'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
+                'target_score' => 225,
+                'pass_rate' => '88%',
+                'is_active' => true,
+            ];
+
+            if (Schema::hasColumn('exams', 'provider')) {
+                $examData['provider'] = $provider;
+            }
+            if (Schema::hasColumn('exams', 'sections_json')) {
+                $examData['sections_json'] = $validated['sections'] ?? null;
+            }
+
             $exam = Exam::updateOrCreate(
                 ['exam_code' => $validated['exam_code']],
-                [
-                    'name' => $validated['name'],
-                    'level' => $validated['level'] ?? 'TELC B2',
-                    'provider' => $provider,
-                    'duration_minutes' => $validated['duration_minutes'] ?? 90,
-                    'description' => $validated['description'] ?? '',
-                    'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
-                    'target_score' => 225,
-                    'pass_rate' => '88%',
-                    'is_active' => true,
-                    'sections_json' => $validated['sections'] ?? null,
-                ]
+                $examData
             );
 
             if (isset($validated['questions']) && is_array($validated['questions'])) {
                 Question::where('exam_code', $exam->exam_code)->delete();
+
+                $hasType = Schema::hasColumn('questions', 'type');
+                $hasAudioUrl = Schema::hasColumn('questions', 'audio_url');
+                $hasImageUrl = Schema::hasColumn('questions', 'image_url');
 
                 foreach ($validated['questions'] as $index => $q) {
                     $options = isset($q['options']) && is_array($q['options']) ? array_map(function ($opt, $optIdx) {
@@ -189,20 +201,29 @@ class ExamController extends Controller
 
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
-                    Question::create([
+                    $questionData = [
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
                         'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
-                        'type' => $q['type'] ?? 'choice',
                         'question_number' => $index + 1,
                         'title' => $title,
                         'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
-                        'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
-                        'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
                         'options_json' => $options,
                         'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
-                    ]);
+                    ];
+
+                    if ($hasType) {
+                        $questionData['type'] = $q['type'] ?? 'choice';
+                    }
+                    if ($hasAudioUrl) {
+                        $questionData['audio_url'] = $q['audioUrl'] ?? $q['audio_url'] ?? null;
+                    }
+                    if ($hasImageUrl) {
+                        $questionData['image_url'] = $q['imageUrl'] ?? $q['image_url'] ?? null;
+                    }
+
+                    Question::create($questionData);
                 }
             }
 
@@ -249,24 +270,34 @@ class ExamController extends Controller
         try {
             DB::beginTransaction();
 
+            $hasProviderCol = Schema::hasColumn('exams', 'provider');
+            $hasSectionsCol = Schema::hasColumn('exams', 'sections_json');
+
             if (! $exam) {
                 $rawName = strtoupper($validated['name'] ?? 'Đề thi mới');
                 $rawLevel = strtoupper($validated['level'] ?? 'TELC B2');
                 $provider = $validated['provider'] ?? ((str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) ? 'GOETHE' : 'TELC');
 
-                $exam = Exam::create([
+                $createData = [
                     'exam_code' => $validated['exam_code'] ?? $examCode,
                     'name' => $validated['name'] ?? 'Đề thi mới',
                     'level' => $validated['level'] ?? 'TELC B2',
-                    'provider' => $provider,
                     'duration_minutes' => $validated['duration_minutes'] ?? 90,
                     'description' => $validated['description'] ?? '',
                     'total_questions' => $validated['total_questions'] ?? (isset($validated['questions']) ? count($validated['questions']) : 0),
                     'target_score' => 225,
                     'pass_rate' => '88%',
                     'is_active' => true,
-                    'sections_json' => $validated['sections'] ?? null,
-                ]);
+                ];
+
+                if ($hasProviderCol) {
+                    $createData['provider'] = $provider;
+                }
+                if ($hasSectionsCol) {
+                    $createData['sections_json'] = $validated['sections'] ?? null;
+                }
+
+                $exam = Exam::create($createData);
             }
 
             if (isset($validated['name'])) {
@@ -275,13 +306,15 @@ class ExamController extends Controller
             if (isset($validated['level'])) {
                 $exam->level = $validated['level'];
             }
-            if ($request->has('provider')) {
-                $exam->provider = $request->input('provider');
-            } elseif (isset($validated['name']) || isset($validated['level'])) {
-                $rawName = strtoupper($exam->name);
-                $rawLevel = strtoupper($exam->level);
-                if (str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) {
-                    $exam->provider = 'GOETHE';
+            if ($hasProviderCol) {
+                if ($request->has('provider')) {
+                    $exam->provider = $request->input('provider');
+                } elseif (isset($validated['name']) || isset($validated['level'])) {
+                    $rawName = strtoupper($exam->name);
+                    $rawLevel = strtoupper($exam->level);
+                    if (str_contains($rawName, 'GOETHE') || str_contains($rawLevel, 'GOETHE')) {
+                        $exam->provider = 'GOETHE';
+                    }
                 }
             }
             if (isset($validated['duration_minutes'])) {
@@ -293,7 +326,7 @@ class ExamController extends Controller
             if (isset($validated['total_questions'])) {
                 $exam->total_questions = $validated['total_questions'];
             }
-            if (isset($validated['sections'])) {
+            if (isset($validated['sections']) && $hasSectionsCol) {
                 $exam->sections_json = $validated['sections'];
             }
 
@@ -301,6 +334,10 @@ class ExamController extends Controller
 
             if (isset($validated['questions']) && is_array($validated['questions'])) {
                 Question::where('exam_code', $exam->exam_code)->delete();
+
+                $hasType = Schema::hasColumn('questions', 'type');
+                $hasAudioUrl = Schema::hasColumn('questions', 'audio_url');
+                $hasImageUrl = Schema::hasColumn('questions', 'image_url');
 
                 foreach ($validated['questions'] as $index => $q) {
                     $options = isset($q['options']) && is_array($q['options']) ? array_map(function ($opt, $optIdx) {
@@ -343,20 +380,29 @@ class ExamController extends Controller
 
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
-                    Question::create([
+                    $questionData = [
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
                         'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
-                        'type' => $q['type'] ?? 'choice',
                         'question_number' => $index + 1,
                         'title' => $title,
                         'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
-                        'audio_url' => $q['audioUrl'] ?? $q['audio_url'] ?? null,
-                        'image_url' => $q['imageUrl'] ?? $q['image_url'] ?? null,
                         'options_json' => $options,
                         'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
-                    ]);
+                    ];
+
+                    if ($hasType) {
+                        $questionData['type'] = $q['type'] ?? 'choice';
+                    }
+                    if ($hasAudioUrl) {
+                        $questionData['audio_url'] = $q['audioUrl'] ?? $q['audio_url'] ?? null;
+                    }
+                    if ($hasImageUrl) {
+                        $questionData['image_url'] = $q['imageUrl'] ?? $q['image_url'] ?? null;
+                    }
+
+                    Question::create($questionData);
                 }
             }
 
