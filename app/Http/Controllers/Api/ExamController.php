@@ -78,23 +78,44 @@ class ExamController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $result = ExamResult::create([
+        $resultData = [
             'result_id' => 'RES-'.Str::upper(Str::random(6)),
             'exam_code' => $validated['exam_code'],
             'student_name' => $validated['student_name'],
             'score' => $validated['score'],
             'max_score' => $validated['max_score'] ?? 300,
             'status_text' => $validated['status_text'],
-            'reading_score' => $validated['reading_score'] ?? 0,
-            'listening_score' => $validated['listening_score'] ?? 0,
-            'writing_score' => $validated['writing_score'] ?? 0,
-            'speaking_score' => $validated['speaking_score'] ?? 0,
-            'tab_switch_count' => $validated['tab_switch_count'] ?? 0,
-            'ai_feedback' => $validated['ai_feedback'] ?? null,
-            'description' => $validated['description'] ?? 'Hoàn thành bài thi thử TELC B2',
-            'time_ago' => 'Vừa xong',
-            'submitted_at' => now(),
-        ]);
+        ];
+
+        if (Schema::hasColumn('exam_results', 'reading_score')) {
+            $resultData['reading_score'] = $validated['reading_score'] ?? 0;
+        }
+        if (Schema::hasColumn('exam_results', 'listening_score')) {
+            $resultData['listening_score'] = $validated['listening_score'] ?? 0;
+        }
+        if (Schema::hasColumn('exam_results', 'writing_score')) {
+            $resultData['writing_score'] = $validated['writing_score'] ?? 0;
+        }
+        if (Schema::hasColumn('exam_results', 'speaking_score')) {
+            $resultData['speaking_score'] = $validated['speaking_score'] ?? 0;
+        }
+        if (Schema::hasColumn('exam_results', 'tab_switch_count')) {
+            $resultData['tab_switch_count'] = $validated['tab_switch_count'] ?? 0;
+        }
+        if (Schema::hasColumn('exam_results', 'ai_feedback')) {
+            $resultData['ai_feedback'] = $validated['ai_feedback'] ?? null;
+        }
+        if (Schema::hasColumn('exam_results', 'description')) {
+            $resultData['description'] = $validated['description'] ?? 'Hoàn thành bài thi thử TELC B2';
+        }
+        if (Schema::hasColumn('exam_results', 'time_ago')) {
+            $resultData['time_ago'] = 'Vừa xong';
+        }
+        if (Schema::hasColumn('exam_results', 'submitted_at')) {
+            $resultData['submitted_at'] = now();
+        }
+
+        $result = ExamResult::create($resultData);
 
         return response()->json([
             'success' => true,
