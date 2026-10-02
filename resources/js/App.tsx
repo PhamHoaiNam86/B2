@@ -622,6 +622,45 @@ export default function App() {
   };
 
   // Handlers for Exams (Persisted to SQL DB)
+  const fetchLatestExams = () => {
+    fetch('/api/v1/exams')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          const mappedExams: ExamModel[] = res.data.map((item: any) => {
+            const rawLevel = String(item.level || 'TELC B2').toUpperCase();
+            const rawName = String(item.name || item.title || '').toUpperCase();
+            const rawProvider = String(item.provider || '').toUpperCase();
+            const isGoethe = rawProvider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
+            const providerName: 'GOETHE' | 'TELC' = isGoethe ? 'GOETHE' : 'TELC';
+
+            return {
+              id: String(item.id || item.exam_code || `exam-${Date.now()}`),
+              name: item.name || item.title || 'Bộ đề thi thử',
+              examCode: item.exam_code || 'EXAM-CODE',
+              level: item.level || 'TELC B2',
+              provider: providerName,
+              durationMinutes: item.duration_minutes || 90,
+              totalQuestions: item.total_questions || 45,
+              description: item.description || '',
+              sections: item.sections_json
+                ? (typeof item.sections_json === 'string' ? JSON.parse(item.sections_json) : item.sections_json)
+                : [
+                    { name: 'Leseverstehen', questionCount: 20, duration: '45 phút' },
+                    { name: 'Sprachbausteine', questionCount: 10, duration: '15 phút' },
+                    { name: 'Hörverstehen', questionCount: 10, duration: '20 phút' },
+                    { name: 'Schriftlicher Ausdruck', questionCount: 1, duration: '30 phút' },
+                  ],
+              targetScore: item.target_score || 225,
+              passRate: item.pass_rate || '88%',
+            };
+          });
+          setExams(mappedExams);
+        }
+      })
+      .catch(() => {});
+  };
+
   const handleAddExam = (newExam: ExamModel) => {
     setExams((prev) => [newExam, ...prev]);
     fetch('/api/v1/exams', {
@@ -642,43 +681,22 @@ export default function App() {
       .then((res) => res.json())
       .then((res) => {
         if (res.success && res.data) {
-          const rawLevel = String(res.data.level || newExam.level || 'TELC B2').toUpperCase();
-          const rawName = String(res.data.name || res.data.title || newExam.name || '').toUpperCase();
-          const rawProvider = String(res.data.provider || newExam.provider || '').toUpperCase();
-          const isGoethe = rawProvider === 'GOETHE' || rawName.includes('GOETHE') || rawLevel.includes('GOETHE');
-
-          const created: ExamModel = {
-            id: String(res.data.id || res.data.exam_code),
-            name: res.data.name || res.data.title,
-            examCode: res.data.exam_code,
-            level: res.data.level || newExam.level || 'TELC B2',
-            provider: isGoethe ? 'GOETHE' : 'TELC',
-            durationMinutes: res.data.duration_minutes || 90,
-            totalQuestions: res.data.total_questions || (newExam.questions ? newExam.questions.length : 0),
-            description: res.data.description || '',
-            sections: res.data.sections_json
-              ? (typeof res.data.sections_json === 'string' ? JSON.parse(res.data.sections_json) : res.data.sections_json)
-              : newExam.sections,
-            targetScore: res.data.target_score || 225,
-            passRate: '88%',
-            questions: newExam.questions,
-          };
-          setExams((prev) => prev.map((e) => (e.id === newExam.id || e.examCode === newExam.examCode ? created : e)));
           showToast('Thành công', 'Bộ đề thi đã được lưu vĩnh viễn vào CSDL!', 'success');
+          fetchLatestExams();
         } else {
           showToast('Cảnh báo lưu CSDL', res.message || 'Máy chủ không thể lưu đề thi vào CSDL!', 'warning');
-          setExams((prev) => prev.filter((e) => e.id !== newExam.id && e.examCode !== newExam.examCode));
+          setExams((prev) => prev.filter((e) => e.id !== newExam.id));
         }
       })
       .catch((err) => {
         console.error('Create Exam Error:', err);
         showToast('Lỗi kết nối', 'Không thể gửi dữ liệu đề thi tới máy chủ!', 'warning');
-        setExams((prev) => prev.filter((e) => e.id !== newExam.id && e.examCode !== newExam.examCode));
+        setExams((prev) => prev.filter((e) => e.id !== newExam.id));
       });
   };
 
   const handleUpdateExam = (updatedExam: ExamModel) => {
-    setExams((prev) => prev.map((e) => (e.id === updatedExam.id || e.examCode === updatedExam.examCode ? updatedExam : e)));
+    setExams((prev) => prev.map((e) => (e.id === updatedExam.id ? updatedExam : e)));
     fetch(`/api/v1/exams/${encodeURIComponent(updatedExam.examCode || updatedExam.id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -698,8 +716,10 @@ export default function App() {
       .then((res) => {
         if (res.success) {
           showToast('Cập nhật thành công', 'Đã lưu thay đổi bộ đề thi vào CSDL!', 'success');
+          fetchLatestExams();
         } else {
           showToast('Lỗi cập nhật', res.message || 'Không thể lưu thay đổi vào CSDL!', 'warning');
+          fetchLatestExams();
         }
       })
       .catch((err) => {
@@ -710,7 +730,9 @@ export default function App() {
 
   const handleDeleteExam = (id: string) => {
     setExams((prev) => prev.filter((e) => e.id !== id));
-    fetch(`/api/v1/exams/${id}`, { method: 'DELETE' }).catch(() => {});
+    fetch(`/api/v1/exams/${id}`, { method: 'DELETE' })
+      .then(() => fetchLatestExams())
+      .catch(() => {});
   };
 
   // Handlers for Grammar (Persisted to SQL DB)
