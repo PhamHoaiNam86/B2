@@ -155,7 +155,7 @@ class ExamController extends Controller
 
             $exam = Exam::create(array_merge($examData, ['exam_code' => $targetCode]));
 
-            if (isset($validated['questions']) && is_array($validated['questions'])) {
+            if (! empty($exam->exam_code) && isset($validated['questions']) && is_array($validated['questions'])) {
                 Question::where('exam_code', $exam->exam_code)->delete();
 
                 $hasType = Schema::hasColumn('questions', 'type');
@@ -346,7 +346,7 @@ class ExamController extends Controller
 
             $exam->save();
 
-            if (isset($validated['questions']) && is_array($validated['questions'])) {
+            if (! empty($exam->exam_code) && isset($validated['questions']) && is_array($validated['questions'])) {
                 Question::where('exam_code', $exam->exam_code)->delete();
 
                 $hasType = Schema::hasColumn('questions', 'type');
