@@ -84,7 +84,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
-  const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-4)}`);
+  const [examCode, setExamCode] = useState(editingItem?.examCode || `MOCK-${Date.now().toString().slice(-6)}`);
   const [provider, setProvider] = useState<'GOETHE' | 'TELC'>(() => {
     const raw = editingItem?.provider || editingItem?.level || initialLevel || 'TELC';
     const upper = String(raw).toUpperCase();

@@ -148,10 +148,12 @@ class ExamController extends Controller
                 $examData['sections_json'] = $validated['sections'] ?? null;
             }
 
-            $exam = Exam::updateOrCreate(
-                ['exam_code' => $validated['exam_code']],
-                $examData
-            );
+            $targetCode = $validated['exam_code'];
+            if (Exam::where('exam_code', $targetCode)->exists()) {
+                $targetCode = $targetCode.'-'.Str::lower(Str::random(4));
+            }
+
+            $exam = Exam::create(array_merge($examData, ['exam_code' => $targetCode]));
 
             if (isset($validated['questions']) && is_array($validated['questions'])) {
                 Question::where('exam_code', $exam->exam_code)->delete();
@@ -201,13 +203,25 @@ class ExamController extends Controller
 
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
+                    $rawSubSection = $q['subSection'] ?? $q['sub_section'] ?? '';
+                    $rawContext = $q['contextText'] ?? $q['context_text'] ?? null;
+
+                    if (mb_strlen($rawSubSection) > 240) {
+                        if (empty($rawContext)) {
+                            $rawContext = $rawSubSection;
+                        } else {
+                            $rawContext = $rawSubSection."\n\n".$rawContext;
+                        }
+                        $rawSubSection = mb_substr($rawSubSection, 0, 240);
+                    }
+
                     $questionData = [
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
-                        'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
+                        'sub_section' => $rawSubSection,
                         'question_number' => $index + 1,
                         'title' => $title,
-                        'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
+                        'context_text' => $rawContext,
                         'options_json' => $options,
                         'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
@@ -380,13 +394,25 @@ class ExamController extends Controller
 
                     $title = ! empty($q['title']) ? $q['title'] : (! empty($q['questionText']) ? $q['questionText'] : ('Câu '.($index + 1)));
 
+                    $rawSubSection = $q['subSection'] ?? $q['sub_section'] ?? '';
+                    $rawContext = $q['contextText'] ?? $q['context_text'] ?? null;
+
+                    if (mb_strlen($rawSubSection) > 240) {
+                        if (empty($rawContext)) {
+                            $rawContext = $rawSubSection;
+                        } else {
+                            $rawContext = $rawSubSection."\n\n".$rawContext;
+                        }
+                        $rawSubSection = mb_substr($rawSubSection, 0, 240);
+                    }
+
                     $questionData = [
                         'exam_code' => $exam->exam_code,
                         'section' => $q['section'] ?? 'Phần 1',
-                        'sub_section' => $q['subSection'] ?? $q['sub_section'] ?? '',
+                        'sub_section' => $rawSubSection,
                         'question_number' => $index + 1,
                         'title' => $title,
-                        'context_text' => $q['contextText'] ?? $q['context_text'] ?? null,
+                        'context_text' => $rawContext,
                         'options_json' => $options,
                         'correct_option_id' => $correctOpt,
                         'explanation' => $q['explanation'] ?? null,
