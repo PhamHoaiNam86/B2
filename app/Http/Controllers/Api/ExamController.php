@@ -65,10 +65,10 @@ class ExamController extends Controller
     {
         $validated = $request->validate([
             'exam_code' => 'required|string',
-            'student_name' => 'required|string',
-            'score' => 'required|numeric',
+            'student_name' => 'nullable|string',
+            'score' => 'nullable|numeric',
             'max_score' => 'nullable|numeric',
-            'status_text' => 'required|string',
+            'status_text' => 'nullable|string',
             'reading_score' => 'nullable|numeric',
             'listening_score' => 'nullable|numeric',
             'writing_score' => 'nullable|numeric',
@@ -78,13 +78,26 @@ class ExamController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $reading = $validated['reading_score'] ?? 0;
+        $listening = $validated['listening_score'] ?? 0;
+        $writing = $validated['writing_score'] ?? 0;
+        $speaking = $validated['speaking_score'] ?? 0;
+
+        $totalScore = $validated['score'] ?? ($reading + $listening + $writing + $speaking);
+        if ($totalScore == 0 && ($reading > 0 || $listening > 0)) {
+            $totalScore = $reading + $listening + $writing + $speaking;
+        }
+
+        $maxScore = $validated['max_score'] ?? 300;
+        $statusText = $validated['status_text'] ?? ($totalScore >= ($maxScore * 0.6) ? 'Đạt chuẩn' : 'Chưa đạt');
+
         $resultData = [
             'result_id' => 'RES-'.Str::upper(Str::random(6)),
             'exam_code' => $validated['exam_code'],
-            'student_name' => $validated['student_name'],
-            'score' => $validated['score'],
-            'max_score' => $validated['max_score'] ?? 300,
-            'status_text' => $validated['status_text'],
+            'student_name' => $validated['student_name'] ?? 'Học Viên B2',
+            'score' => $totalScore,
+            'max_score' => $maxScore,
+            'status_text' => $statusText,
         ];
 
         if (Schema::hasColumn('exam_results', 'reading_score')) {
