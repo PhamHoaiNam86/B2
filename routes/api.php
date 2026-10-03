@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ExamController;
 use App\Http\Controllers\Api\GrammarController;
@@ -8,6 +9,12 @@ use App\Http\Controllers\Api\VocabController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Auth & OTP
+    Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp']);
+    Route::post('/auth/login', [AuthController::class, 'login']);
+
     // Exams & Results & Questions
     Route::get('/exams', [ExamController::class, 'index']);
     Route::post('/exams', [ExamController::class, 'store']);

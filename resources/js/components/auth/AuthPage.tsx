@@ -49,23 +49,68 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   }, [step]);
 
-  const handleSubmitForm = (e: React.FormEvent) => {
+  // API state
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
+
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Auto detect role from account credentials / is_admin field
-    const isUserAdmin =
-      email.toLowerCase().includes('admin') ||
-      username.toLowerCase().includes('admin');
-    const roleToSet: 'admin' | 'student' = isUserAdmin ? 'admin' : 'student';
+    setErrorMsg('');
+    setInfoMsg('');
 
     if (activeTab === 'login') {
-      // Login goes directly to portal
-      onSuccessLogin(roleToSet);
+      setLoading(true);
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json());
+
+        if (res.success) {
+          onSuccessLogin(res.role || 'student');
+        } else {
+          setErrorMsg(res.message || 'Đăng nhập không thành công. Vui lòng thử lại!');
+        }
+      } catch (err) {
+        setErrorMsg('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng!');
+      } finally {
+        setLoading(false);
+      }
     } else {
-      // Register goes to 6-digit OTP verification screen
-      setStep('otp');
-      setResendTimer(60);
-      setIsResendActive(false);
-      setOtp(['', '', '', '', '', '']);
+      if (password !== confirmPassword) {
+        setErrorMsg('Mật khẩu xác nhận không khớp với mật khẩu đã nhập.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch('/api/v1/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: fullName || email.split('@')[0],
+            username: username || email.split('@')[0],
+            email,
+            password,
+          }),
+        }).then((r) => r.json());
+
+        if (res.success) {
+          setInfoMsg(res.message || `Mã OTP 6 số đã được gửi về email ${email}`);
+          setStep('otp');
+          setResendTimer(60);
+          setIsResendActive(false);
+          setOtp(['', '', '', '', '', '']);
+        } else {
+          setErrorMsg(res.message || 'Đăng ký không thành công. Vui lòng thử lại!');
+        }
+      } catch (err) {
+        setErrorMsg('Lỗi kết nối máy chủ khi đăng ký tài khoản.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -109,27 +154,59 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     otpInputRefs.current[focusIndex]?.focus();
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg('');
     const enteredOtp = otp.join('');
     if (enteredOtp.length < 6) {
-      alert('Vui lòng nhập đủ 6 chữ số mã OTP xác thực.');
+      setErrorMsg('Vui lòng nhập đủ 6 chữ số mã OTP xác thực.');
       return;
     }
-    const isUserAdmin =
-      email.toLowerCase().includes('admin') ||
-      username.toLowerCase().includes('admin');
-    const roleToSet: 'admin' | 'student' = isUserAdmin ? 'admin' : 'student';
-    // Verify success -> proceed to portal
-    onSuccessLogin(roleToSet);
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/v1/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: enteredOtp }),
+      }).then((r) => r.json());
+
+      if (res.success) {
+        onSuccessLogin(res.role || 'student');
+      } else {
+        setErrorMsg(res.message || 'Mã OTP không chính xác. Vui lòng kiểm tra lại!');
+      }
+    } catch (err) {
+      setErrorMsg('Lỗi xác thực mã OTP với máy chủ.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (!isResendActive) return;
-    setResendTimer(60);
-    setIsResendActive(false);
-    setOtp(['', '', '', '', '', '']);
-    alert(`Mã OTP mới đã được gửi lại tới email ${email || 'hocvien@trieuvydeutsch.vn'}`);
+    setErrorMsg('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/v1/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).then((r) => r.json());
+
+      if (res.success) {
+        setInfoMsg(res.message || `Mã OTP mới đã được gửi về email ${email}`);
+        setResendTimer(60);
+        setIsResendActive(false);
+        setOtp(['', '', '', '', '', '']);
+      } else {
+        setErrorMsg(res.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại!');
+      }
+    } catch (err) {
+      setErrorMsg('Lỗi gửi lại mã OTP.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -287,6 +364,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
 
+              {/* Error & Info Alerts */}
+              {errorMsg && (
+                <div className="p-3 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#e11d48]" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {infoMsg && (
+                <div className="p-3 bg-[#eff6ff] text-[#1d4ed8] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2563EB]" />
+                  <span>{infoMsg}</span>
+                </div>
+              )}
+
               {/* FORM */}
               <form onSubmit={handleSubmitForm} className="space-y-4">
 
@@ -436,6 +527,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Error & Info Alerts for OTP View */}
+              {errorMsg && (
+                <div className="p-3 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#e11d48]" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {infoMsg && (
+                <div className="p-3 bg-[#eff6ff] text-[#1d4ed8] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2563EB]" />
+                  <span>{infoMsg}</span>
+                </div>
+              )}
 
               {/* OTP 6-Digit Inputs */}
               <form onSubmit={handleVerifyOtp} className="space-y-6 pt-2">
