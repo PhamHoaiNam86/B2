@@ -77,6 +77,7 @@ export interface Student {
   targetScore: number;
   currentScore: number;
   status: string;
+  approval_status?: 'pending' | 'approved' | 'rejected';
   targetExamDate: string;
 }
 

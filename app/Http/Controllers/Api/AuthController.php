@@ -70,6 +70,7 @@ class AuthController extends Controller
                 'otp_code' => $otpCode,
                 'otp_expires_at' => $otpExpiresAt,
                 'is_admin' => $isAdmin,
+                'approval_status' => $isAdmin ? 'approved' : 'pending',
             ]);
         }
 
@@ -137,9 +138,36 @@ class AuthController extends Controller
         $user->save();
 
         $role = $user->is_admin ? 'admin' : 'student';
+        $approvalStatus = $user->approval_status ?? ($user->is_admin ? 'approved' : 'pending');
+
+        if (! $user->is_admin && $approvalStatus === 'pending') {
+            return response()->json([
+                'success' => true,
+                'approval_status' => 'pending',
+                'message' => 'Xác thực mã OTP thành công! Tài khoản của bạn đang trong trạng thái CHỜ DUYỆT từ Quản trị viên (Admin).',
+                'role' => $role,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'role' => $role,
+                    'approval_status' => 'pending',
+                ],
+            ]);
+        }
+
+        if (! $user->is_admin && $approvalStatus === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'approval_status' => 'rejected',
+                'message' => 'Tài khoản của bạn đã bị từ chối truy cập. Vui lòng liên hệ Admin để biết chi tiết!',
+            ], 403);
+        }
 
         return response()->json([
             'success' => true,
+            'approval_status' => 'approved',
             'message' => 'Xác thực mã OTP thành công! Đang đăng nhập vào hệ thống...',
             'role' => $role,
             'user' => [
@@ -148,6 +176,7 @@ class AuthController extends Controller
                 'username' => $user->username,
                 'email' => $user->email,
                 'role' => $role,
+                'approval_status' => 'approved',
             ],
         ]);
     }
@@ -218,18 +247,63 @@ class AuthController extends Controller
         }
 
         $role = $user->is_admin ? 'admin' : 'student';
+        $approvalStatus = $user->approval_status ?? ($user->is_admin ? 'approved' : 'pending');
+
+        if (! $user->is_admin && $approvalStatus === 'pending') {
+            return response()->json([
+                'success' => false,
+                'approval_status' => 'pending',
+                'message' => 'Tài khoản của bạn đã xác thực Email nhưng ĐANG CHỜ ADMIN DƯYỆT. Vui lòng liên hệ Admin để mở khóa!',
+            ], 403);
+        }
+
+        if (! $user->is_admin && $approvalStatus === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'approval_status' => 'rejected',
+                'message' => 'Tài khoản của bạn đã bị từ chối truy cập. Vui lòng liên hệ Admin!',
+            ], 403);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công!',
             'role' => $role,
+            'approval_status' => 'approved',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'username' => $user->username,
                 'email' => $user->email,
                 'role' => $role,
+                'approval_status' => 'approved',
             ],
+        ]);
+    }
+
+    /**
+     * Check approval status for a student account.
+     */
+    public function checkStatus(Request $request)
+    {
+        $email = mb_strtolower(trim($request->input('email', '')));
+        $user = User::where('email', $email)->orWhere('username', $email)->first();
+
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy tài khoản.',
+            ], 404);
+        }
+
+        $approvalStatus = $user->approval_status ?? ($user->is_admin ? 'approved' : 'pending');
+
+        return response()->json([
+            'success' => true,
+            'approval_status' => $approvalStatus,
+            'is_admin' => (bool) $user->is_admin,
+            'name' => $user->name,
+            'email' => $user->email,
         ]);
     }
 

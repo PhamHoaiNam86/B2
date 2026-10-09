@@ -14,6 +14,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/check-status', [AuthController::class, 'checkStatus']);
 
     // Exams & Results & Questions
     Route::get('/exams', [ExamController::class, 'index']);
@@ -45,5 +46,6 @@ Route::prefix('v1')->group(function () {
 
     // Students & Documents
     Route::get('/students', [StudentController::class, 'index']);
+    Route::post('/students/{id}/status', [StudentController::class, 'updateStatus']);
     Route::get('/docs', [DocumentController::class, 'index']);
 });

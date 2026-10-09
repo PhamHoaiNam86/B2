@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LogIn, UserPlus, Mail, Lock, User, UserCheck, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, KeyRound, RefreshCw } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, User, UserCheck, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, KeyRound, RefreshCw, Clock, XCircle, PhoneCall } from 'lucide-react';
 
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
@@ -13,7 +13,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   onSuccessLogin,
 }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
-  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [step, setStep] = useState<'form' | 'otp' | 'pending_approval' | 'rejected'>('form');
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -69,9 +69,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         }).then((r) => r.json());
 
         if (res.success) {
-          onSuccessLogin(res.role || 'student');
+          if (res.approval_status === 'pending') {
+            setStep('pending_approval');
+          } else if (res.approval_status === 'rejected') {
+            setStep('rejected');
+          } else {
+            onSuccessLogin(res.role || 'student');
+          }
         } else {
-          setErrorMsg(res.message || 'Đăng nhập không thành công. Vui lòng thử lại!');
+          if (res.approval_status === 'pending') {
+            setStep('pending_approval');
+          } else if (res.approval_status === 'rejected') {
+            setStep('rejected');
+          } else {
+            setErrorMsg(res.message || 'Đăng nhập không thành công. Vui lòng thử lại!');
+          }
         }
       } catch (err) {
         setErrorMsg('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng!');
@@ -115,13 +127,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    // Only accept numeric digit
     const digit = value.replace(/[^0-9]/g, '').slice(-1);
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
 
-    // Auto advance to next input
     if (digit && index < 5) {
       otpInputRefs.current[index + 1]?.focus();
     }
@@ -172,9 +182,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       }).then((r) => r.json());
 
       if (res.success) {
-        onSuccessLogin(res.role || 'student');
+        if (res.approval_status === 'pending') {
+          setStep('pending_approval');
+        } else if (res.approval_status === 'rejected') {
+          setStep('rejected');
+        } else {
+          onSuccessLogin(res.role || 'student');
+        }
       } else {
-        setErrorMsg(res.message || 'Mã OTP không chính xác. Vui lòng kiểm tra lại!');
+        if (res.approval_status === 'pending') {
+          setStep('pending_approval');
+        } else if (res.approval_status === 'rejected') {
+          setStep('rejected');
+        } else {
+          setErrorMsg(res.message || 'Mã OTP không chính xác. Vui lòng kiểm tra lại!');
+        }
       }
     } catch (err) {
       setErrorMsg('Lỗi xác thực mã OTP với máy chủ.');
@@ -209,6 +231,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
+  const handleCheckApprovalStatus = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    setInfoMsg('');
+    try {
+      const res = await fetch('/api/v1/auth/check-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).then((r) => r.json());
+
+      if (res.success) {
+        if (res.approval_status === 'approved') {
+          onSuccessLogin(res.is_admin ? 'admin' : 'student');
+        } else if (res.approval_status === 'rejected') {
+          setStep('rejected');
+        } else {
+          setInfoMsg('Tài khoản vẫn đang trong trạng thái CHỜ DUYỆT. Vui lòng nhắn Admin mở khóa!');
+        }
+      } else {
+        setErrorMsg(res.message || 'Không thể kiểm tra trạng thái.');
+      }
+    } catch (e) {
+      setErrorMsg('Lỗi kết nối máy chủ khi kiểm tra.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#fcf9f8] text-[#111827] font-sans flex flex-col justify-between selection:bg-[#F97316] selection:text-white">
       <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -216,16 +267,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             LEFT HALF (1/2 trang): HÌNH BANNER 2 + THÔNG TIN NỔI BẬT
         ------------------------------------------------------------- */}
         <div className="relative hidden lg:flex flex-col justify-between bg-[#111827] p-12 text-white min-h-screen overflow-hidden group">
-          {/* Background Image Banner 2 */}
           <img
             src="/images/banner2.png"
             alt="Luyện thi TELC B2 TRIEUVY DEUTSCH"
             className="absolute inset-0 w-full h-full object-cover object-center opacity-90 group-hover:scale-105 transition-transform duration-700"
           />
-          {/* Dark Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/50 to-[#111827]/30 z-10" />
 
-          {/* Header Branding */}
           <div className="relative z-20 flex items-center justify-between">
             <div
               className="flex items-center gap-3 cursor-pointer"
@@ -245,7 +293,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           </div>
 
-          {/* Middle / Bottom Feature Callout */}
           <div className="relative z-20 max-w-lg space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#F97316] border-2 border-white text-white rounded-xl text-xs font-black uppercase tracking-wider brutal-shadow-xs">
               <ShieldCheck className="w-4 h-4" />
@@ -280,17 +327,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           </div>
 
-          {/* Footer Copyright */}
           <div className="relative z-20 text-xs text-slate-400 font-medium">
             © 2026 TRIEUVY DEUTSCH. Nền tảng luyện thi chuẩn quốc tế.
           </div>
         </div>
 
         {/* -------------------------------------------------------------
-            RIGHT HALF (1/2 trang): FORM ĐĂNG KÝ / ĐĂNG NHẬP / NHẬP OTP
+            RIGHT HALF (1/2 trang): FORM ĐĂNG KÝ / ĐĂNG NHẬP / NHẬP OTP / CHỜ DUYỆT
         ------------------------------------------------------------- */}
         <div className="flex flex-col justify-between p-6 sm:p-12 lg:p-16 bg-white min-h-screen">
-          {/* Top Bar Navigation for Mobile/Desktop */}
           <div className="flex items-center justify-between w-full mb-8">
             <div className="flex items-center gap-3 lg:hidden" onClick={onBackToHome}>
               <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white border-2 border-[#111827] flex items-center justify-center font-black text-base brutal-shadow-xs">
@@ -311,9 +356,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {/* -------------------------------------------------------------
               VIEW 1: FORM ĐĂNG NHẬP / ĐĂNG KÝ
           ------------------------------------------------------------- */}
-          {step === 'form' ? (
+          {step === 'form' && (
             <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn">
-              {/* Title & Description */}
               <div className="space-y-2">
                 <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
                   {activeTab === 'login' ? 'Đăng Nhập Tài Khoản' : 'Đăng Ký Tài Khoản Mới'}
@@ -325,7 +369,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </p>
               </div>
 
-              {/* Tab Switcher: Đăng Nhập vs Đăng Ký */}
               <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#f1f5f9] border-[2.5px] border-[#111827] rounded-2xl brutal-shadow-xs">
                 <button
                   type="button"
@@ -364,7 +407,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
 
-              {/* Error & Info Alerts */}
               {errorMsg && (
                 <div className="p-3 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
                   <ShieldCheck className="w-4 h-4 shrink-0 text-[#e11d48]" />
@@ -378,10 +420,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               )}
 
-              {/* FORM */}
               <form onSubmit={handleSubmitForm} className="space-y-4">
-
-                {/* Full Name & Username fields (Register mode) */}
                 {activeTab === 'register' && (
                   <>
                     <div className="space-y-1.5">
@@ -416,7 +455,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </>
                 )}
 
-                {/* Email / Username field */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-[#111827] block">
                     {activeTab === 'login' ? 'Email hoặc Tên đăng nhập' : 'Địa chỉ Email'}
@@ -434,7 +472,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </div>
                 </div>
 
-                {/* Password field */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-[#111827] block">Mật khẩu</label>
                   <div className="relative">
@@ -450,7 +487,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </div>
                 </div>
 
-                {/* Confirm Password (Register mode) */}
                 {activeTab === 'register' && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-[#111827] block">Xác nhận mật khẩu</label>
@@ -468,7 +504,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </div>
                 )}
 
-                {/* Remember me & Forgot Password (Login mode) */}
                 {activeTab === 'login' && (
                   <div className="flex items-center justify-between pt-1">
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#4b5563]">
@@ -491,26 +526,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </div>
                 )}
 
-                {/* Submit Button */}
                 <button
                   type="submit"
-                  className={`w-full py-3.5 px-4 border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider mt-6 ${
+                  disabled={loading}
+                  className={`w-full py-3.5 px-4 border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider mt-6 disabled:opacity-50 ${
                     activeTab === 'login'
                       ? 'bg-[#2563EB] hover:bg-[#1d4ed8]'
                       : 'bg-[#F97316] hover:bg-[#ea580c]'
                   }`}
                 >
-                  <span>{activeTab === 'login' ? 'ĐĂNG NHẬP VÀO PORTAL' : 'ĐĂNG KÝ & NHẬP MÃ OTP'}</span>
+                  <span>{loading ? 'Đang xử lý...' : activeTab === 'login' ? 'ĐĂNG NHẬP VÀO PORTAL' : 'ĐĂNG KÝ & NHẬP MÃ OTP'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             </div>
-          ) : (
-            /* -------------------------------------------------------------
-                VIEW 2: TRANG NHẬP MÃ OTP 6 SỐ
-            ------------------------------------------------------------- */
+          )}
+
+          {/* -------------------------------------------------------------
+              VIEW 2: TRANG NHẬP MÃ OTP 6 SỐ
+          ------------------------------------------------------------- */}
+          {step === 'otp' && (
             <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn">
-              {/* Header OTP */}
               <div className="space-y-3 text-center sm:text-left">
                 <div className="w-12 h-12 rounded-2xl bg-[#F97316] text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm mx-auto sm:mx-0">
                   <KeyRound className="w-6 h-6 stroke-[2.5]" />
@@ -528,7 +564,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               </div>
 
-              {/* Error & Info Alerts for OTP View */}
               {errorMsg && (
                 <div className="p-3 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
                   <ShieldCheck className="w-4 h-4 shrink-0 text-[#e11d48]" />
@@ -542,7 +577,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               )}
 
-              {/* OTP 6-Digit Inputs */}
               <form onSubmit={handleVerifyOtp} className="space-y-6 pt-2">
                 <div className="flex items-center justify-between gap-2 sm:gap-3">
                   {otp.map((digit, idx) => (
@@ -563,7 +597,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   ))}
                 </div>
 
-                {/* Resend OTP Timer & Button */}
                 <div className="flex items-center justify-between text-xs font-bold text-[#4b5563] pt-1">
                   <span>Chưa nhận được mã OTP?</span>
                   {isResendActive ? (
@@ -582,16 +615,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   )}
                 </div>
 
-                {/* Submit OTP Button */}
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-4 bg-[#F97316] hover:bg-[#ea580c] border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider"
+                  disabled={loading}
+                  className="w-full py-3.5 px-4 bg-[#F97316] hover:bg-[#ea580c] border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#111827] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider disabled:opacity-50"
                 >
-                  <span>XÁC NHẬN MÃ OTP & VÀO PORTAL</span>
+                  <span>{loading ? 'Đang xác thực...' : 'XÁC NHẬN MÃ OTP & GỬI CHỜ DUYỆT'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
-                {/* Back to Edit Email */}
                 <div className="text-center pt-2">
                   <button
                     type="button"
@@ -603,6 +635,128 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {/* -------------------------------------------------------------
+              VIEW 3: TRANG CHỜ XÁC NHẬN DUYỆT TỪ ADMIN (PENDING APPROVAL)
+          ------------------------------------------------------------- */}
+          {step === 'pending_approval' && (
+            <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn text-center sm:text-left">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm mx-auto sm:mx-0">
+                <Clock className="w-8 h-8 stroke-[2.5] animate-spin" style={{ animationDuration: '6s' }} />
+              </div>
+
+              <div className="space-y-2">
+                <span className="px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full text-xs font-black inline-block">
+                  ⏳ TÀI KHOẢN ĐANG CHỜ ADMIN PHÊ DUYỆT
+                </span>
+                <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
+                  Xác Thực Email Thành Công!
+                </h2>
+                <p className="text-xs sm:text-sm font-medium text-[#4b5563] leading-relaxed">
+                  Để đảm bảo chất lượng giảng dạy và tránh học tự do chui, tài khoản của bạn đang được Quản trị viên (Admin) xem xét và cấp quyền học.
+                </p>
+              </div>
+
+              {/* Student Info Card */}
+              <div className="bg-amber-50/60 border-2 border-amber-200 rounded-2xl p-4 space-y-2 text-left">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-bold">Email tài khoản:</span>
+                  <span className="font-black text-[#111827] font-mono">{email || 'hocvien@gmail.com'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-bold">Trạng thái hiện tại:</span>
+                  <span className="font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                    Chờ duyệt học phí & tài khoản
+                  </span>
+                </div>
+              </div>
+
+              {/* Contact Admin Card */}
+              <div className="bg-white border-2 border-[#111827] rounded-2xl p-5 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                    <PhoneCall className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#111827]">Liên Hệ Admin Mở Khóa Nhanh</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Nhắn Zalo/Hotline Admin để được duyệt ngay trong 5 phút</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-black">
+                  <span className="text-slate-600">Hotline Zalo Admin:</span>
+                  <span className="text-[#2563EB] text-sm">0347.815.447 (Vỹ)</span>
+                </div>
+              </div>
+
+              {errorMsg && (
+                <div className="p-3 bg-[#fff1f2] text-[#e11d48] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#e11d48]" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {infoMsg && (
+                <div className="p-3 bg-[#eff6ff] text-[#1d4ed8] border-2 border-[#111827] rounded-xl text-xs font-bold flex items-center gap-2 brutal-shadow-xs">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2563EB]" />
+                  <span>{infoMsg}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleCheckApprovalStatus}
+                  className="w-full py-3.5 px-4 bg-[#2563EB] hover:bg-[#1d4ed8] border-[2.5px] border-[#111827] rounded-xl text-xs font-black text-white brutal-shadow-sm hover:translate-y-[-2px] transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span>{loading ? 'Đang kiểm tra...' : 'KIỂM TRA LẠI TRẠNG THÁI DUYỆT'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStep('form')}
+                  className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer"
+                >
+                  Quay Lại Trang Đăng Nhập
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* -------------------------------------------------------------
+              VIEW 4: TRANG TỪ CHỐI TRUY CẬP (REJECTED)
+          ------------------------------------------------------------- */}
+          {step === 'rejected' && (
+            <div className="max-w-md w-full mx-auto my-auto space-y-6 animate-fadeIn text-center sm:text-left">
+              <div className="w-14 h-14 rounded-2xl bg-rose-600 text-white border-2 border-[#111827] flex items-center justify-center font-black brutal-shadow-sm mx-auto sm:mx-0">
+                <XCircle className="w-8 h-8 stroke-[2.5]" />
+              </div>
+
+              <div className="space-y-2">
+                <span className="px-3 py-1 bg-rose-100 text-rose-800 border border-rose-300 rounded-full text-xs font-black inline-block">
+                  ❌ TÀI KHOẢN BỊ TỪ CHỐI TRUY CẬP
+                </span>
+                <h2 className="text-3xl font-black text-[#111827] font-heading tracking-tight">
+                  Tài Khoản Chưa Được Duyệt
+                </h2>
+                <p className="text-xs sm:text-sm font-medium text-[#4b5563] leading-relaxed">
+                  Rất tiếc, tài khoản của bạn đã bị Admin từ chối cấp quyền truy cập. Vui lòng liên hệ Admin nếu có sự nhầm lẫn.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={onBackToHome}
+                  className="w-full py-3.5 px-4 bg-[#111827] text-white border-[2.5px] border-[#111827] rounded-xl text-xs font-black uppercase tracking-wider"
+                >
+                  Quay Lại Trang Chủ
+                </button>
+              </div>
             </div>
           )}
 
