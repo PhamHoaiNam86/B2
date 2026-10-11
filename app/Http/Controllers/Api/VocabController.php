@@ -9,9 +9,13 @@ use Illuminate\Support\Str;
 
 class VocabController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $vocabs = Vocabulary::orderBy('id', 'desc')->get();
+        $query = Vocabulary::query();
+        if ($request->has('level') && $request->level !== 'all') {
+            $query->where('level', strtoupper($request->level));
+        }
+        $vocabs = $query->orderBy('id', 'desc')->get();
 
         return response()->json([
             'success' => true,
@@ -31,6 +35,7 @@ class VocabController extends Controller
             'example_de' => 'nullable|string',
             'example_vi' => 'nullable|string',
             'topic' => 'required|string',
+            'level' => 'nullable|string',
         ]);
 
         $vocab = Vocabulary::create([
@@ -44,6 +49,7 @@ class VocabController extends Controller
             'example_de' => $validated['example_de'] ?? '',
             'example_vi' => $validated['example_vi'] ?? '',
             'topic' => $validated['topic'],
+            'level' => strtoupper($validated['level'] ?? 'B2'),
             'status' => 'learning',
             'is_favorite' => false,
         ]);
@@ -81,6 +87,7 @@ class VocabController extends Controller
             'example_de' => 'sometimes|required|string',
             'example_vi' => 'sometimes|required|string',
             'topic' => 'sometimes|required|string',
+            'level' => 'nullable|string',
             'status' => 'nullable|string',
         ]);
 

@@ -34,6 +34,7 @@ export interface VocabItem {
   exampleDe: string;
   exampleVi: string;
   topic: string;
+  level?: string;
   status: VocabStatus;
   isFavorite: boolean;
 }

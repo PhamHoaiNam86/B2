@@ -20,6 +20,7 @@ class Vocabulary extends Model
         'example_de',
         'example_vi',
         'topic',
+        'level',
         'status',
         'is_favorite',
     ];
