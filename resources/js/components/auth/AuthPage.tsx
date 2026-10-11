@@ -314,7 +314,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </div>
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />
-                <span>Đáp án & Chấm điểm 300</span>
+                <span>Chấm điểm Goethe (100đ) & TELC (105đ)</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />

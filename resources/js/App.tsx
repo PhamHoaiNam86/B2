@@ -282,7 +282,7 @@ export default function App() {
                     { name: 'Hörverstehen', questionCount: 10, duration: '20 phút' },
                     { name: 'Schriftlicher Ausdruck', questionCount: 1, duration: '30 phút' },
                   ],
-              targetScore: item.target_score || 225,
+              targetScore: item.target_score || ((item.provider === 'GOETHE' || String(item.exam_code || '').toUpperCase().includes('GOETHE')) ? 60 : 63),
               passRate: item.pass_rate || '88%',
             };
           });
@@ -350,7 +350,7 @@ export default function App() {
             email: item.email || '',
             avatarUrl: item.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
             currentScore: item.current_score || 0,
-            targetScore: item.target_score || 270,
+            targetScore: item.target_score || 80,
             className: item.class_name || 'B2-K38',
             targetExamDate: item.target_exam_date || '15/10/2026',
             status: item.status || 'Đang Học',
@@ -651,7 +651,7 @@ export default function App() {
                     { name: 'Hörverstehen', questionCount: 10, duration: '20 phút' },
                     { name: 'Schriftlicher Ausdruck', questionCount: 1, duration: '30 phút' },
                   ],
-              targetScore: item.target_score || 225,
+              targetScore: item.target_score || ((item.provider === 'GOETHE' || String(item.exam_code || '').toUpperCase().includes('GOETHE')) ? 60 : 63),
               passRate: item.pass_rate || '88%',
             };
           });
@@ -833,12 +833,38 @@ export default function App() {
     showToast('Vào phòng thi', `Đã bắt đầu phiên thi thử ${exam ? exam.name : 'TELC B2'} với bộ đếm thời gian.`, 'info');
   };
 
-  const handleFinishExamSubmit = () => {
-    const answeredCount = Object.keys(examState.answers || {}).length;
-    const estimatedScore = Math.round((answeredCount / 4) * 240 + 35);
-    const isGoethe = (examState.examCode || '').toUpperCase().includes('GOETHE');
+  const handleFinishExamSubmit = (computedResult?: any) => {
+    const isGoethe = (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE');
+    const defaultMax = isGoethe ? 100 : 105;
     const providerLabel = isGoethe ? 'GOETHE' : 'TELC';
-    const statusText = estimatedScore >= 180 ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`;
+
+    const score = typeof computedResult?.score === 'number'
+      ? computedResult.score
+      : (isGoethe ? 75 : 82.5);
+    const maxScore = computedResult?.maxScore || defaultMax;
+    const readingScore = typeof computedResult?.readingScore === 'number'
+      ? computedResult.readingScore
+      : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10);
+    const sprachScore = typeof computedResult?.sprachScore === 'number'
+      ? computedResult.sprachScore
+      : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10);
+    const correctCount = computedResult?.correctCount ?? 0;
+    const answeredCount = computedResult?.answeredCount ?? Object.keys(examState.answers || {}).length;
+
+    const passThreshold = isGoethe ? 60 : 63;
+    const statusText = computedResult?.statusText || (score >= passThreshold ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`);
+
+    setExamState((prev) => ({
+      ...prev,
+      score,
+      maxScore,
+      readingScore,
+      sprachScore,
+      statusText,
+      answeredCount,
+      correctCount,
+      isSubmitted: true,
+    }));
 
     fetch('/api/v1/submit', {
       method: 'POST',
@@ -846,16 +872,16 @@ export default function App() {
       body: JSON.stringify({
         exam_code: examState.examCode || selectedExam?.examCode || 'EXAM-MOCK',
         student_name: examState.studentName || (currentUser === 'admin' ? 'Triệu Vỹ Admin' : 'Học Viên B2'),
-        score: estimatedScore,
-        max_score: 300,
+        score: score,
+        max_score: maxScore,
         status_text: statusText,
-        reading_score: Math.round(estimatedScore * 0.3),
-        listening_score: Math.round(estimatedScore * 0.28),
-        writing_score: Math.round(estimatedScore * 0.22),
-        speaking_score: Math.round(estimatedScore * 0.2),
+        reading_score: readingScore,
+        listening_score: 0,
+        writing_score: sprachScore,
+        speaking_score: 0,
         tab_switch_count: examState.tabSwitchCount || 0,
-        ai_feedback: 'Đã hoàn thành bài thi thử trực tuyến.',
-        description: `Hoàn thành bài thi ${examState.examCode || 'mô phỏng'}`,
+        ai_feedback: `Hoàn thành bài thi ${providerLabel}: đạt ${score}/${maxScore} điểm (${statusText}).`,
+        description: `Hoàn thành bài thi ${examState.examCode || selectedExam?.name || 'mô phỏng'}`,
       }),
     })
       .then((res) => res.json())
@@ -866,7 +892,7 @@ export default function App() {
             studentName: res.data.student_name,
             examCode: res.data.exam_code,
             score: res.data.score,
-            maxScore: res.data.max_score || 300,
+            maxScore: res.data.max_score || maxScore,
             statusText: res.data.status_text || statusText,
             timeAgo: 'Vừa xong',
             description: res.data.description || '',
@@ -885,7 +911,7 @@ export default function App() {
     sessionStorage.removeItem('activeExamState');
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Đã nộp bài thi', 'Hệ thống đã ghi nhận và lưu điểm bài thi của bạn vào CSDL!', 'success');
+    showToast('Đã nộp bài thi', `Hệ thống đã ghi nhận kết quả: ${score}/${maxScore} điểm!`, 'success');
   };
 
   // Auto-submit when countdown timer reaches 00:00:00

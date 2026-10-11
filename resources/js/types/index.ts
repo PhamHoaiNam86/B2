@@ -123,6 +123,16 @@ export interface UserExamState {
   highlights?: Record<number, string[]>;
   notes?: Record<number, string>;
   lastAutoSavedAt?: string;
+  score?: number;
+  maxScore?: number;
+  readingScore?: number;
+  sprachScore?: number;
+  listeningScore?: number;
+  writingScore?: number;
+  speakingScore?: number;
+  statusText?: string;
+  answeredCount?: number;
+  correctCount?: number;
 }
 
 export interface DiscussionComment {

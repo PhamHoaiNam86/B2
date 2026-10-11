@@ -833,7 +833,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       totalQuestions: flattenedQuestions.length || totalQuestionsCount,
       description: description || `Đề thi thử ${isGoethe ? 'Goethe-Zertifikat' : 'TELC Deutsch'} ${examLevelOnly} chuẩn hóa.`,
       sections: formattedSections,
-      targetScore: editingItem?.targetScore || 225,
+      targetScore: editingItem?.targetScore || (isGoethe ? 60 : 63),
       passRate: editingItem?.passRate || '85%',
       questions: flattenedQuestions,
     };

@@ -18,7 +18,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     phone: currentUser === 'admin' ? '0901234567' : '0987654321',
     address: currentUser === 'admin' ? 'Số 1 Phạm Văn Đồng, Cầu Giấy, Hà Nội' : '123 Đường Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội',
     className: 'B2-K38 TELC Intensive',
-    targetScore: 270,
+    targetScore: 85,
     targetExamDate: '15/10/2026',
     avatarUrl: currentUser === 'admin'
       ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80'
@@ -91,7 +91,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <p className="text-xs sm:text-sm text-blue-100 font-medium flex flex-wrap items-center justify-center sm:justify-start gap-4">
               <span>Tên đăng nhập: <strong className="text-white">@{formData.username}</strong></span>
               <span>•</span>
-              <span>Mục tiêu: <strong className="text-[#fef08a]">{formData.targetScore} / 300 Điểm TELC B2</strong></span>
+              <span>Mục tiêu: <strong className="text-[#fef08a]">{formData.targetScore || 80} / 105 Điểm TELC B2</strong></span>
             </p>
           </div>
         </div>
@@ -248,16 +248,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-[#4b5563]">Điểm mục tiêu:</span>
-                <span className="font-black text-[#2563EB]">{formData.targetScore} / 300</span>
+                <span className="font-black text-[#2563EB]">{formData.targetScore || 80} / 105</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-3 border border-[#111827] overflow-hidden">
                 <div
                   className="bg-[#2563EB] h-full rounded-full transition-all duration-500"
-                  style={{ width: `${(formData.targetScore / 300) * 100}%` }}
+                  style={{ width: `${(Math.min(105, formData.targetScore || 80) / 105) * 100}%` }}
                 />
               </div>
               <p className="text-[11px] font-medium text-slate-500 pt-1">
-                Yêu cầu tối thiểu đạt chuẩn TELC B2: <strong>180/300 điểm (60%)</strong>.
+                Yêu cầu tối thiểu đạt chuẩn TELC B2: <strong>63/105 điểm (60%)</strong>.
               </p>
             </div>
           </div>

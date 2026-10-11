@@ -162,10 +162,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Compute Top 10 Students dynamically from MySQL CSDL data (students & liveFeed props)
   const top10Students = students.map((st, idx) => {
     const studentResults = liveFeed.filter((f) => f.studentName.toLowerCase() === st.name.toLowerCase());
-    const bestScore = studentResults.length > 0
-      ? Math.max(...studentResults.map((r) => r.score))
-      : (st.currentScore || 0);
-    const percent = Math.round((bestScore / 300) * 100 * 10) / 10;
+    const bestResult = studentResults.length > 0
+      ? studentResults.reduce((prev, curr) => (curr.score > prev.score ? curr : prev), studentResults[0])
+      : null;
+    const bestScore = bestResult ? bestResult.score : (st.currentScore || 0);
+    const maxScore = bestResult?.maxScore || (bestScore <= 105 ? 105 : 300);
+    const percent = Math.min(100, Math.round((bestScore / maxScore) * 100 * 10) / 10);
 
     return {
       rank: idx + 1,
@@ -173,9 +175,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       avatar: st.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       className: st.className || 'B2',
       score: bestScore,
-      maxScore: 300,
+      maxScore,
       percent,
-      badge: bestScore >= 270 ? 'VÔ ĐỊCH' : bestScore >= 240 ? 'GIỎI' : 'ĐANG HỌC',
+      badge: percent >= 85 ? 'VÔ ĐỊCH' : percent >= 60 ? 'ĐẠT CHUẨN' : 'ĐANG HỌC',
       medal: idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`,
       medalBg: idx === 0 ? 'bg-amber-100 text-amber-900 border-amber-400' : idx === 1 ? 'bg-slate-200 text-slate-800 border-slate-400' : idx === 2 ? 'bg-amber-800/10 text-amber-800 border-amber-600/30' : 'bg-gray-100 text-gray-700 border-gray-300',
     };
@@ -447,7 +449,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                     <div className="text-right shrink-0">
                       <div className="text-xs font-black text-[#111827]">
-                        {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                        {st.score} <span className="text-[10px] text-[#6b7280]">/ {st.maxScore || 105}</span>
                       </div>
                       <span className="text-[10px] font-extrabold text-[#059669]">
                         {st.percent}%
@@ -743,7 +745,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                   <div className="text-right shrink-0">
                     <div className="text-xs font-black text-[#111827]">
-                      {st.score} <span className="text-[10px] text-[#6b7280]">/ 300</span>
+                      {st.score} <span className="text-[10px] text-[#6b7280]">/ {st.maxScore || 105}</span>
                     </div>
                     <span className="text-[10px] font-extrabold text-[#059669]">
                       {st.percent}%

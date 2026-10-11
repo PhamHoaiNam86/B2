@@ -30,7 +30,7 @@ interface ExamRoomScreenProps {
   selectedExam?: ExamModel | null;
   vocabs?: VocabItem[];
   onAnswerChange: (questionId: number, optionId: string) => void;
-  onFinishSection: () => void;
+  onFinishSection: (computedResult?: any) => void;
   onBackToDashboard: () => void;
   formattedCountdown: string;
   isReviewMode?: boolean;
@@ -38,10 +38,10 @@ interface ExamRoomScreenProps {
 }
 
 const SECTIONS = [
-  { id: 0, name: 'Leseverstehen', label: '1. Leseverstehen', shortDesc: 'Đọc hiểu (20 câu)', icon: BookOpen },
-  { id: 1, name: 'Sprachbausteine', label: '2. Sprachbausteine', shortDesc: 'Ngữ pháp & Từ vựng (10 câu)', icon: Brain },
-  { id: 2, name: 'Hörverstehen', label: '3. Hörverstehen', shortDesc: 'Nghe hiểu (10 câu + Audio)', icon: Headphones },
-  { id: 3, name: 'Schriftlicher Ausdruck', label: '4. Schriftlicher Ausdruck', shortDesc: 'Viết bài thư B2 (1 bài)', icon: PenTool },
+  { id: 0, name: 'Leseverstehen', label: '1. Leseverstehen', shortDesc: 'Đọc hiểu (20 câu - 75 điểm)', icon: BookOpen },
+  { id: 1, name: 'Sprachbausteine', label: '2. Sprachbausteine', shortDesc: 'Ngữ pháp & Từ vựng (20 câu - 30 điểm)', icon: Brain },
+  { id: 2, name: 'Hörverstehen', label: '3. Hörverstehen', shortDesc: 'Nghe hiểu (Audio)', icon: Headphones },
+  { id: 3, name: 'Schriftlicher Ausdruck', label: '4. Schriftlicher Ausdruck', shortDesc: 'Viết luận B2', icon: PenTool },
 ];
 
 export interface HighlightItem {
@@ -157,12 +157,162 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       .catch(() => {});
   }, [examState.examCode]);
 
+  const isOptionCorrectForQuestion = (q: Question, opt: any, optIndex: number): boolean => {
+    if (Boolean(opt.isCorrect)) return true;
+
+    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
+    if (!correctChoice) return false;
+
+    const optId = String(opt.id || '').trim().toUpperCase();
+    if (optId && optId === correctChoice) return true;
+
+    const letter = String.fromCharCode(65 + optIndex).toUpperCase();
+    if (letter === correctChoice) return true;
+
+    const optText = String(opt.text || '').trim().toUpperCase();
+    if (optText.startsWith(`${correctChoice}:`) || optText.startsWith(`${correctChoice}.`)) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const isUserAnswerCorrect = (q: Question, userAns: any): boolean => {
+    if (!userAns) return false;
+    const userStr = String(userAns).trim().toUpperCase();
+    const optIdx = q.options.findIndex(
+      (o: any) => String(o.id).trim().toUpperCase() === userStr || o.id === userAns
+    );
+    if (optIdx >= 0) {
+      return isOptionCorrectForQuestion(q, q.options[optIdx], optIdx);
+    }
+    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
+    return userStr === correctChoice;
+  };
+
+  const computeExamResults = () => {
+    const isGoethe = (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE');
+    const userAnswers = examState.answers || {};
+    const answeredCount = Object.keys(userAnswers).length;
+
+    if (isGoethe) {
+      let correctCount = 0;
+      questions.forEach((q) => {
+        const userAns = userAnswers[q.id];
+        if (isUserAnswerCorrect(q, userAns)) {
+          correctCount += 1;
+        }
+      });
+
+      const totalQ = questions.length > 0 ? questions.length : 40;
+      const score = Math.round((correctCount / totalQ) * 100 * 10) / 10;
+      const maxScore = 100;
+      const isPassed = score >= 60;
+      const statusText = isPassed ? 'Đạt chuẩn GOETHE (Bestanden)' : 'Chưa đạt GOETHE (Nicht bestanden)';
+
+      return {
+        score,
+        maxScore,
+        readingScore: score,
+        sprachScore: 0,
+        listeningScore: 0,
+        writingScore: 0,
+        speakingScore: 0,
+        statusText,
+        answeredCount,
+        correctCount,
+      };
+    } else {
+      // TELC: Thang điểm 105
+      // 3 phần đầu (Teil 1, 2, 3 / Leseverstehen) 20 câu = 75 điểm (3.75 điểm/câu)
+      // 2 phần sau (Teil 4, 5 / Sprachbausteine) 20 câu = 30 điểm (1.5 điểm/câu)
+      // Tổng cộng 40 câu = 105 điểm
+      let readingCorrect = 0;
+      let readingTotal = 0;
+      let sprachCorrect = 0;
+      let sprachTotal = 0;
+      let totalCorrect = 0;
+
+      questions.forEach((q, idx) => {
+        const userAns = userAnswers[q.id];
+        const isCorrect = isUserAnswerCorrect(q, userAns);
+        if (isCorrect) totalCorrect += 1;
+
+        const sec = (q.section || '').toLowerCase();
+        const sub = (q.subSection || '').toLowerCase();
+
+        const isSprach = sec.includes('sprachbausteine') ||
+                         sub.includes('sprachbausteine') ||
+                         sub.includes('teil 4') ||
+                         sub.includes('teil 5') ||
+                         (questions.length >= 35 && idx >= 20);
+
+        if (isSprach) {
+          sprachTotal += 1;
+          if (isCorrect) sprachCorrect += 1;
+        } else {
+          readingTotal += 1;
+          if (isCorrect) readingCorrect += 1;
+        }
+      });
+
+      if (sprachTotal === 0 && readingTotal > 20) {
+        readingCorrect = 0;
+        readingTotal = 20;
+        sprachCorrect = 0;
+        sprachTotal = questions.length - 20;
+
+        questions.forEach((q, idx) => {
+          const userAns = userAnswers[q.id];
+          const isCorrect = isUserAnswerCorrect(q, userAns);
+          if (idx < 20) {
+            if (isCorrect) readingCorrect += 1;
+          } else {
+            if (isCorrect) sprachCorrect += 1;
+          }
+        });
+      }
+
+      let readingScore = 0;
+      if (readingTotal > 0) {
+        const ptsPerQ = readingTotal === 20 ? 3.75 : (75 / readingTotal);
+        readingScore = Math.round(readingCorrect * ptsPerQ * 10) / 10;
+      }
+
+      let sprachScore = 0;
+      if (sprachTotal > 0) {
+        const ptsPerQ = sprachTotal === 20 ? 1.5 : (30 / sprachTotal);
+        sprachScore = Math.round(sprachCorrect * ptsPerQ * 10) / 10;
+      } else {
+        readingScore = Math.round((readingCorrect / (readingTotal || 1)) * 105 * 10) / 10;
+      }
+
+      const score = Math.round((readingScore + sprachScore) * 10) / 10;
+      const maxScore = 105;
+      const isPassed = score >= 63;
+      const statusText = isPassed ? 'Đạt chuẩn TELC (Bestanden)' : 'Chưa đạt TELC (Nicht bestanden)';
+
+      return {
+        score,
+        maxScore,
+        readingScore,
+        sprachScore,
+        listeningScore: 0,
+        writingScore: 0,
+        speakingScore: 0,
+        statusText,
+        answeredCount,
+        correctCount: totalCorrect,
+      };
+    }
+  };
+
   // Anti-cheat limit enforcement: Max 3 tab switches
   useEffect(() => {
     if (!isReviewMode && examState.tabSwitchCount >= 3 && !isLockedByAntiCheat) {
       setIsLockedByAntiCheat(true);
       setTimeout(() => {
-        onFinishSection();
+        onFinishSection(computeExamResults());
       }, 3500);
     }
   }, [examState.tabSwitchCount, isReviewMode, isLockedByAntiCheat]);
@@ -247,39 +397,6 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     }
-  };
-
-  const isOptionCorrectForQuestion = (q: Question, opt: any, optIndex: number): boolean => {
-    if (Boolean(opt.isCorrect)) return true;
-
-    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
-    if (!correctChoice) return false;
-
-    const optId = String(opt.id || '').trim().toUpperCase();
-    if (optId && optId === correctChoice) return true;
-
-    const letter = String.fromCharCode(65 + optIndex).toUpperCase();
-    if (letter === correctChoice) return true;
-
-    const optText = String(opt.text || '').trim().toUpperCase();
-    if (optText.startsWith(`${correctChoice}:`) || optText.startsWith(`${correctChoice}.`)) {
-      return true;
-    }
-
-    return false;
-  };
-
-  const isUserAnswerCorrect = (q: Question, userAns: any): boolean => {
-    if (!userAns) return false;
-    const userStr = String(userAns).trim().toUpperCase();
-    const optIdx = q.options.findIndex(
-      (o: any) => String(o.id).trim().toUpperCase() === userStr || o.id === userAns
-    );
-    if (optIdx >= 0) {
-      return isOptionCorrectForQuestion(q, q.options[optIdx], optIdx);
-    }
-    const correctChoice = String(q.correctOptionId || q.correct_option_id || '').trim().toUpperCase();
-    return userStr === correctChoice;
   };
 
   const translateGermanInline = async (highlightId: string, text: string) => {
@@ -1455,7 +1572,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               <button
                 onClick={() => {
                   setShowSubmitModal(false);
-                  onFinishSection();
+                  onFinishSection(computeExamResults());
                 }}
                 className="px-5 py-2 bg-[#F97316] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer font-heading uppercase"
               >

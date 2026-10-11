@@ -258,7 +258,7 @@ export const StudentsView: React.FC<StudentsViewProps> = ({ students: initialStu
                         )}
                       </td>
 
-                      <td className="p-4 text-[#F97316] font-black">{student.targetScore || 300} điểm</td>
+                      <td className="p-4 text-[#F97316] font-black">{student.targetScore ? `${student.targetScore} điểm` : '105 điểm (TELC)'}</td>
 
                       {/* Admin Approve / Reject Actions */}
                       <td className="p-4 text-center">

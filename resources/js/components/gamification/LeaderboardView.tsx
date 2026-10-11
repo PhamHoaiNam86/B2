@@ -275,7 +275,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                       ⭐ {user.exp.toLocaleString()} EXP
                     </td>
                     <td className="p-3.5 text-center text-emerald-600 font-black">
-                      {user.avgExamScore} / 300 điểm
+                      {user.avgExamScore} điểm
                     </td>
                   </tr>
                 ))}

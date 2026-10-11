@@ -213,7 +213,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({
 
                   <div className="flex items-center justify-between text-xs font-bold text-[#4b5563]">
                     <span>Tỉ lệ đỗ: <b className="text-[#059669]">{exam.passRate}</b></span>
-                    <span>Mục tiêu điểm: <b className="text-[#2563EB]">{exam.targetScore}/300</b></span>
+                    <span>Mục tiêu điểm: <b className="text-[#2563EB]">{exam.targetScore || (isGoethe ? 60 : 63)}/{isGoethe ? 100 : 105}đ</b></span>
                   </div>
 
                   <div className="flex items-center gap-2">

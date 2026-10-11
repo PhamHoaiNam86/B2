@@ -88,7 +88,9 @@ class ExamController extends Controller
             $totalScore = $reading + $listening + $writing + $speaking;
         }
 
-        $maxScore = $validated['max_score'] ?? 300;
+        $isGoethe = str_contains(strtoupper($validated['exam_code']), 'GOETHE');
+        $defaultMaxScore = $isGoethe ? 100 : 105;
+        $maxScore = $validated['max_score'] ?? $defaultMaxScore;
         $statusText = $validated['status_text'] ?? ($totalScore >= ($maxScore * 0.6) ? 'Đạt chuẩn' : 'Chưa đạt');
 
         $resultData = [

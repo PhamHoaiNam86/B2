@@ -124,7 +124,9 @@ export const ExamDetailView: React.FC<ExamDetailViewProps> = ({
           <div className="p-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-center space-y-1">
             <Award className="w-4 h-4 text-[#059669] mx-auto" />
             <span className="text-[10px] text-[#4b5563] font-bold block">Điểm mục tiêu (Target)</span>
-            <span className="text-sm font-black text-[#059669]">{exam.targetScore} / 300</span>
+            <span className="text-sm font-black text-[#059669]">
+              {exam.targetScore || (providerName === 'GOETHE' ? 60 : 63)} / {providerName === 'GOETHE' ? 100 : 105}
+            </span>
           </div>
 
           <div className="p-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-center space-y-1">
