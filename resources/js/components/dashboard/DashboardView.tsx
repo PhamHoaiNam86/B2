@@ -193,10 +193,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               QUẢN TRỊ VIÊN / ADMIN DASHBOARD
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-[#111827] mt-1 font-heading">
-              Trung Tâm Quản Lý Hệ Thống & Đào Tạo TELC B2
+              Luyện thi Tiếng Đức dễ dàng hơn bao giờ hết
             </h2>
             <p className="text-xs sm:text-sm text-[#4b5563] mt-0.5">
-              Tổng quan thông số hệ thống, quản lý ngân hàng đề thi, tài liệu, ngữ pháp và danh sách học viên
+              Hệ thống luyện thi và mô phỏng phòng thi chuẩn quốc tế Goethe & TELC (A1 - C2)
             </p>
           </div>
         </div>
@@ -495,13 +495,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="max-w-2xl relative z-10 space-y-3">
           <span className="px-3 py-1 bg-white text-[#111827] rounded-full text-xs font-black border border-[#111827] inline-flex items-center gap-1.5 brutal-shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
-            HỆ THỐNG LUYỆN THI TELC B2 DÙNG AI
+            HỆ THỐNG LUYỆN THI GOETHE & TELC DÙNG AI
           </span>
           <h2 className="text-2xl sm:text-3xl font-black font-heading leading-tight">
-            Chinh phục chứng chỉ TELC B2 Tiếng Đức dễ dàng hơn bao giờ hết!
+            Luyện thi Tiếng Đức dễ dàng hơn bao giờ hết
           </h2>
           <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-medium">
-            Tích hợp đầy đủ 4 kỹ năng Đọc - Nghe - Viết - Nói với công nghệ chấm bài tự động AI, đếm ngược thời gian thực và bẫy chống gian lận tiêu chuẩn.
+            Tích hợp đầy đủ các kỹ năng Đọc - Nghe - Viết - Nói với công nghệ chấm bài tự động AI, đếm ngược thời gian thực và bẫy chống gian lận tiêu chuẩn.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">

@@ -21,21 +21,25 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset pagination on search or topic change
+  // Reset pagination on search, level or topic change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedTopic]);
+  }, [search, selectedTopic, selectedLevel]);
 
-  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => v.topic)))];
+  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => v.topic).filter(Boolean)))];
+  const levels = ['all', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
   const filteredVocabs = vocabs.filter((v) => {
+    const vLevel = (v.level || 'B2').toUpperCase();
+    const matchesLevel = selectedLevel === 'all' || vLevel === selectedLevel.toUpperCase();
     const matchesSearch =
       v.word.toLowerCase().includes(search.toLowerCase()) ||
       v.meaningVi.toLowerCase().includes(search.toLowerCase());
     const matchesTopic = selectedTopic === 'all' || v.topic === selectedTopic;
-    return matchesSearch && matchesTopic;
+    return matchesSearch && matchesTopic && matchesLevel;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredVocabs.length / ITEMS_PER_PAGE));
@@ -69,10 +73,10 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
             QUẢN TRỊ VIÊN / ADMIN
           </span>
           <h2 className="text-2xl font-black text-[#111827] mt-1 font-heading">
-            Quản Lý Kho Từ Vựng B2 & Dữ Liệu Flashcard
+            Quản Lý Kho Từ Vựng A1 - C2 & Dữ Liệu Flashcard
           </h2>
           <p className="text-xs text-[#4b5563] mt-0.5">
-            Quản lý từ vựng, phiên âm, quán từ, nghĩa tiếng Việt và ví dụ ngữ cảnh (10 bản ghi / trang)
+            Quản lý từ vựng A1 - C2, phiên âm, quán từ, nghĩa tiếng Việt và ví dụ ngữ cảnh (10 bản ghi / trang)
           </p>
         </div>
 
@@ -86,8 +90,8 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
+      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
           <input
             type="text"
@@ -98,19 +102,36 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <span className="text-xs font-bold text-[#4b5563] shrink-0">Chủ đề:</span>
-          <select
-            value={selectedTopic}
-            onChange={(e) => setSelectedTopic(e.target.value)}
-            className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-          >
-            {topics.map((tp) => (
-              <option key={tp} value={tp}>
-                {tp === 'all' ? 'Tất cả chủ đề' : tp}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 sm:pb-0 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b5563] shrink-0">Cấp độ:</span>
+            <select
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+            >
+              {levels.map((lvl) => (
+                <option key={lvl} value={lvl}>
+                  {lvl === 'all' ? 'Tất cả (A1 - C2)' : `Cấp độ ${lvl}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b5563] shrink-0">Chủ đề:</span>
+            <select
+              value={selectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}
+              className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+            >
+              {topics.map((tp) => (
+                <option key={tp} value={tp}>
+                  {tp === 'all' ? 'Tất cả chủ đề' : tp}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -121,6 +142,7 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
             <thead className="bg-[#f8fafc] border-b-2 border-[#111827] text-[#111827] font-black uppercase text-[11px]">
               <tr>
                 <th className="p-4">STT</th>
+                <th className="p-4">Cấp Độ</th>
                 <th className="p-4">Từ Vựng Tiếng Đức</th>
                 <th className="p-4">Loại Từ</th>
                 <th className="p-4">Nghĩa Tiếng Việt</th>
@@ -132,7 +154,7 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
             <tbody className="divide-y divide-[#111827]/10 font-semibold">
               {paginatedVocabs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-[#4b5563]">
+                  <td colSpan={8} className="p-8 text-center text-[#4b5563]">
                     Không tìm thấy từ vựng nào phù hợp.
                   </td>
                 </tr>
@@ -141,6 +163,11 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
                   <tr key={v.id} className="hover:bg-[#f8fafc] transition-colors">
                     <td className="p-4 font-black text-[#6b7280]">
                       #{startIndex + idx + 1}
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-black">
+                        {v.level || 'B2'}
+                      </span>
                     </td>
                     <td className="p-4 font-bold text-[#111827]">
                       <div className="flex items-center gap-2">

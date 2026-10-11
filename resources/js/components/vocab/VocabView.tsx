@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { VocabItem, VocabStatus } from '../../types';
-import { BookOpen, Star, Plus, Volume2, Search, Sparkles, CheckCircle, RotateCcw } from 'lucide-react';
+import { BookOpen, Star, Plus, Volume2, Search, Sparkles, CheckCircle, RotateCcw, Filter } from 'lucide-react';
 import { AdminVocabView } from '../admin/AdminVocabView';
 
 interface VocabViewProps {
@@ -14,6 +14,8 @@ interface VocabViewProps {
   onEditVocab?: (vocab: VocabItem) => void;
   onDeleteVocab?: (id: string) => void;
 }
+
+const CEFR_LEVELS = ['all', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
 
 export const VocabView: React.FC<VocabViewProps> = ({
   vocabs,
@@ -37,32 +39,67 @@ export const VocabView: React.FC<VocabViewProps> = ({
       />
     );
   }
+
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
 
-  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => v.topic)))];
+  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => v.topic).filter(Boolean)))];
 
   const filteredVocabs = vocabs.filter((v) => {
+    const vLevel = (v.level || 'B2').toUpperCase();
+    const matchesLevel = selectedLevel === 'all' || vLevel === selectedLevel.toUpperCase();
     const matchesTopic = selectedTopic === 'all' || v.topic === selectedTopic;
     const matchesSearch =
       v.word.toLowerCase().includes(search.toLowerCase()) ||
-      v.meaningVi.toLowerCase().includes(search.toLowerCase());
-    return matchesTopic && matchesSearch;
+      v.meaningVi.toLowerCase().includes(search.toLowerCase()) ||
+      (v.topic && v.topic.toLowerCase().includes(search.toLowerCase()));
+    return matchesLevel && matchesTopic && matchesSearch;
   });
+
+  const speakGermanText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'de-DE';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const getLevelBadgeStyle = (level?: string) => {
+    const l = (level || 'B2').toUpperCase();
+    switch (l) {
+      case 'A1':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'A2':
+        return 'bg-teal-100 text-teal-800 border-teal-300';
+      case 'B1':
+        return 'bg-sky-100 text-sky-800 border-sky-300';
+      case 'B2':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'C1':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'C2':
+        return 'bg-amber-100 text-amber-900 border-amber-300';
+      default:
+        return 'bg-slate-100 text-slate-800 border-slate-300';
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Top Controls Banner */}
       <div className="bg-white border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="px-2.5 py-0.5 rounded-md bg-[#e8f1ff] text-[#003882] text-xs font-black border border-[#1c1b1b]">
-            KHO TỪ VỰNG CHUYÊN ĐỀ TELC B2
+          <span className="px-2.5 py-0.5 rounded-md bg-[#e8f1ff] text-[#003882] text-xs font-black border border-[#1c1b1b] uppercase">
+            KHO TỪ VỰNG TIẾNG ĐỨC CHUẨN A1 - C2
           </span>
-          <h2 className="text-2xl font-black text-[#1c1b1b] mt-1 font-heading">
-            Quản Lý Từ Vựng & Thẻ Ghi Nhớ Flashcard
+          <h2 className="text-2xl sm:text-3xl font-black text-[#1c1b1b] mt-1 font-heading">
+            Kho Từ Vựng A1 - C2 & Thẻ Ghi Nhớ Flashcard
           </h2>
           <p className="text-xs text-[#564145] mt-0.5">
-            Luyện tập từ vựng chuẩn B2 với âm phiên âm chuẩn, ví dụ minh họa và thẻ lật 3D
+            Luyện tập từ vựng chuẩn từ A1 đến C2 với phiên âm chuẩn, ví dụ ngữ cảnh và thẻ lật 3D
           </p>
         </div>
 
@@ -71,40 +108,73 @@ export const VocabView: React.FC<VocabViewProps> = ({
             onClick={onOpenFlashcardModal}
             className="px-4 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-sm hover:bg-[#1d4ed8] transition-all cursor-pointer flex items-center gap-2"
           >
-            <Sparkles className="w-4 h-4" /> Lật Thẻ Flashcard 3D
+            <Sparkles className="w-4 h-4 text-amber-300" /> Lật Thẻ Flashcard 3D ({filteredVocabs.length})
           </button>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        {/* Topic Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-          {topics.map((t) => (
-            <button
-              key={t}
-              onClick={() => setSelectedTopic(t)}
-              className={`px-3 py-1.5 rounded-xl border-2 text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
-                selectedTopic === t
-                  ? 'bg-[#1c1b1b] text-white border-[#1c1b1b]'
-                  : 'bg-white text-[#1c1b1b] border-[#1c1b1b] hover:bg-[#fcf9f8]'
-              }`}
-            >
-              {t === 'all' ? 'Tất cả chủ đề' : t}
-            </button>
-          ))}
+      {/* Level Filter Bar (A1 - C2) */}
+      <div className="bg-white border-[2.5px] border-[#111827] rounded-xl p-3.5 brutal-shadow-xs space-y-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <span className="text-xs font-black text-[#111827] shrink-0 uppercase tracking-wider flex items-center gap-1">
+            <Filter className="w-3.5 h-3.5 text-[#2563EB]" /> Cấp độ (CEFR):
+          </span>
+          {CEFR_LEVELS.map((lvl) => {
+            const count = lvl === 'all'
+              ? vocabs.length
+              : vocabs.filter((v) => (v.level || 'B2').toUpperCase() === lvl).length;
+            const isSelected = selectedLevel === lvl;
+
+            return (
+              <button
+                key={lvl}
+                onClick={() => setSelectedLevel(lvl)}
+                className={`px-3 py-1.5 rounded-lg border-2 text-xs font-black whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
+                    : 'bg-slate-50 text-[#111827] border-[#111827] hover:bg-slate-100'
+                }`}
+              >
+                <span>{lvl === 'all' ? 'Tất Cả (A1 - C2)' : `Cấp Độ ${lvl}`}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Search input */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#564145]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm từ vựng B2..."
-            className="w-full pl-9 pr-3 py-1.5 bg-white border-2 border-[#1c1b1b] rounded-xl text-xs font-bold"
-          />
+        {/* Topic Pills & Search Bar */}
+        <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+            <span className="text-[11px] font-bold text-slate-500 shrink-0">Chủ đề:</span>
+            {topics.map((t) => (
+              <button
+                key={t}
+                onClick={() => setSelectedTopic(t)}
+                className={`px-2.5 py-1 rounded-lg border text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
+                  selectedTopic === t
+                    ? 'bg-[#111827] text-white border-[#111827]'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                {t === 'all' ? 'Tất cả' : t}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#564145]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm từ vựng, nghĩa tiếng Việt..."
+              className="w-full pl-9 pr-3 py-1.5 bg-[#f8fafc] border-2 border-[#1c1b1b] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            />
+          </div>
         </div>
       </div>
 
@@ -116,7 +186,7 @@ export const VocabView: React.FC<VocabViewProps> = ({
           </div>
           <h3 className="text-lg font-black text-[#1c1b1b] font-heading">Chưa có từ vựng nào</h3>
           <p className="text-xs text-[#564145] max-w-sm mx-auto">
-            Kho từ vựng B2 đang được cập nhật. Vui lòng quay lại sau!
+            Không tìm thấy từ vựng nào cho bộ lọc hiện tại ({selectedLevel.toUpperCase() !== 'ALL' ? `Cấp độ ${selectedLevel.toUpperCase()}` : ''}). Vui lòng chọn cấp độ khác!
           </p>
         </div>
       ) : (
@@ -128,25 +198,49 @@ export const VocabView: React.FC<VocabViewProps> = ({
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black border ${getLevelBadgeStyle(vocab.level)}`}>
+                      {vocab.level || 'B2'}
+                    </span>
                     <span className="px-2 py-0.5 rounded bg-[#fcf9f8] text-[#564145] border border-[#1c1b1b] text-[10px] font-black">
                       {vocab.pos}
                     </span>
-                    <span className="px-2 py-0.5 rounded bg-[#ffe3ea] text-[#800035] border border-[#1c1b1b] text-[10px] font-black">
-                      {vocab.topic}
-                    </span>
+                    {vocab.topic && (
+                      <span className="px-2 py-0.5 rounded bg-[#ffe3ea] text-[#800035] border border-[#1c1b1b] text-[10px] font-black">
+                        {vocab.topic}
+                      </span>
+                    )}
                   </div>
-                  <h3 className="text-lg font-black text-[#1c1b1b] mt-1">
-                    {vocab.word}
-                  </h3>
+
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {vocab.article && (
+                      <span className="text-xs font-black text-[#2563EB] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                        {vocab.article}
+                      </span>
+                    )}
+                    <h3 className="text-lg font-black text-[#1c1b1b]">
+                      {vocab.word}
+                    </h3>
+                    <button
+                      onClick={() => speakGermanText(vocab.word)}
+                      className="p-1 hover:bg-slate-100 rounded text-[#2563EB] cursor-pointer"
+                      title="Nghe phát âm chuẩn"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
                   {vocab.phonetic && (
-                    <span className="text-xs text-[#897175] font-mono">{vocab.phonetic}</span>
+                    <span className="text-xs text-[#897175] font-mono block mt-0.5">{vocab.phonetic}</span>
+                  )}
+                  {vocab.plural && (
+                    <span className="text-[11px] text-slate-500 font-semibold block">Số nhiều: {vocab.plural}</span>
                   )}
                 </div>
 
                 <button
                   onClick={() => onToggleFavorite(vocab.id)}
-                  className="p-2 rounded-lg border border-[#1c1b1b] hover:bg-[#fff3d6] cursor-pointer"
+                  className="p-2 rounded-lg border border-[#1c1b1b] hover:bg-[#fff3d6] cursor-pointer shrink-0"
                 >
                   <Star
                     className={`w-4 h-4 ${

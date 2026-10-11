@@ -81,6 +81,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [exampleDe, setExampleDe] = useState(editingItem?.exampleDe || '');
   const [exampleVi, setExampleVi] = useState(editingItem?.exampleVi || '');
   const [topic, setTopic] = useState(editingItem?.topic || 'Arbeit & Beruf');
+  const [vocabLevel, setVocabLevel] = useState(editingItem?.level || 'B2');
 
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
@@ -758,6 +759,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
       exampleDe,
       exampleVi,
       topic,
+      level: vocabLevel,
       status: editingItem?.status || 'learning',
       isFavorite: editingItem?.isFavorite || false,
     };
@@ -978,6 +980,22 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                   <option value="Verb">Verb (Động từ)</option>
                   <option value="Adjektiv">Adjektiv (Tính từ)</option>
                   <option value="Redewendung">Redewendung (Cụm từ)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1">Cấp độ (CEFR) *</label>
+                <select
+                  value={vocabLevel}
+                  onChange={(e) => setVocabLevel(e.target.value)}
+                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                >
+                  <option value="A1">A1 - Căn bản</option>
+                  <option value="A2">A2 - Sơ cấp</option>
+                  <option value="B1">B1 - Trung cấp</option>
+                  <option value="B2">B2 - Trung cao cấp</option>
+                  <option value="C1">C1 - Cao cấp</option>
+                  <option value="C2">C2 - Thành thạo</option>
                 </select>
               </div>
 

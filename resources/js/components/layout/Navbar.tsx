@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const getTabTitle = () => {
     switch (activeTab) {
       case 'dashboard':
-        return 'Tổng quan Hệ Thống & Tiến Độ Học';
+        return 'Luyện thi Tiếng Đức dễ dàng hơn bao giờ hết';
       case 'exam':
         return 'Kho Đề Thi & Phòng Thi Thử B2';
       case 'exam-c1':
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'results':
         return 'Kết Quả Chi Tiết & Cấp Chứng Nhận';
       case 'vocab':
-        return 'Kho Từ Vựng B2 & Thẻ Ghi Nhớ Flashcard';
+        return 'Kho Từ Vựng A1 - C2 & Thẻ Ghi Nhớ Flashcard';
       case 'grammar':
         return 'Chuyên Đề Ngữ Pháp B2 & Bẫy Đề Thi';
       case 'schreiben':

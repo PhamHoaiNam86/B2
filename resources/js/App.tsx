@@ -307,6 +307,7 @@ export default function App() {
             exampleDe: item.example_de || '',
             exampleVi: item.example_vi || '',
             topic: item.topic || 'Arbeit & Beruf',
+            level: item.level || 'B2',
             status: item.status || 'learning',
             isFavorite: Boolean(item.is_favorite),
           }));
@@ -572,6 +573,7 @@ export default function App() {
         example_de: newVocab.exampleDe,
         example_vi: newVocab.exampleVi,
         topic: newVocab.topic,
+        level: newVocab.level || 'B2',
       }),
     })
       .then((res) => res.json())
@@ -588,6 +590,7 @@ export default function App() {
             exampleDe: res.data.example_de || '',
             exampleVi: res.data.example_vi || '',
             topic: res.data.topic || 'Arbeit & Beruf',
+            level: res.data.level || 'B2',
             status: res.data.status || 'learning',
             isFavorite: Boolean(res.data.is_favorite),
           };
@@ -612,6 +615,7 @@ export default function App() {
         example_de: updatedVocab.exampleDe,
         example_vi: updatedVocab.exampleVi,
         topic: updatedVocab.topic,
+        level: updatedVocab.level || 'B2',
       }),
     }).catch(() => {});
   };
