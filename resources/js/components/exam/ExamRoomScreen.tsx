@@ -23,6 +23,7 @@ import {
   Save,
   MessageSquare,
   Lock,
+  Sparkles,
 } from 'lucide-react';
 
 interface ExamRoomScreenProps {
@@ -83,10 +84,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       id: typeof q.id === 'number' ? q.id : (parseInt(String(q.id).replace(/\D/g, ''), 10) || idx + 1),
       section: q.section || 'Leseverstehen',
       subSection: q.subSection || q.sub_section || '',
+      type: q.type,
       title: q.title || q.questionText || `Câu ${idx + 1}`,
       contextText: q.contextText || q.context_text || '',
       audioUrl: q.audioUrl || q.audio_url || '',
       imageUrl: q.imageUrl || q.image_url || '',
+      wordLimit: q.wordLimit || q.word_limit || 100,
       options: q.options || (q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : []),
       correctOptionId: q.correctOptionId || q.correct_option_id || 'A',
       explanation: q.explanation || '',
@@ -143,10 +146,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             id: q.question_number || q.id || (idx + 1),
             section: q.section || 'Leseverstehen',
             subSection: q.sub_section || '',
+            type: q.type,
             title: q.title,
             contextText: q.context_text || '',
             audioUrl: q.audio_url || '',
             imageUrl: q.image_url || q.imageUrl || '',
+            wordLimit: q.word_limit || q.wordLimit || 100,
             options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
             correctOptionId: q.correct_option_id || 'A',
             explanation: q.explanation || '',
@@ -179,6 +184,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
 
   const isUserAnswerCorrect = (q: Question, userAns: any): boolean => {
     if (!userAns) return false;
+    const isWriting =
+      q.type === 'writing' ||
+      (q.section || '').toLowerCase().includes('schreiben') ||
+      (q.title || '').toLowerCase().includes('brief') ||
+      (q.title || '').toLowerCase().includes('schreiben');
+    if (isWriting) {
+      return String(userAns).trim().length >= 15;
+    }
+
     const userStr = String(userAns).trim().toUpperCase();
     const optIdx = q.options.findIndex(
       (o: any) => String(o.id).trim().toUpperCase() === userStr || o.id === userAns
@@ -588,6 +602,76 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       (s.name || '').toLowerCase().includes((currentSectionMeta?.name || '').toLowerCase())
   );
   const activeSectionImageUrl = matchingExamSection?.imageUrl || (matchingExamSection as any)?.image_url || (matchingExamSection as any)?.bannerUrl || '';
+
+  const checkIsWritingQuestion = (q: Question): boolean => {
+    if (q.type === 'writing') return true;
+    const secStr = (q.section || '').toLowerCase();
+    const subStr = (q.subSection || '').toLowerCase();
+    const titleStr = (q.title || '').toLowerCase();
+    const secTitle = (matchingExamSection?.title || matchingExamSection?.name || '').toLowerCase();
+    const secDesc = (matchingExamSection?.description || '').toLowerCase();
+    const secText = (matchingExamSection?.text || '').toLowerCase();
+    const ctxText = (q.contextText || '').toLowerCase();
+
+    if (
+      secStr.includes('schreiben') ||
+      subStr.includes('schreiben') ||
+      secStr.includes('viết') ||
+      subStr.includes('viết') ||
+      secTitle.includes('schreiben') ||
+      secDesc.includes('schreiben') ||
+      secTitle.includes('viết thư') ||
+      secText.includes('schreiben - aufgabe') ||
+      secText.includes('brief schreiben') ||
+      ctxText.includes('schreiben - aufgabe') ||
+      titleStr.includes('brief schreiben') ||
+      titleStr.includes('den brief schreiben') ||
+      titleStr.includes('schreiben sie') ||
+      titleStr.includes('viết thư')
+    ) {
+      return true;
+    }
+
+    if (
+      (titleStr.includes('brief') || secText.includes('brief') || titleStr.includes('schreiben') || secText.includes('schreiben')) &&
+      Array.isArray(q.options) &&
+      q.options.every((opt: any) => {
+        const t = String(opt.text || '').toLowerCase();
+        return t.includes('phương án') || t.includes('option') || t === 'a' || t === 'b' || t === 'c';
+      })
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const insertUmlaut = (qId: number, char: string) => {
+    const currentVal = examState.answers[qId] || '';
+    const textarea = document.getElementById(`writing-paper-${qId}`) as HTMLTextAreaElement | null;
+    if (textarea) {
+      const start = textarea.selectionStart ?? currentVal.length;
+      const end = textarea.selectionEnd ?? currentVal.length;
+      const newVal = currentVal.substring(0, start) + char + currentVal.substring(end);
+      onAnswerChange(qId, newVal);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + char.length, start + char.length);
+      }, 10);
+    } else {
+      onAnswerChange(qId, currentVal + char);
+    }
+  };
+
+  const insertLetterTemplate = (qId: number, type: 'informal' | 'formal') => {
+    const today = new Date();
+    const dateStr = `Berlin, den ${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+    const informalTemplate = `${dateStr}\n\nLiebe(r) ..., \n\nvielen Dank für deinen Brief. Ich habe mich sehr darüber gefreut! \n\n...\n\nIch freue mich schon auf deine Antwort.\n\nHerzliche Grüße,\n[Tên của bạn]`;
+    const formalTemplate = `${dateStr}\n\nSehr geehrte Damen und Herren,\n\nich schreibe Ihnen bezüglich...\n\n...\n\nIch bedanke mich im Voraus für Ihre Mühe.\n\nMit freundlichen Grüßen,\n[Họ và tên của bạn]`;
+
+    const template = type === 'informal' ? informalTemplate : formalTemplate;
+    onAnswerChange(qId, template);
+  };
 
   const sectionQuestions = questions.filter((q) => {
     if (activeSections.length > 0 && activeSections[activeSectionIndex]) {
@@ -1330,7 +1414,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               {sectionQuestions.map((q) => {
                 const userChoice = examState.answers[q.id] || '';
                 const isAnswered = Boolean(userChoice.trim());
-                const isWritingQuestion = q.type === 'writing';
+                const isWritingQuestion = checkIsWritingQuestion(q);
                 const globalIdx = questions.findIndex((item) => item.id === q.id);
                 const displayQuestionNum = globalIdx >= 0 ? globalIdx + 1 : q.id;
 
@@ -1417,18 +1501,172 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                       </div>
                     )}
 
-                    {/* WRITING QUESTION TYPE */}
+                    {/* WRITING QUESTION TYPE: TỜ GIẤY THI VIẾT THƯ (SCHREIBBOGEN) */}
                     {isWritingQuestion ? (
-                      <div className="space-y-2">
-                        <textarea
-                          rows={12}
-                          value={userChoice}
-                          readOnly={isReviewMode}
-                          onChange={(e) => !isReviewMode && onAnswerChange(q.id, e.target.value)}
-                          placeholder="Nhập nội dung bài viết của bạn tại đây..."
-                          className="w-full p-4 bg-[#fcf9f8] border-2 border-[#111827] rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                        />
-                      </div>
+                      (() => {
+                        const wordCount = (userChoice || '').trim().split(/\s+/).filter(Boolean).length;
+                        const charCount = (userChoice || '').length;
+                        const lineCount = (userChoice || '').split('\n').length;
+                        const minWords = q.wordLimit || 100;
+                        const isWordCountMet = wordCount >= minWords;
+
+                        return (
+                          <div className="space-y-3.5">
+                            {/* Thanh công cụ hỗ trợ viết bài thi */}
+                            <div className="bg-[#fefce8] border-2 border-[#111827] rounded-xl p-3 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-[#F97316] text-white flex items-center justify-center font-black shadow-xs">
+                                  <PenTool className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-black text-[#111827] font-heading uppercase text-xs">
+                                      TỜ GIẤY THI VIẾT THƯ (SCHREIBBOGEN)
+                                    </span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#2563EB] text-white font-bold">
+                                      Chuẩn Quốc Tế
+                                    </span>
+                                  </div>
+                                  <span className="text-[11px] text-slate-600 font-medium">
+                                    Soạn thảo bài viết vào các dòng kẻ bên dưới. Bài làm tự động lưu liên tục.
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Bàn phím ký tự tiếng Đức đặc biệt (German Umlauts) */}
+                              <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#111827]">
+                                <span className="text-[10px] font-bold text-slate-500 px-1">Ký tự Đức:</span>
+                                {['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map((char) => (
+                                  <button
+                                    key={char}
+                                    type="button"
+                                    disabled={isReviewMode}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      insertUmlaut(q.id, char);
+                                    }}
+                                    className="w-6 h-6 bg-slate-100 hover:bg-[#2563EB] hover:text-white rounded text-xs font-black transition-colors border border-slate-300 flex items-center justify-center cursor-pointer disabled:opacity-50"
+                                    title={`Chèn ký tự ${char}`}
+                                  >
+                                    {char}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* TỜ GIẤY THI KẺ DÒNG (RULED / LINED EXAM PAPER) */}
+                            <div className="relative bg-white border-[2.5px] border-[#111827] rounded-2xl shadow-md overflow-hidden">
+                              {/* Đầu trang giấy thi */}
+                              <div className="bg-[#f8fafc] border-b-2 border-[#111827] px-4 py-2 flex items-center justify-between text-[11px] font-bold text-slate-700">
+                                <div className="flex items-center gap-3">
+                                  <span>Thí sinh: <b className="text-[#111827]">{examState.studentName || 'Học viên'}</b></span>
+                                  <span className="text-slate-300">|</span>
+                                  <span>Bài thi: <b className="text-[#2563EB]">{examState.examCode}</b></span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-emerald-700 font-black">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                  <span>Tự động lưu bài 2s</span>
+                                </div>
+                              </div>
+
+                              {/* Vùng viết kẻ dòng có lề đỏ (Margin Line & Ruled Lines) */}
+                              <div className="relative p-3 sm:p-5 bg-[#fffdfa] min-h-[360px]">
+                                {/* Đường kẻ lề đỏ bên trái (Red Margin Line) */}
+                                <div className="absolute top-0 bottom-0 left-10 sm:left-12 border-r-2 border-red-300 pointer-events-none z-10" />
+
+                                <textarea
+                                  id={`writing-paper-${q.id}`}
+                                  rows={14}
+                                  value={userChoice}
+                                  readOnly={isReviewMode}
+                                  onChange={(e) => !isReviewMode && onAnswerChange(q.id, e.target.value)}
+                                  placeholder={`Berlin, den ...\n\nLiebe(r) ...,\n\nvielen Dank für deinen Brief...\n\n(Soạn thảo toàn bộ nội dung bức thư của bạn tại đây theo các dòng kẻ. Đảm bảo đầy đủ Anrede, Einleitung, Hauptteil, Schluss và Grußformel)...`}
+                                  className="w-full pl-8 sm:pl-10 pr-2 py-1 text-xs sm:text-sm font-serif leading-[32px] text-[#0f172a] bg-transparent focus:outline-none resize-y relative z-0 selection:bg-blue-200"
+                                  style={{
+                                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #e2e8f0 31px, #e2e8f0 32px)',
+                                    backgroundAttachment: 'local',
+                                    lineHeight: '32px',
+                                  }}
+                                />
+                              </div>
+
+                              {/* Chân trang giấy thi: Thống kê số từ & Tiêu chuẩn */}
+                              <div className="bg-[#f8fafc] border-t-2 border-[#111827] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                                <div className="flex items-center gap-3">
+                                  {/* Đếm số từ */}
+                                  <div className="flex items-center gap-1.5 font-bold">
+                                    <BookOpen className="w-4 h-4 text-[#2563EB]" />
+                                    <span>Độ dài:</span>
+                                    <span className={`px-2 py-0.5 rounded-md font-black ${
+                                      isWordCountMet
+                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-400'
+                                        : wordCount >= 50
+                                        ? 'bg-blue-100 text-blue-800 border border-blue-400'
+                                        : 'bg-amber-100 text-amber-900 border border-amber-400'
+                                    }`}>
+                                      {wordCount} từ
+                                    </span>
+                                    <span className="text-slate-500 text-[11px]">
+                                      (Yêu cầu: tối thiểu {minWords} từ)
+                                    </span>
+                                  </div>
+
+                                  <span className="text-slate-400 text-[11px] hidden sm:inline">
+                                    • {charCount} ký tự • {lineCount} dòng
+                                  </span>
+                                </div>
+
+                                {/* Nút chèn dàn ý gợi ý */}
+                                {!isReviewMode && (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => insertLetterTemplate(q.id, 'informal')}
+                                      className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg border border-[#111827] text-[10px] font-bold cursor-pointer transition-all shadow-2xs"
+                                      title="Chèn khung thư thân mật (Liebe / Lieber...)"
+                                    >
+                                      ✉️ Mẫu Thân Mật
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => insertLetterTemplate(q.id, 'formal')}
+                                      className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg border border-[#111827] text-[10px] font-bold cursor-pointer transition-all shadow-2xs"
+                                      title="Chèn khung thư trang trọng (Sehr geehrte...)"
+                                    >
+                                      📋 Mẫu Trang Trọng
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Hướng dẫn bố cục chuẩn 5 phần bức thư tiếng Đức */}
+                            <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-xs space-y-1.5">
+                              <div className="font-black text-[#1e40af] flex items-center gap-1.5 font-heading uppercase text-[11px]">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Bố Cục Chuẩn Bài Thi Viết Thư (Brief-Struktur):</span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-700">
+                                <div className="p-2 bg-white rounded border border-blue-200">
+                                  <b className="text-[#111827] block">1. Đầu thư:</b>
+                                  <span>• Datum & Ort (góc phải)</span><br />
+                                  <span>• Anrede thích hợp (Liebe(r)...)</span>
+                                </div>
+                                <div className="p-2 bg-white rounded border border-blue-200">
+                                  <b className="text-[#111827] block">2. Thân bài (Hauptteil):</b>
+                                  <span>• Viết thường chữ đầu sau dấu phẩy</span><br />
+                                  <span>• Trả lời đủ các ý Leitpunkte</span>
+                                </div>
+                                <div className="p-2 bg-white rounded border border-blue-200">
+                                  <b className="text-[#111827] block">3. Kết thư:</b>
+                                  <span>• Lời kết (Ich freue mich...)</span><br />
+                                  <span>• Grußformel & Ký tên</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()
                     ) : (
                       /* MCQ OPTIONS WITH INLINE TRANSLATE AND HIGHLIGHT SUPPORT */
                       <div className="space-y-2">
@@ -1498,10 +1736,15 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                       <div className="mt-2 p-3 bg-[#eff6ff] border-2 border-[#2563EB] rounded-xl space-y-1">
                         <h5 className="text-[11px] font-black uppercase text-[#1e40af] flex items-center gap-1 font-heading">
                           <HelpCircle className="w-3.5 h-3.5 text-[#2563EB]" />
-                          💡 Giải Thích Đáp Án:
+                          💡 {isWritingQuestion ? 'Dàn Ý & Bài Mẫu Tham Khảo (Musterbrief):' : 'Giải Thích Đáp Án:'}
                         </h5>
                         <div className="text-xs text-[#1e293b] leading-relaxed font-medium">
-                          {renderHighlightedText(q.explanation || `Đáp án chính xác là (${q.correctOptionId || 'A'}).`)}
+                          {renderHighlightedText(
+                            q.explanation ||
+                            (isWritingQuestion
+                              ? 'Khi viết thư, hãy đảm bảo viết đủ các ý (Leitpunkte), có ngày tháng, lời chào phù hợp (Anrede) và lời chúc kết thúc (Grußformel).'
+                              : `Đáp án chính xác là (${q.correctOptionId || 'A'}).`)
+                          )}
                         </div>
                       </div>
                     )}
