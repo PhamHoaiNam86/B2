@@ -61,7 +61,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             KẾT QUẢ THI THỬ {providerLabel} (THANG ĐIỂM {maxScore})
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-[#111827] mt-2 font-heading">
-            {isPassed ? `Chúc Mừng! Bạn Đã Đạt Chứng Chỉ ${providerLabel}` : `Cần Cố Gắng Thêm Để Đạt Chứng Chỉ ${providerLabel}`}
+            {isPassed ? 'Chúc Mừng! Bạn Đã Đạt Chứng Chỉ' : 'Cần Cố Gắng Thêm Để Đạt Chứng Chỉ'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
             {isGoethe
