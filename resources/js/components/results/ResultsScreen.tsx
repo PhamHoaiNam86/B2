@@ -15,11 +15,16 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onBackToDashboard,
   onReviewExam,
 }) => {
-  const isGoethe = (examState.examCode || '').toUpperCase().includes('GOETHE');
+  const isGoethe = (examState.examCode || '').toUpperCase().includes('GOETHE') || examState.maxScore === 100;
+  const isListeningGoethe = isGoethe && Boolean(
+    (examState.listeningScore && examState.listeningScore > 0) ||
+    (examState.examCode || '').toUpperCase().includes('HÖREN') ||
+    (examState.examCode || '').toUpperCase().includes('HOREN')
+  );
   const providerLabel = isGoethe ? 'GOETHE-ZERTIFIKAT' : 'TELC DEUTSCH';
 
   // Thang điểm theo yêu cầu khách hàng:
-  // - Goethe: Thang điểm 100 (Đạt từ 60/100)
+  // - Goethe: Thang điểm 100 (Lesen & Hören độc lập 100 điểm, Đạt từ 60/100)
   // - Telc: Thang điểm 105 (Leseverstehen 20 câu 75đ + Sprachbausteine 20 câu 30đ, đạt từ 63/105)
   const maxScore = examState.maxScore || (isGoethe ? 100 : 105);
   const passScore = isGoethe ? 60 : 63;
@@ -166,12 +171,12 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-[#111827] flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-[#2563EB]" />
-                    <span>📖 Lesen & Hören (Goethe)</span>
+                    <span>{isListeningGoethe ? '🎧 Modul Hören (Goethe)' : '📖 Modul Lesen (Goethe)'}</span>
                   </span>
                   <span className="text-[#2563EB] font-black text-sm">{score} / 100 Điểm</span>
                 </div>
                 <p className="text-[11px] text-slate-500 font-normal">
-                  Thang điểm đánh giá kỹ năng chuẩn Viện Goethe (Đạt từ 60 điểm)
+                  Thang điểm kỹ năng chuẩn Viện Goethe (100 điểm, Đạt từ 60/100 điểm)
                 </p>
               </div>
 

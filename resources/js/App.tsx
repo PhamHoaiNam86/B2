@@ -838,7 +838,13 @@ export default function App() {
   };
 
   const handleFinishExamSubmit = (computedResult?: any) => {
-    const isGoethe = (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE');
+    const isGoethe = (
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.provider || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.level || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.name || '').toUpperCase().includes('GOETHE') ||
+      computedResult?.maxScore === 100
+    );
     const defaultMax = isGoethe ? 100 : 105;
     const providerLabel = isGoethe ? 'GOETHE' : 'TELC';
 

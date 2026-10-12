@@ -191,7 +191,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   };
 
   const computeExamResults = () => {
-    const isGoethe = (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE');
+    const isGoethe = (
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.provider || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.level || '').toUpperCase().includes('GOETHE') ||
+      (selectedExam?.name || '').toUpperCase().includes('GOETHE')
+    );
     const userAnswers = examState.answers || {};
     const answeredCount = Object.keys(userAnswers).length;
 
@@ -204,18 +209,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         }
       });
 
+      const isListening = (
+        (selectedExam?.name || '').toUpperCase().includes('HÖREN') ||
+        (selectedExam?.name || '').toUpperCase().includes('HOREN') ||
+        (selectedExam?.name || '').toUpperCase().includes('NGHE') ||
+        (examState.examCode || '').toUpperCase().includes('HÖREN') ||
+        (examState.examCode || '').toUpperCase().includes('HOREN') ||
+        questions.some(q => (q.section || '').toUpperCase().includes('HÖREN') || Boolean(q.audioUrl))
+      );
+
       const totalQ = questions.length > 0 ? questions.length : 40;
       const score = Math.round((correctCount / totalQ) * 100 * 10) / 10;
       const maxScore = 100;
       const isPassed = score >= 60;
-      const statusText = isPassed ? 'Đạt chuẩn GOETHE (Bestanden)' : 'Chưa đạt GOETHE (Nicht bestanden)';
+      const moduleName = isListening ? 'Hören' : 'Lesen';
+      const statusText = isPassed
+        ? `Đạt chuẩn GOETHE ${moduleName} (Bestanden)`
+        : `Chưa đạt GOETHE ${moduleName} (Nicht bestanden)`;
 
       return {
         score,
         maxScore,
-        readingScore: score,
+        readingScore: isListening ? 0 : score,
         sprachScore: 0,
-        listeningScore: 0,
+        listeningScore: isListening ? score : 0,
         writingScore: 0,
         speakingScore: 0,
         statusText,

@@ -89,6 +89,16 @@ class ExamController extends Controller
         }
 
         $isGoethe = str_contains(strtoupper($validated['exam_code']), 'GOETHE');
+        if (! $isGoethe) {
+            $exam = Exam::where('exam_code', $validated['exam_code'])->first();
+            if ($exam && (
+                strtoupper($exam->provider ?? '') === 'GOETHE' ||
+                str_contains(strtoupper($exam->name ?? ''), 'GOETHE') ||
+                str_contains(strtoupper($exam->level ?? ''), 'GOETHE')
+            )) {
+                $isGoethe = true;
+            }
+        }
         $defaultMaxScore = $isGoethe ? 100 : 105;
         $maxScore = $validated['max_score'] ?? $defaultMaxScore;
         $statusText = $validated['status_text'] ?? ($totalScore >= ($maxScore * 0.6) ? 'Đạt chuẩn' : 'Chưa đạt');
