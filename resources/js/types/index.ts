@@ -101,7 +101,7 @@ export interface Question {
   id: number;
   section: string;
   subSection: string;
-  type?: 'choice' | 'writing' | 'listening';
+  type?: 'choice' | 'writing' | 'listening' | 'speaking';
   title: string;
   contextText?: string;
   audioUrl?: string;

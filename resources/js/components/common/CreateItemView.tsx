@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VocabItem, ExamModel, GrammarTopic } from '../../types';
-import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle, Upload } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle, Upload, Mic } from 'lucide-react';
 
 interface ExamQuestionOption {
   id: string;
@@ -10,7 +10,7 @@ interface ExamQuestionOption {
 
 interface ExamQuestion {
   id: string;
-  type?: 'choice' | 'writing' | 'listening';
+  type?: 'choice' | 'writing' | 'listening' | 'speaking';
   questionText: string;
   contextText?: string;
   subSection?: string;
@@ -486,7 +486,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
     );
   };
 
-  const handleQuestionTypeChange = (secId: string, qId: string, type: 'choice' | 'writing' | 'listening') => {
+  const handleQuestionTypeChange = (secId: string, qId: string, type: 'choice' | 'writing' | 'listening' | 'speaking') => {
     setSections((prev) =>
       prev.map((sec) => {
         if (sec.id === secId) {
@@ -1357,15 +1357,28 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                 >
                                   📝 Viết (Schreiben)
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuestionTypeChange(sec.id, q.id, 'speaking')}
+                                  className={`px-3 py-1 rounded-xl text-xs font-black border-2 cursor-pointer transition-all ${
+                                    q.type === 'speaking'
+                                      ? 'bg-[#059669] text-white border-[#111827] brutal-shadow-xs'
+                                      : 'bg-white text-[#334155] border-[#111827] hover:bg-slate-200'
+                                  }`}
+                                >
+                                  🎤 Nói (Sprechen)
+                                </button>
                               </div>
                             </div>
 
-                            {/* Audio File Upload Box for Listening Type */}
-                            {q.type === 'listening' && (
+                            {/* Audio File Upload Box for Listening and Speaking Type */}
+                            {(q.type === 'listening' || q.type === 'speaking') && (
                               <div className="p-3.5 bg-[#fffbe6] border-2 border-[#111827] rounded-xl space-y-2">
                                 <label className="block text-[11px] font-black text-[#854d0e] flex items-center gap-1.5 font-heading uppercase">
                                   <Upload className="w-4 h-4 text-[#d97706]" />
-                                  Tải File Âm Thanh MP3 Cho Bài Nghe:
+                                  {q.type === 'speaking'
+                                    ? 'Tải File Âm Thanh MP3 Cho Bài Nói (Tùy chọn file âm thanh đề bài / bài nói mẫu):'
+                                    : 'Tải File Âm Thanh MP3 Cho Bài Nghe:'}
                                 </label>
                                 
                                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -1418,7 +1431,13 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                                 type="text"
                                 value={q.questionText}
                                 onChange={(e) => handleQuestionTextChange(sec.id, q.id, e.target.value)}
-                                placeholder={q.type === 'writing' ? 'Ví dụ: Bài thi Viết thư phàn nàn B2 (Schriftlicher Ausdruck)' : `Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`}
+                                placeholder={
+                                  q.type === 'writing'
+                                    ? 'Ví dụ: Bài thi Viết thư B2 (Schriftlicher Ausdruck) - Viết thư phàn nàn / Đơn xin việc'
+                                    : q.type === 'speaking'
+                                    ? 'Ví dụ: Phần thi Nói B2 (Mündlicher Ausdruck) - Teil 1: Thuyết trình theo chủ đề'
+                                    : `Ví dụ: Câu ${qIdx + 1}: Chọn đáp án đúng...`
+                                }
                                 className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                               />
                             </div>
@@ -1480,13 +1499,23 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                             {/* Context Text / Reading Text / Prompt Instructions */}
                             <div>
                               <label className="block text-[11px] font-black text-[#111827] mb-1">
-                                {q.type === 'writing' ? 'Đề bài & Yêu cầu bài viết (Prompt / Instructions)' : 'Đoạn văn bản / Ngữ cảnh (Lesetext / Hörtext)'}
+                                {q.type === 'writing'
+                                  ? 'Đề bài & Yêu cầu bài viết (Prompt / Instructions):'
+                                  : q.type === 'speaking'
+                                  ? 'Đề tài thuyết trình / Câu hỏi bài nói (Thema & Leitfragen):'
+                                  : 'Đoạn văn bản / Ngữ cảnh (Lesetext / Hörtext)'}
                               </label>
                               <textarea
-                                rows={q.type === 'writing' ? 4 : 2}
+                                rows={q.type === 'writing' || q.type === 'speaking' ? 4 : 2}
                                 value={q.contextText || ''}
                                 onChange={(e) => handleContextTextChange(sec.id, q.id, e.target.value)}
-                                placeholder={q.type === 'writing' ? 'Nhập chi tiết yêu cầu bài viết, các ý bắt buộc cần có trong thư B2...' : 'Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này...'}
+                                placeholder={
+                                  q.type === 'writing'
+                                    ? 'Nhập chi tiết yêu cầu bài viết, các ý bắt buộc cần có trong thư B2...'
+                                    : q.type === 'speaking'
+                                    ? 'Nhập câu hỏi gợi ý, chủ đề thảo luận, các ý chính cần trình bày (z.B. Soziale Medien, Umwelt, Beruf)...'
+                                    : 'Nhập bài văn đọc hiểu hoặc ngữ cảnh liên quan cho câu hỏi này...'
+                                }
                                 className="w-full p-2 bg-[#fff8e7] border-2 border-[#111827] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                               />
                             </div>
@@ -1506,8 +1535,27 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                               />
                             </div>
 
+                            {/* Info card for Writing & Speaking (No MCQ needed) */}
+                            {(q.type === 'writing' || q.type === 'speaking') && (
+                              <div className="p-3 bg-indigo-50 border-2 border-[#111827] rounded-xl text-xs space-y-1">
+                                <div className="flex items-center gap-2 font-black text-indigo-900 font-heading">
+                                  {q.type === 'writing' ? <FileText className="w-4 h-4 text-indigo-700" /> : <Mic className="w-4 h-4 text-emerald-700" />}
+                                  <span>
+                                    {q.type === 'writing'
+                                      ? '📝 Phần thi Viết (Schreiben) - Tự Luận (Không cần trắc nghiệm)'
+                                      : '🎤 Phần thi Nói (Sprechen) - Vấn Đáp (Không cần trắc nghiệm)'}
+                                  </span>
+                                </div>
+                                <p className="text-slate-600 font-medium">
+                                  {q.type === 'writing'
+                                    ? 'Phần này không dùng trắc nghiệm. Bạn chỉ cần nhập đề bài, ảnh/audio đính kèm (nếu có) và nhập bài viết mẫu / đáp án ở ô bên dưới.'
+                                    : 'Phần này không dùng trắc nghiệm. Bạn chỉ cần nhập chủ đề bài nói, ảnh/audio đính kèm (nếu có) và nhập bài nói mẫu / đáp án gợi ý ở ô bên dưới.'}
+                                </p>
+                              </div>
+                            )}
+
                             {/* Options List (Only for Choice or Listening) */}
-                            {q.type !== 'writing' && (
+                            {q.type !== 'writing' && q.type !== 'speaking' && (
                               <div className="pl-2 sm:pl-3 space-y-2 border-l-4 border-[#2563EB] pt-1 mt-1">
                                 <label className="block text-[10px] font-black text-[#111827] uppercase tracking-wider">
                                   Danh sách các lựa chọn đáp án (Tích chọn đáp án đúng):
@@ -1578,17 +1626,39 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
                               </div>
                             )}
 
-                            {/* Explanation Section */}
-                            <div className="pt-2 border-t border-[#111827]/10 space-y-1">
-                              <label className="block text-[11px] font-black text-[#111827]">
-                                Giải Thích Chi Tiết Đáp Án
-                              </label>
+                            {/* Model Answer / Explanation Section */}
+                            <div className="pt-2 border-t border-[#111827]/10 space-y-1.5">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <label className="block text-xs font-black text-[#111827] font-heading flex items-center gap-1.5">
+                                  <Sparkles className="w-4 h-4 text-amber-500" />
+                                  <span>
+                                    {q.type === 'writing'
+                                      ? 'Bài Viết Thư Mẫu / Đáp Án Mẫu (Musterbrief / Musterlösung):'
+                                      : q.type === 'speaking'
+                                      ? 'Bài Nói Mẫu / Dàn Ý & Câu Trả Lời Mẫu (Musterantwort / Redemittel):'
+                                      : 'Giải Thích Chi Tiết Đáp Án:'}
+                                  </span>
+                                </label>
+                                {(q.type === 'writing' || q.type === 'speaking') && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                                    Học viên sẽ xem bài mẫu này để đối chiếu
+                                  </span>
+                                )}
+                              </div>
                               <textarea
-                                rows={2}
+                                rows={q.type === 'writing' || q.type === 'speaking' ? 8 : 2}
                                 value={q.explanation || ''}
                                 onChange={(e) => handleExplanationChange(sec.id, q.id, e.target.value)}
-                                placeholder="Nhập nội dung giải thích chi tiết đáp án đúng cho câu hỏi này..."
-                                className="w-full p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                                placeholder={
+                                  q.type === 'writing'
+                                    ? 'Nhập nội dung bài viết thư mẫu chuẩn (Musterbrief), các mẫu câu nối và từ vựng gợi ý để học viên học tập...'
+                                    : q.type === 'speaking'
+                                    ? 'Nhập bài nói mẫu, cấu trúc gợi ý (Redemittel), dàn ý câu trả lời chuẩn (Musterantwort) cho học viên...'
+                                    : 'Nhập nội dung giải thích chi tiết đáp án đúng cho câu hỏi này...'
+                                }
+                                className={`w-full p-2.5 border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB] ${
+                                  q.type === 'writing' || q.type === 'speaking' ? 'bg-[#f0fdf4] font-mono text-slate-800' : 'bg-[#f8fafc]'
+                                }`}
                               />
                             </div>
                           </div>
