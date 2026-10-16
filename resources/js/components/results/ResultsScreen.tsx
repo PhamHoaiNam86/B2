@@ -15,32 +15,50 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onBackToDashboard,
   onReviewExam,
 }) => {
-  const isGoethe = (examState.examCode || '').toUpperCase().includes('GOETHE') || examState.maxScore === 100;
+  const isWritingOrSpeakingExam = Boolean(
+    (examState.examCode || '').toUpperCase().includes('SCHREIBEN') ||
+    (examState.examCode || '').toUpperCase().includes('SPRECHEN') ||
+    (examState.examCode || '').toUpperCase().includes('VIẾT') ||
+    (examState.examCode || '').toUpperCase().includes('NÓI') ||
+    (examState.writingScore === 100 && examState.readingScore === 0) ||
+    (examState.statusText || '').toLowerCase().includes('đã nộp bài')
+  );
+
+  const isGoethe = !isWritingOrSpeakingExam && ((examState.examCode || '').toUpperCase().includes('GOETHE') || examState.maxScore === 100);
   const isListeningGoethe = isGoethe && Boolean(
     (examState.listeningScore && examState.listeningScore > 0) ||
     (examState.examCode || '').toUpperCase().includes('HÖREN') ||
     (examState.examCode || '').toUpperCase().includes('HOREN')
   );
-  const providerLabel = isGoethe ? 'GOETHE-ZERTIFIKAT' : 'TELC DEUTSCH';
+  const providerLabel = isWritingOrSpeakingExam
+    ? 'TỰ LUẬN (SCHREIBEN & SPRECHEN)'
+    : (isGoethe ? 'GOETHE-ZERTIFIKAT' : 'TELC DEUTSCH');
 
   // Thang điểm theo yêu cầu khách hàng:
   // - Goethe: Thang điểm 100 (Lesen & Hören độc lập 100 điểm, Đạt từ 60/100)
   // - Telc: Thang điểm 105 (Leseverstehen 20 câu 75đ + Sprachbausteine 20 câu 30đ, đạt từ 63/105)
-  const maxScore = examState.maxScore || (isGoethe ? 100 : 105);
-  const passScore = isGoethe ? 60 : 63;
+  // - Schreiben & Sprechen: Điểm số lúc nào cũng là 100, chỉ cần nộp bài là xong, có bài mẫu đối chiếu
+  const maxScore = isWritingOrSpeakingExam ? 100 : (examState.maxScore || (isGoethe ? 100 : 105));
+  const passScore = isWritingOrSpeakingExam ? 0 : (isGoethe ? 60 : 63);
   
-  const score = typeof examState.score === 'number'
-    ? examState.score
-    : (isGoethe ? 75 : 82.5);
+  const score = isWritingOrSpeakingExam
+    ? 100
+    : (typeof examState.score === 'number'
+      ? examState.score
+      : (isGoethe ? 75 : 82.5));
 
-  const isPassed = score >= passScore;
-  const readingScore = typeof examState.readingScore === 'number'
-    ? examState.readingScore
-    : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10);
+  const isPassed = isWritingOrSpeakingExam ? true : (score >= passScore);
+  const readingScore = isWritingOrSpeakingExam
+    ? 0
+    : (typeof examState.readingScore === 'number'
+      ? examState.readingScore
+      : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10));
 
-  const sprachScore = typeof examState.sprachScore === 'number'
-    ? examState.sprachScore
-    : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10);
+  const sprachScore = isWritingOrSpeakingExam
+    ? 100
+    : (typeof examState.sprachScore === 'number'
+      ? examState.sprachScore
+      : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10));
 
   const answeredCount = examState.answeredCount ?? Object.keys(examState.answers || {}).length;
 
@@ -56,17 +74,25 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
         <div>
           <span className={`px-3 py-1 rounded-full text-xs font-black border border-[#111827] uppercase tracking-wider ${
-            isGoethe ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#eff6ff] text-[#1e40af]'
+            isWritingOrSpeakingExam
+              ? 'bg-[#dcfce7] text-[#166534]'
+              : (isGoethe ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#eff6ff] text-[#1e40af]')
           }`}>
-            KẾT QUẢ THI THỬ {providerLabel} (THANG ĐIỂM {maxScore})
+            {isWritingOrSpeakingExam
+              ? 'BÀI THI KỸ NĂNG TỰ LUẬN (SCHREIBEN & SPRECHEN)'
+              : `KẾT QUẢ THI THỬ ${providerLabel} (THANG ĐIỂM ${maxScore})`}
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-[#111827] mt-2 font-heading">
-            {isPassed ? 'Chúc Mừng! Bạn Đã Đạt Chứng Chỉ' : 'Cần Cố Gắng Thêm Để Đạt Chứng Chỉ'}
+            {isWritingOrSpeakingExam
+              ? 'Đã Nộp Bài Thi Thành Công!'
+              : (isPassed ? 'Chúc Mừng! Bạn Đã Đạt Chứng Chỉ' : 'Cần Cố Gắng Thêm Để Đạt Chứng Chỉ')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            {isGoethe
-              ? 'Thang điểm Goethe chuẩn 100 điểm (Yêu cầu đạt tối thiểu 60/100 điểm)'
-              : 'Thang điểm TELC chuẩn 105 điểm (Leseverstehen 75đ + Sprachbausteine 30đ, đạt từ 63/105 điểm)'}
+            {isWritingOrSpeakingExam
+              ? 'Bài thi tự luận không chấm điểm tự động. Điểm ghi nhận hoàn thành: 100/100 Điểm. Hãy bấm xem đáp án chi tiết bên dưới để đối chiếu bài làm.'
+              : (isGoethe
+                ? 'Thang điểm Goethe chuẩn 100 điểm (Yêu cầu đạt tối thiểu 60/100 điểm)'
+                : 'Thang điểm TELC chuẩn 105 điểm (Leseverstehen 75đ + Sprachbausteine 30đ, đạt từ 63/105 điểm)')}
           </p>
         </div>
 
@@ -83,7 +109,9 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               }`}
             >
               {isPassed ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-              {isPassed ? 'XẾP LOẠI: BESTANDEN (ĐẠT CHUẨN)' : 'XẾP LOẠI: NICHT BESTANDEN (CHƯA ĐẠT)'}
+              {isWritingOrSpeakingExam
+                ? 'XẾP LOẠI: BESTANDEN (ĐÃ NỘP BÀI THÀNH CÔNG)'
+                : (isPassed ? 'XẾP LOẠI: BESTANDEN (ĐẠT CHUẨN)' : 'XẾP LOẠI: NICHT BESTANDEN (CHƯA ĐẠT)')}
             </span>
             <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black flex items-center gap-1">
               <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" /> +100 EXP
@@ -127,8 +155,34 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             </span>
           </h3>
 
-          {/* Breakdown based on TELC (105đ) or GOETHE (100đ) */}
-          {!isGoethe ? (
+          {/* Breakdown based on SCHREIBEN/SPRECHEN (100đ), TELC (105đ) or GOETHE (100đ) */}
+          {isWritingOrSpeakingExam ? (
+            <div className="space-y-3 text-xs font-bold">
+              <div className="p-3.5 bg-emerald-50 border-2 border-emerald-500 rounded-xl space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#111827] flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-emerald-600" />
+                    <span>Kỹ năng Tự Luận: Viết (Schreiben) / Nói (Sprechen)</span>
+                  </span>
+                  <span className="text-emerald-700 font-black text-sm">100 / 100 Điểm</span>
+                </div>
+                <p className="text-[11px] text-slate-600 font-normal">
+                  Bài thi tự luận không áp dụng chấm trắc nghiệm. Đã ghi nhận 100/100 điểm nộp bài thành công.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-blue-50 border-2 border-blue-300 rounded-xl space-y-1.5 text-slate-800">
+                <div className="flex items-center gap-1.5 font-bold text-[#1e40af] text-xs">
+                  <Sparkles className="w-4 h-4 text-[#2563EB]" />
+                  <span>ĐỐI CHIẾU VỚI BÀI MẪU CỦA GIÁO VIÊN:</span>
+                </div>
+                <p className="text-[11px] font-normal leading-relaxed text-slate-600">
+                  Giáo viên đã chuẩn bị sẵn <b>Bài Viết Thư Mẫu (Musterbrief)</b> hoặc <b>Bài Nói Mẫu & Dàn Ý (Musterantwort / Redemittel)</b>.
+                  Vui lòng bấm nút <b>"Xem Chi Tiết Từng Câu & Đáp Án 💡"</b> ở phía trên để so sánh bài viết/bài nói của bạn với đáp án mẫu chuẩn.
+                </p>
+              </div>
+            </div>
+          ) : !isGoethe ? (
             <div className="space-y-3 text-xs font-bold">
               {/* Phần 1: Leseverstehen 3 phần đầu 20 câu 75đ */}
               <div className="p-3.5 bg-slate-50 border-2 border-[#111827] rounded-xl space-y-1">
@@ -197,12 +251,16 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
           <div className="p-4 bg-blue-50 border-2 border-[#111827] rounded-xl text-xs space-y-2 leading-relaxed font-medium">
             <p className="font-bold text-[#2563EB]">
-              {isPassed
+              {isWritingOrSpeakingExam
+                ? 'Chúc mừng bạn đã hoàn thành bài thi tự luận! Bạn hãy đối chiếu bài làm của mình với Bài Mẫu chuẩn do thầy cô biên soạn nhé.'
+                : isPassed
                 ? 'Chúc mừng bạn đã hoàn thành bài thi với kết quả xuất sắc! Bạn nắm vững các điểm ngữ pháp then chốt và khả năng suy luận đọc hiểu.'
                 : 'Bạn đã nỗ lực rất tốt! Hãy tiếp tục rèn luyện kỹ năng đọc hiểu nhanh và các liên từ, giới từ trong phần Sprachbausteine.'}
             </p>
             <p className="text-slate-600">
-              Đã trả lời: <b className="text-[#111827]">{answeredCount} câu</b>. Tỷ lệ chính xác ghi nhận theo tiêu chuẩn chấm thi quốc tế {providerLabel}.
+              {isWritingOrSpeakingExam
+                ? 'Trạng thái: Đã lưu bài làm vào hệ thống và mở khóa toàn bộ đáp án mẫu.'
+                : `Đã trả lời: ${answeredCount} câu. Tỷ lệ chính xác ghi nhận theo tiêu chuẩn chấm thi quốc tế ${providerLabel}.`}
             </p>
           </div>
 

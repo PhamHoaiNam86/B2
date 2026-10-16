@@ -156,6 +156,12 @@ export default function App() {
   };
 
   const [isExamRoomActive, setIsExamRoomActiveState] = useState<boolean>(() => {
+    const rawPath = window.location.pathname.split('?')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
+    // Nếu người dùng truy cập trực tiếp các route khác (như /create-item, /exam-b1,...) thì thoát phòng thi
+    if (rawPath && rawPath !== 'exam-room') {
+      sessionStorage.removeItem('isExamRoomActive');
+      return false;
+    }
     return sessionStorage.getItem('isExamRoomActive') === 'true';
   });
 
@@ -838,6 +844,15 @@ export default function App() {
   };
 
   const handleFinishExamSubmit = (computedResult?: any) => {
+    const isWritingOrSpeakingExam =
+      (computedResult?.writingScore === 100 && computedResult?.readingScore === 0) ||
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('SCHREIBEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('SCHREIBEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('VIẾT') ||
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('SPRECHEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('SPRECHEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('NÓI');
+
     const isGoethe = (
       (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE') ||
       (selectedExam?.provider || '').toUpperCase().includes('GOETHE') ||
@@ -848,21 +863,29 @@ export default function App() {
     const defaultMax = isGoethe ? 100 : 105;
     const providerLabel = isGoethe ? 'GOETHE' : 'TELC';
 
-    const score = typeof computedResult?.score === 'number'
-      ? computedResult.score
-      : (isGoethe ? 75 : 82.5);
-    const maxScore = computedResult?.maxScore || defaultMax;
-    const readingScore = typeof computedResult?.readingScore === 'number'
-      ? computedResult.readingScore
-      : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10);
-    const sprachScore = typeof computedResult?.sprachScore === 'number'
-      ? computedResult.sprachScore
-      : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10);
-    const correctCount = computedResult?.correctCount ?? 0;
+    const score = isWritingOrSpeakingExam
+      ? 100
+      : (typeof computedResult?.score === 'number'
+        ? computedResult.score
+        : (isGoethe ? 75 : 82.5));
+    const maxScore = isWritingOrSpeakingExam ? 100 : (computedResult?.maxScore || defaultMax);
+    const readingScore = isWritingOrSpeakingExam
+      ? 0
+      : (typeof computedResult?.readingScore === 'number'
+        ? computedResult.readingScore
+        : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10));
+    const sprachScore = isWritingOrSpeakingExam
+      ? 100
+      : (typeof computedResult?.sprachScore === 'number'
+        ? computedResult.sprachScore
+        : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10));
+    const correctCount = isWritingOrSpeakingExam ? (computedResult?.correctCount ?? 1) : (computedResult?.correctCount ?? 0);
     const answeredCount = computedResult?.answeredCount ?? Object.keys(examState.answers || {}).length;
 
     const passThreshold = isGoethe ? 60 : 63;
-    const statusText = computedResult?.statusText || (score >= passThreshold ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`);
+    const statusText = isWritingOrSpeakingExam
+      ? 'Đã nộp bài thành công (Hoàn thành)'
+      : (computedResult?.statusText || (score >= passThreshold ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`));
 
     setExamState((prev) => ({
       ...prev,

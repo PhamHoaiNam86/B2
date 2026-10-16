@@ -26,6 +26,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public handleReset = () => {
     sessionStorage.clear();
+    try {
+      localStorage.removeItem('isExamRoomActive');
+    } catch (_) {}
     window.location.href = '/';
   };
 

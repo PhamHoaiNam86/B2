@@ -186,18 +186,16 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   };
 
   const isUserAnswerCorrect = (q: Question, userAns: any): boolean => {
-    if (!userAns) return false;
     const isWritingOrSpeaking =
       q.type === 'writing' ||
       q.type === 'speaking' ||
-      (q.section || '').toLowerCase().includes('schreiben') ||
-      (q.section || '').toLowerCase().includes('sprechen') ||
-      (q.title || '').toLowerCase().includes('brief') ||
-      (q.title || '').toLowerCase().includes('schreiben') ||
-      (q.title || '').toLowerCase().includes('sprechen');
+      checkIsWritingQuestion(q) ||
+      checkIsSpeakingQuestion(q);
     if (isWritingOrSpeaking) {
-      return String(userAns).trim().length >= 5;
+      return true;
     }
+
+    if (!userAns) return false;
 
     const userStr = String(userAns).trim().toUpperCase();
     const optIdx = q.options.findIndex(
@@ -211,14 +209,43 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   };
 
   const computeExamResults = () => {
+    const userAnswers = examState.answers || {};
+    const answeredCount = Object.keys(userAnswers).length;
+
+    // Kiểm tra nếu đề thi là bài thi Viết (Schreiben) hoặc Nói (Sprechen)
+    const isPureWritingOrSpeakingExam =
+      questions.length > 0 &&
+      questions.every((q) => checkIsWritingQuestion(q) || checkIsSpeakingQuestion(q));
+
+    const isExplicitWritingOrSpeaking =
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('SCHREIBEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('SCHREIBEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('VIẾT') ||
+      (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('SPRECHEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('SPRECHEN') ||
+      (selectedExam?.name || '').toUpperCase().includes('NÓI');
+
+    if (isPureWritingOrSpeakingExam || isExplicitWritingOrSpeaking) {
+      return {
+        score: 100,
+        maxScore: 100,
+        readingScore: 0,
+        sprachScore: 100,
+        listeningScore: 0,
+        writingScore: 100,
+        speakingScore: 100,
+        statusText: 'Đã nộp bài thành công (Hoàn thành)',
+        answeredCount,
+        correctCount: questions.length,
+      };
+    }
+
     const isGoethe = (
       (examState.examCode || selectedExam?.examCode || '').toUpperCase().includes('GOETHE') ||
       (selectedExam?.provider || '').toUpperCase().includes('GOETHE') ||
       (selectedExam?.level || '').toUpperCase().includes('GOETHE') ||
       (selectedExam?.name || '').toUpperCase().includes('GOETHE')
     );
-    const userAnswers = examState.answers || {};
-    const answeredCount = Object.keys(userAnswers).length;
 
     if (isGoethe) {
       let correctCount = 0;
@@ -1466,6 +1493,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 const userChoice = examState.answers[q.id] || '';
                 const isAnswered = Boolean(userChoice.trim());
                 const isWritingQuestion = checkIsWritingQuestion(q);
+                const isSpeakingQuestion = checkIsSpeakingQuestion(q);
                 const globalIdx = questions.findIndex((item) => item.id === q.id);
                 const displayQuestionNum = globalIdx >= 0 ? globalIdx + 1 : q.id;
 
