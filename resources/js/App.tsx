@@ -40,14 +40,21 @@ const getInitialViewState = () => {
     'flashcards', 'grammar-lesson', 'exam-detail', 'create-item', 'leaderboard'
   ];
 
-  if (rawPath && validTabs.includes(rawPath as ActiveTab)) {
-    return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: rawPath as ActiveTab };
-  }
-
+  // NẾU ĐÃ ĐĂNG NHẬP THÀNH CÔNG:
   if (isLoggedIn) {
+    if (rawPath && validTabs.includes(rawPath as ActiveTab)) {
+      return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: rawPath as ActiveTab };
+    }
     const savedTab = sessionStorage.getItem('activeTab') || localStorage.getItem('activeTab');
     const tabToUse = savedTab && validTabs.includes(savedTab as ActiveTab) ? (savedTab as ActiveTab) : 'dashboard';
     return { viewMode: 'app' as const, authInitialTab: 'login' as const, activeTab: tabToUse };
+  }
+
+  // NẾU CHƯA ĐĂNG NHẬP (Chưa xác thực OTP / Chưa được Admin duyệt):
+  // Bắt buộc chặn lại và yêu cầu Đăng Nhập / Đăng Ký OTP
+  if (rawPath && validTabs.includes(rawPath as ActiveTab)) {
+    sessionStorage.setItem('redirectAfterLogin', rawPath);
+    return { viewMode: 'auth' as const, authInitialTab: 'login' as const, activeTab: rawPath as ActiveTab };
   }
 
   return { viewMode: 'landing' as const, authInitialTab: 'login' as const, activeTab: 'dashboard' as ActiveTab };
@@ -76,6 +83,7 @@ export default function App() {
   };
 
   const navigateToAuth = (tab: 'login' | 'register' = 'login') => {
+    localStorage.removeItem('isLoggedIn');
     setAuthInitialTab(tab);
     setViewMode('auth');
     setShowWelcomePopup(false);
@@ -1014,7 +1022,13 @@ export default function App() {
           onSuccessLogin={(role) => {
             handleSetCurrentUser(role);
             localStorage.setItem('isLoggedIn', 'true');
-            navigateToApp('dashboard');
+            const targetRedirect = sessionStorage.getItem('redirectAfterLogin') as ActiveTab | null;
+            if (targetRedirect) {
+              sessionStorage.removeItem('redirectAfterLogin');
+              navigateToApp(targetRedirect);
+            } else {
+              navigateToApp('dashboard');
+            }
             showToast(
               'Đăng nhập thành công',
               `Chào mừng bạn vào portal với vai trò ${role === 'admin' ? '👑 Quản trị viên (Admin)' : '🎓 Học viên B2'}.`,

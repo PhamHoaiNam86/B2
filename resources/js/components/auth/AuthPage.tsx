@@ -77,7 +77,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             onSuccessLogin(res.role || 'student');
           }
         } else {
-          if (res.approval_status === 'pending') {
+          if (res.requires_otp) {
+            if (res.email) setEmail(res.email);
+            setStep('otp');
+            setResendTimer(60);
+            setIsResendActive(false);
+            setOtp(['', '', '', '', '', '']);
+            setInfoMsg(res.message || 'Vui lòng nhập mã OTP 6 số đã được gửi về email của bạn.');
+          } else if (res.approval_status === 'pending') {
             setStep('pending_approval');
           } else if (res.approval_status === 'rejected') {
             setStep('rejected');

@@ -246,6 +246,24 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Nếu tài khoản học viên chưa xác thực mã OTP qua Email
+        if (! $user->is_admin && empty($user->email_verified_at)) {
+            if (empty($user->otp_code) || empty($user->otp_expires_at) || now()->greaterThan($user->otp_expires_at)) {
+                $user->otp_code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $user->otp_expires_at = now()->addMinutes(10);
+                $user->save();
+                $this->sendOtpEmail($user->email, $user->name, $user->otp_code);
+            }
+
+            return response()->json([
+                'success' => false,
+                'requires_otp' => true,
+                'email' => $user->email,
+                'otp_code' => $user->otp_code,
+                'message' => 'Tài khoản chưa hoàn tất xác thực OTP. Mã OTP 6 số đã được gửi về email của bạn!',
+            ], 403);
+        }
+
         $role = $user->is_admin ? 'admin' : 'student';
         $approvalStatus = $user->approval_status ?? ($user->is_admin ? 'approved' : 'pending');
 
@@ -253,7 +271,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'approval_status' => 'pending',
-                'message' => 'Tài khoản của bạn đã xác thực Email nhưng ĐANG CHỜ ADMIN DƯYỆT. Vui lòng liên hệ Admin để mở khóa!',
+                'message' => 'Tài khoản của bạn đã xác thực Email nhưng ĐANG CHỜ ADMIN DUYỆT. Vui lòng liên hệ Admin để mở khóa!',
             ], 403);
         }
 
