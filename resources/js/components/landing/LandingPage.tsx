@@ -119,7 +119,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
                 TRIEUVY DEUTSCH
               </h1>
               <span className="text-[10px] font-bold text-[#4b5563] block -mt-0.5">
-                TELC B2 Prep & Exam Portal
+                Luyện Thi Chứng Chỉ Tiếng Đức
               </span>
             </div>
           </div>
@@ -280,10 +280,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
               TÍNH NĂNG HỆ THỐNG
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
-              Hệ Thống Luyện Thi TELC B2 Toàn Diện
+              Hệ Thống Luyện Thi Chứng Chỉ Tiếng Đức Toàn Diện
             </h2>
             <p className="text-sm font-medium text-[#4b5563]">
-              Tất cả công cụ bạn cần để đạt chứng chỉ tiếng Đức TELC B2 ngay trong lần thi đầu tiên.
+              Tất cả công cụ bạn cần để đạt chứng chỉ tiếng Đức ngay trong lần thi đầu tiên.
             </p>
           </div>
 
@@ -494,10 +494,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
               CẢM NHẬN HỌC VIÊN
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-[#111827] font-heading">
-              Học Viên Đã Thi Đỗ TELC B2 Nói Gì?
+              Học Viên Đã Thi Đỗ Chứng Chỉ Nói Gì?
             </h2>
             <p className="text-sm font-medium text-[#4b5563]">
-              Hơn 12,000 học viên đã tự tin chinh phục chứng chỉ B2 nhờ TRIEUVY DEUTSCH.
+              Hơn 12,000 học viên đã tự tin chinh phục chứng chỉ tiếng Đức nhờ TRIEUVY DEUTSCH.
             </p>
           </div>
 
@@ -524,7 +524,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
                 <div>
                   <h4 className="text-sm font-black text-[#111827] group-hover:text-[#F97316] transition-colors">Nguyễn Minh Huyền</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
-                    ★ Đã đỗ TELC B2 (282/300)
+                    ★ Đã đỗ chứng chỉ tiếng Đức (282/300)
                   </span>
                 </div>
               </div>
@@ -539,7 +539,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
                   ))}
                 </div>
                 <p className="text-xs font-medium text-[#374151] leading-relaxed italic">
-                  "Kho từ vựng flashcard 3D theo từng chủ đề y tế giúp mình thuộc từ vựng cực nhanh. Giao diện mô phỏng phòng thi thì quá sát đề thật luôn!"
+                  "Kho từ vựng flashcard 3D theo từng chủ đề giúp mình thuộc từ vựng cực nhanh. Giao diện mô phỏng phòng thi thì quá sát đề thật luôn!"
                 </p>
               </div>
 
@@ -552,7 +552,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
                 <div>
                   <h4 className="text-sm font-black text-[#111827] group-hover:text-[#2563EB] transition-colors">Trần Hoàng Nam</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
-                    ★ Đã đỗ TELC B2 (275/300)
+                    ★ Đã đỗ chứng chỉ tiếng Đức (275/300)
                   </span>
                 </div>
               </div>
@@ -580,7 +580,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
                 <div>
                   <h4 className="text-sm font-black text-[#111827] group-hover:text-[#10B981] transition-colors">Phạm Khánh Linh</h4>
                   <span className="text-[10px] font-bold text-[#059669] block">
-                    ★ Đã đỗ TELC B2 (290/300)
+                    ★ Đã đỗ chứng chỉ tiếng Đức (290/300)
                   </span>
                 </div>
               </div>
@@ -596,7 +596,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="bg-[#2563EB] border-2 border-white rounded-3xl p-8 sm:p-12 text-center space-y-6 brutal-shadow hover:-translate-y-2 hover:shadow-[10px_10px_0px_#ffffff] transition-all duration-300 cursor-pointer" onClick={() => handleOpenAuth('register')}>
             <h2 className="text-3xl sm:text-5xl font-black font-heading text-white">
-              Sẵn Sàng Chinh Phục Chứng Chỉ B2?
+              Sẵn Sàng Chinh Phục Chứng Chỉ Tiếng Đức?
             </h2>
             <p className="text-sm sm:text-base font-semibold text-blue-100 max-w-xl mx-auto">
               Tham gia ngay hôm nay để trải nghiệm phòng thi thử mô phỏng thời gian thực và bộ đề luyện thi chuẩn quốc tế.
@@ -617,7 +617,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGoToAuth }) => {
               </div>
               <span className="font-bold text-white text-sm">TRIEUVY DEUTSCH</span>
             </div>
-            <p>© 2026 TRIEUVY DEUTSCH. Nền tảng mô phỏng & luyện thi TELC B2 chuẩn quốc tế.</p>
+            <p>© 2026 TRIEUVY DEUTSCH. Nền tảng mô phỏng & luyện thi chứng chỉ tiếng Đức chuẩn quốc tế.</p>
           </div>
         </div>
       </footer>

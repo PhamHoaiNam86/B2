@@ -520,7 +520,7 @@ export default function App() {
           const newCount = prev.tabSwitchCount + 1;
           return { ...prev, tabSwitchCount: newCount };
         });
-        setTabSwitchAlert('⚠️ Cảnh báo bảo mật: Hệ thống ghi nhận bạn vừa rời khỏi cửa sở thi thử TELC B2!');
+        setTabSwitchAlert('⚠️ Cảnh báo bảo mật: Hệ thống ghi nhận bạn vừa rời khỏi cửa sổ thi thử tiếng Đức!');
         setTimeout(() => setTabSwitchAlert(null), 6000);
       }
     };
@@ -1415,7 +1415,7 @@ export default function App() {
               {activeTab === 'history' && (
                 <div className="bg-[#ffffff] border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow space-y-4">
                   <h2 className="text-xl font-black text-[#1c1b1b] font-heading">
-                    Lịch Sử Làm Bài & Bảng Điểm TELC B2 Toàn Hệ Thống
+                    Lịch Sử Làm Bài & Bảng Điểm Thi Thử Chứng Chỉ Tiếng Đức
                   </h2>
                   <div className="divide-y divide-[#1c1b1b]/10 border-2 border-[#1c1b1b] rounded-xl overflow-hidden text-xs">
                     {liveFeed.map((item) => (

@@ -276,7 +276,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         <div className="relative hidden lg:flex flex-col justify-between bg-[#111827] p-12 text-white min-h-screen overflow-hidden group">
           <img
             src="/images/banner2.png"
-            alt="Luyện thi TELC B2 TRIEUVY DEUTSCH"
+            alt="Luyện thi chứng chỉ tiếng Đức TRIEUVY DEUTSCH"
             className="absolute inset-0 w-full h-full object-cover object-center opacity-90 group-hover:scale-105 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/50 to-[#111827]/30 z-10" />
@@ -294,7 +294,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   TRIEUVY DEUTSCH
                 </h1>
                 <span className="text-xs font-bold text-blue-200 block mt-0.5">
-                  TELC B2 Prep & Exam Portal
+                  Luyện Thi Chứng Chỉ Tiếng Đức
                 </span>
               </div>
             </div>
@@ -303,21 +303,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           <div className="relative z-20 max-w-lg space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#F97316] border-2 border-white text-white rounded-xl text-xs font-black uppercase tracking-wider brutal-shadow-xs">
               <ShieldCheck className="w-4 h-4" />
-              <span>HỆ THỐNG MÔ PHỎNG TELC B2 2026</span>
+              <span>HỆ THỐNG LUYỆN THI TIẾNG ĐỨC 2026</span>
             </div>
 
             <h2 className="text-3xl lg:text-4xl font-black font-heading leading-tight text-white">
-              Đồng Hành Cùng Bạn Chinh Phục Chứng Chỉ TELC B2
+              Đồng Hành Cùng Bạn Chinh Phục Chứng Chỉ Tiếng Đức
             </h2>
 
             <p className="text-sm font-medium text-slate-200 leading-relaxed">
-              Trải nghiệm phòng thi thử mô phỏng thời gian thực, chống gian lận tab switch và bộ 5.000+ từ vựng lật 3D chuyên ngành B2.
+              Trải nghiệm phòng thi thử mô phỏng thời gian thực, chống gian lận tab switch và bộ 5.000+ từ vựng lật 3D đa cấp độ.
             </p>
 
             <div className="pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-xs font-bold text-slate-100">
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />
-                <span>50+ Đề thi thử B2</span>
+                <span>50+ Đề thi thử chuẩn quốc tế</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />
@@ -325,17 +325,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </div>
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />
-                <span>Dàn ý bài mẫu Schreiben</span>
+                <span>Dàn ý bài mẫu Schreiben & Sprechen</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80] shrink-0" />
-                <span>Flashcard 3D từ vựng Y tế</span>
+                <span>Flashcard 3D từ vựng chuyên sâu</span>
               </div>
             </div>
           </div>
 
           <div className="relative z-20 text-xs text-slate-400 font-medium">
-            © 2026 TRIEUVY DEUTSCH. Nền tảng luyện thi chuẩn quốc tế.
+            © 2026 TRIEUVY DEUTSCH. Nền tảng luyện thi chứng chỉ tiếng Đức chuẩn quốc tế.
           </div>
         </div>
 
@@ -371,7 +371,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </h2>
                 <p className="text-xs sm:text-sm font-medium text-[#4b5563]">
                   {activeTab === 'login'
-                    ? 'Vui lòng nhập email và mật khẩu của bạn để vào portal luyện thi TELC B2.'
+                    ? 'Vui lòng nhập email và mật khẩu của bạn để vào portal luyện thi chứng chỉ tiếng Đức.'
                     : 'Tạo tài khoản học viên để nhận mã xác thực OTP gửi trực tiếp qua Gmail.'}
                 </p>
               </div>

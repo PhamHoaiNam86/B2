@@ -87,7 +87,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       bgColor: 'bg-blue-50 text-blue-700 border-blue-200',
       barColor: 'bg-blue-600',
       icon: BookOpen,
-      status: avgReadingPct >= 75 ? 'Đạt chuẩn TELC B2' : totalResults > 0 ? 'Cần rèn luyện' : 'Chưa có dữ liệu',
+      status: avgReadingPct >= 75 ? 'Đạt chuẩn chứng chỉ tiếng Đức' : totalResults > 0 ? 'Cần rèn luyện' : 'Chưa có dữ liệu',
     },
     {
       id: 'sprach',
@@ -209,7 +209,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <FileCheck2 className="w-6 h-6 text-[#2563EB]" />
             </div>
             <div className="text-3xl font-black text-[#111827]">{exams.length} Bộ đề</div>
-            <p className="text-[11px] text-[#059669] font-bold">● Đề thi thử tiêu chuẩn TELC B2</p>
+            <p className="text-[11px] text-[#059669] font-bold">● Đề thi thử luyện thi chứng chỉ tiếng Đức</p>
           </div>
 
           <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-2">
@@ -307,10 +307,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-extrabold text-[#111827] flex items-center gap-1.5">
                   <Target className="w-4 h-4 text-[#F97316]" />
-                  Mức % điểm 5 Kỹ Năng Thi TELC B2:
+                  Mức % điểm 5 Kỹ Năng Thi Chứng Chỉ Tiếng Đức:
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#dbeafe] text-[#1e40af] font-black border border-[#2563EB] text-[10px]">
-                  🎯 Ngưỡng đỗ TELC B2: 75%
+                  🎯 Ngưỡng đỗ chuẩn: 60 - 75%
                 </span>
               </div>
 
@@ -320,7 +320,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span className="bg-[#f8fafc] px-1 -mt-2">100%</span>
                   </div>
                   <div className="border-b border-dashed border-[#F97316]/40 w-full flex justify-between items-center text-[#F97316]">
-                    <span className="bg-[#f8fafc] px-1 -mt-2 font-black text-[9px]">TARGET TELC (75%)</span>
+                    <span className="bg-[#f8fafc] px-1 -mt-2 font-black text-[9px]">TARGET ĐẠT (75%)</span>
                     <span className="bg-[#f8fafc] px-1 -mt-2 font-black">75%</span>
                   </div>
                   <div className="border-b border-dashed border-slate-300 w-full flex justify-end">
@@ -393,7 +393,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <h3 className="text-base font-black text-[#111827] font-heading">
                     Top 10 Học Viên Xuất Sắc
                   </h3>
-                  <p className="text-[10px] text-[#4b5563]">Bảng xếp hạng điểm thi TELC B2</p>
+                  <p className="text-[10px] text-[#4b5563]">Bảng xếp hạng điểm thi chứng chỉ tiếng Đức</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-md bg-[#ffe8d6] text-[#c2410c] text-[10px] font-black border border-[#111827]">
@@ -527,7 +527,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 bg-white border-[2.5px] border-[#1c1b1b] rounded-xl brutal-shadow space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#564145]">Tỉ lệ đỗ TELC B2</span>
+            <span className="text-xs font-bold text-[#564145]">Tỉ lệ đỗ chứng chỉ</span>
             <Award className="w-5 h-5 text-[#0d5225]" />
           </div>
           <p className="text-2xl font-black text-[#1c1b1b] font-heading">{passRateStr}</p>
@@ -595,10 +595,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-extrabold text-[#111827] flex items-center gap-1.5">
                 <Target className="w-4 h-4 text-[#F97316]" />
-                Mức % điểm 5 Kỹ Năng Thi TELC B2:
+                Mức % điểm 5 Kỹ Năng Thi Chứng Chỉ Tiếng Đức:
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#dbeafe] text-[#1e40af] font-black border border-[#2563EB] text-[10px]">
-                🎯 Ngưỡng đỗ TELC B2: 75%
+                🎯 Ngưỡng đỗ chuẩn: 60 - 75%
               </span>
             </div>
 
@@ -610,7 +610,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="bg-[#f8fafc] px-1 -mt-2">100%</span>
                 </div>
                 <div className="border-b border-dashed border-[#F97316]/40 w-full flex justify-between items-center text-[#F97316]">
-                  <span className="bg-[#f8fafc] px-1 -mt-2 font-black text-[9px]">TARGET TELC (75%)</span>
+                  <span className="bg-[#f8fafc] px-1 -mt-2 font-black text-[9px]">TARGET ĐẠT (75%)</span>
                   <span className="bg-[#f8fafc] px-1 -mt-2 font-black">75%</span>
                 </div>
                 <div className="border-b border-dashed border-slate-300 w-full flex justify-end">
@@ -688,7 +688,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <h3 className="text-base font-black text-[#111827] font-heading">
                   Top 10 Học Viên Xuất Sắc
                 </h3>
-                <p className="text-[10px] text-[#4b5563]">Bảng xếp hạng điểm thi TELC B2 Tháng 9</p>
+                <p className="text-[10px] text-[#4b5563]">Bảng xếp hạng điểm thi chứng chỉ tiếng Đức Tháng 9</p>
               </div>
             </div>
             <span className="px-2 py-0.5 rounded-md bg-[#ffe8d6] text-[#c2410c] text-[10px] font-black border border-[#111827]">
