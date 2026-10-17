@@ -982,9 +982,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#fcf9f8] flex flex-col font-sans">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#fcf9f8] flex flex-col font-sans">
       {/* 1. EXAM ROOM HEADER WITH ANTI-CHEAT & AUTO-SAVE BADGE */}
-      <header className="sticky top-0 z-40 bg-[#111827] text-white px-4 sm:px-6 py-3 border-b-4 border-[#2563EB]">
+      <header className="shrink-0 z-40 bg-[#111827] text-white px-4 sm:px-6 py-2.5 border-b-4 border-[#2563EB]">
         <div className="w-full px-[10px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -1052,7 +1052,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       </header>
 
       {/* 2. SECTION STEPPER PROGRESS BAR */}
-      <div className="bg-white border-b-2 border-[#111827] px-4 py-2.5 sticky top-[57px] z-30 shadow-xs">
+      <div className="shrink-0 z-30 bg-white border-b-2 border-[#111827] px-4 py-2 shadow-xs">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
           {activeSections.map((sec, idx) => {
             const Icon = sec.icon;
@@ -1087,11 +1087,11 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       </div>
 
       {/* 3. MAIN EXAM ROOM DEUTSCHMITPN 2-COLUMN SPLIT LAYOUT */}
-      <main className="flex-1 w-full p-4 sm:p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 min-h-0 w-full p-3 sm:p-4 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 lg:overflow-hidden">
         
-        {/* LEFT COLUMN (6 COLS): READING TEXT / AUDIO / WRITING PROMPT + HIGHLIGHT & NOTES TOOL */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-4 flex flex-col h-full min-h-[500px]">
+        {/* LEFT COLUMN (6 COLS): READING TEXT / AUDIO / WRITING PROMPT + HIGHLIGHT & NOTES TOOL (INDEPENDENT SCROLL) */}
+        <div className="lg:col-span-6 lg:h-full lg:min-h-0 lg:overflow-y-auto pr-1.5 space-y-4">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-5 brutal-shadow space-y-4 flex flex-col">
             {/* Header ToolBar */}
             <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
               <div className="flex items-center gap-2">
@@ -1221,7 +1221,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             {/* Reading Context Text Content with Highlight Capability */}
             <div
               onMouseUp={handleHighlightSelection}
-              className="flex-1 p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-sm sm:text-base text-[#111827] leading-relaxed space-y-4 overflow-y-auto max-h-[550px] select-text font-medium"
+              className="p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-sm sm:text-base text-[#111827] leading-relaxed space-y-4 select-text font-medium"
             >
               <div className="p-2 bg-[#fff8e7] border border-[#d97706]/30 rounded-lg text-[11px] font-bold text-[#b45309] flex items-center justify-between">
                 <span>💡 Bôi đen văn bản bên dưới để dùng tool Tô Màu Highlight!</span>
@@ -1406,8 +1406,8 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
           </div>
         </div>
 
-        {/* RIGHT COLUMN (6 COLS): QUESTIONS LIST & QUICK JUMP QUESTION NAVIGATOR */}
-        <div className="lg:col-span-6 space-y-4">
+        {/* RIGHT COLUMN (6 COLS): QUESTIONS LIST & QUICK JUMP QUESTION NAVIGATOR (INDEPENDENT SCROLL) */}
+        <div className="lg:col-span-6 lg:h-full lg:min-h-0 lg:overflow-y-auto pr-1.5 space-y-4">
           
           {/* Question Grid Jump Navigator Header */}
           <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-4 brutal-shadow space-y-3">
@@ -1513,7 +1513,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                         }, 700);
                       }
                     }}
-                    className={`p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-24 cursor-pointer hover:border-[#2563EB] ${
+                    className={`p-5 bg-white border-[2.5px] border-[#111827] rounded-2xl brutal-shadow space-y-4 transition-all scroll-mt-4 cursor-pointer hover:border-[#2563EB] ${
                       q.id === activeQuestionId ? 'ring-2 ring-[#2563EB] border-[#2563EB]' : ''
                     }`}
                   >
@@ -1979,7 +1979,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       </main>
 
       {/* 4. FOOTER CONTROLS */}
-      <footer className="sticky bottom-0 z-30 bg-white border-t-2 border-[#111827] p-4 shadow-lg">
+      <footer className="shrink-0 z-30 bg-white border-t-2 border-[#111827] p-3 sm:p-4 shadow-lg sticky bottom-0 lg:static">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <button
             disabled={activeSectionIndex === 0}
