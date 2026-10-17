@@ -20,16 +20,14 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
   onEditVocab,
 }) => {
   const [search, setSearch] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset pagination on search, level or topic change
+  // Reset pagination on search or level change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedTopic, selectedLevel]);
+  }, [search, selectedLevel]);
 
-  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => v.topic).filter(Boolean)))];
   const levels = ['all', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
   const filteredVocabs = vocabs.filter((v) => {
@@ -38,8 +36,7 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
     const matchesSearch =
       v.word.toLowerCase().includes(search.toLowerCase()) ||
       v.meaningVi.toLowerCase().includes(search.toLowerCase());
-    const matchesTopic = selectedTopic === 'all' || v.topic === selectedTopic;
-    return matchesSearch && matchesTopic && matchesLevel;
+    return matchesSearch && matchesLevel;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredVocabs.length / ITEMS_PER_PAGE));
@@ -118,20 +115,6 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-[#4b5563] shrink-0">Chủ đề:</span>
-            <select
-              value={selectedTopic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
-              className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-            >
-              {topics.map((tp) => (
-                <option key={tp} value={tp}>
-                  {tp === 'all' ? 'Tất cả chủ đề' : tp}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
