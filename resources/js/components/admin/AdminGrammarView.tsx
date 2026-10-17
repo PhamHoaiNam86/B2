@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GrammarTopic } from '../../types';
-import { Plus, Search, Edit3, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, Eye, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 
 interface AdminGrammarViewProps {
   topics: GrammarTopic[];
@@ -13,6 +13,23 @@ interface AdminGrammarViewProps {
 
 const ITEMS_PER_PAGE = 10;
 
+const getLevelBadgeClass = (lvl?: string) => {
+  switch ((lvl || '').toUpperCase()) {
+    case 'A1':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-500';
+    case 'A2':
+      return 'bg-teal-100 text-teal-800 border-teal-500';
+    case 'B1':
+      return 'bg-blue-100 text-blue-800 border-blue-500';
+    case 'B2':
+      return 'bg-rose-100 text-rose-800 border-rose-500';
+    case 'C1':
+      return 'bg-purple-100 text-purple-800 border-purple-500';
+    default:
+      return 'bg-slate-100 text-slate-800 border-slate-500';
+  }
+};
+
 export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
   topics,
   onSelectTopic,
@@ -22,18 +39,23 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
   onEditTopic,
 }) => {
   const [search, setSearch] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset pagination on search change
+  // Reset pagination on search or level change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, selectedLevel]);
+
+  const levels = ['all', 'A1', 'A2', 'B1', 'B2', 'C1'];
 
   const filteredTopics = topics.filter((t) => {
-    return (
+    const tLevel = (t.level || 'B2').toUpperCase();
+    const matchesLevel = selectedLevel === 'all' || tLevel === selectedLevel.toUpperCase();
+    const matchesSearch =
       t.title.toLowerCase().includes(search.toLowerCase()) ||
-      t.category.toLowerCase().includes(search.toLowerCase())
-    );
+      t.category.toLowerCase().includes(search.toLowerCase());
+    return matchesLevel && matchesSearch;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredTopics.length / ITEMS_PER_PAGE));
@@ -62,7 +84,7 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
             Quản Lý Chuyên Đề Ngữ Pháp & Bẫy Đề Thi
           </h2>
           <p className="text-xs text-[#4b5563] mt-0.5">
-            Quản lý lý thuyết, cấu trúc bẫy đề và bài tập củng cố ngữ pháp chuẩn B2 (10 bản ghi / trang)
+            Quản lý lý thuyết, cấu trúc bẫy đề và bài tập củng cố ngữ pháp A1 - C1 (10 bản ghi / trang)
           </p>
         </div>
 
@@ -79,16 +101,64 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm chuyên đề ngữ pháp, danh mục..."
-            className="w-full pl-9 pr-3 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-          />
+      <div className="bg-white border-2 border-[#111827] rounded-xl p-4 brutal-shadow-xs flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#4b5563]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm kiếm chuyên đề ngữ pháp, danh mục..."
+              className="w-full pl-9 pr-3 py-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b5563] shrink-0">Cấp độ:</span>
+            <select
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+            >
+              {levels.map((lvl) => (
+                <option key={lvl} value={lvl}>
+                  {lvl === 'all' ? 'Tất cả (A1 - C1)' : `Cấp độ ${lvl}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Quick Level Filter Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100">
+          <span className="text-xs font-black text-[#111827] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+            <Filter className="w-3.5 h-3.5 text-[#2563EB]" /> Phân loại trình độ:
+          </span>
+          {levels.map((lvl) => {
+            const isSelected = selectedLevel === lvl;
+            const count = lvl === 'all'
+              ? topics.length
+              : topics.filter((t) => (t.level || 'B2').toUpperCase() === lvl.toUpperCase()).length;
+            return (
+              <button
+                key={lvl}
+                onClick={() => setSelectedLevel(lvl)}
+                className={`px-3 py-1.5 rounded-lg border-2 text-xs font-black whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
+                    : 'bg-[#f8fafc] text-[#111827] border-[#111827] hover:bg-slate-100'
+                }`}
+              >
+                <span>{lvl === 'all' ? 'Tất Cả (A1 - C1)' : `Cấp Độ ${lvl}`}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -127,8 +197,8 @@ export const AdminGrammarView: React.FC<AdminGrammarViewProps> = ({
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#f36b92] text-white border border-[#111827] text-[10px] font-black">
-                        {topic.level}
+                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-black ${getLevelBadgeClass(topic.level)}`}>
+                        {topic.level || 'B2'}
                       </span>
                     </td>
                     <td className="p-4 font-bold text-[#2563EB]">
