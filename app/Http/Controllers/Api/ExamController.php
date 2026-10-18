@@ -39,6 +39,27 @@ class ExamController extends Controller
         }
         $questions = $query->orderBy('question_number', 'asc')->get();
 
+        if ($examCode && $questions->isEmpty()) {
+            $exam = Exam::where('exam_code', $examCode)->first();
+            if ($exam) {
+                $level = strtoupper($exam->level ?? '');
+                if ($level) {
+                    $matched = Question::where('exam_code', 'like', "%{$level}%")->orderBy('question_number', 'asc')->get();
+                    if ($matched->isNotEmpty()) {
+                        $questions = $matched;
+                    }
+                }
+            }
+            if ($questions->isEmpty()) {
+                $defaultQuestions = Question::where('exam_code', 'TELC-B2-MOCK-01')->orderBy('question_number', 'asc')->get();
+                if ($defaultQuestions->isNotEmpty()) {
+                    $questions = $defaultQuestions;
+                } else {
+                    $questions = Question::orderBy('question_number', 'asc')->take(40)->get();
+                }
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => $questions,
@@ -76,6 +97,7 @@ class ExamController extends Controller
             'tab_switch_count' => 'nullable|integer',
             'ai_feedback' => 'nullable|string',
             'description' => 'nullable|string',
+            'answers' => 'nullable',
         ]);
 
         $reading = $validated['reading_score'] ?? 0;
@@ -138,6 +160,9 @@ class ExamController extends Controller
         }
         if (Schema::hasColumn('exam_results', 'submitted_at')) {
             $resultData['submitted_at'] = now();
+        }
+        if (Schema::hasColumn('exam_results', 'answers') && $request->has('answers')) {
+            $resultData['answers'] = $request->input('answers');
         }
 
         $result = ExamResult::create($resultData);

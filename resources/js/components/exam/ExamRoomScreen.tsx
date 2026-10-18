@@ -138,10 +138,12 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
   const [leftImageFailed, setLeftImageFailed] = useState<boolean>(false);
   const [revealedAnswers, setRevealedAnswers] = useState<Record<number, boolean>>({});
 
-  // Load Questions from API if available
+  // Load Questions from API if available with fallback
   useEffect(() => {
-    if (!examState.examCode) return;
-    fetch('/api/v1/questions/' + encodeURIComponent(examState.examCode))
+    const code = examState.examCode || selectedExam?.examCode;
+    const fetchUrl = code ? '/api/v1/questions/' + encodeURIComponent(code) : '/api/v1/questions';
+
+    fetch(fetchUrl)
       .then((res) => res.json())
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
@@ -160,10 +162,40 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             explanation: q.explanation || '',
           }));
           setQuestions(mapped);
+        } else if (selectedExam && Array.isArray(selectedExam.questions) && selectedExam.questions.length > 0) {
+          setQuestions(mapQuestionsFromExam(selectedExam));
+        } else {
+          // If empty, fallback to default questions
+          fetch('/api/v1/questions')
+            .then((r) => r.json())
+            .then((r) => {
+              if (r.success && Array.isArray(r.data) && r.data.length > 0) {
+                const mapped = r.data.map((q: any, idx: number) => ({
+                  id: q.question_number || q.id || (idx + 1),
+                  section: q.section || 'Leseverstehen',
+                  subSection: q.sub_section || '',
+                  type: q.type,
+                  title: q.title,
+                  contextText: q.context_text || '',
+                  audioUrl: q.audio_url || '',
+                  imageUrl: q.image_url || q.imageUrl || '',
+                  wordLimit: q.word_limit || q.wordLimit || 100,
+                  options: q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [],
+                  correctOptionId: q.correct_option_id || 'A',
+                  explanation: q.explanation || '',
+                }));
+                setQuestions(mapped);
+              }
+            })
+            .catch(() => {});
         }
       })
-      .catch(() => {});
-  }, [examState.examCode]);
+      .catch(() => {
+        if (selectedExam && Array.isArray(selectedExam.questions) && selectedExam.questions.length > 0) {
+          setQuestions(mapQuestionsFromExam(selectedExam));
+        }
+      });
+  }, [examState.examCode, selectedExam?.examCode]);
 
   const isOptionCorrectForQuestion = (q: Question, opt: any, optIndex: number): boolean => {
     if (Boolean(opt.isCorrect)) return true;
@@ -380,6 +412,13 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
       }, 3500);
     }
   }, [examState.tabSwitchCount, isReviewMode, isLockedByAntiCheat]);
+
+  // Auto-submit when countdown timer reaches 0
+  useEffect(() => {
+    if (!isReviewMode && examState.timeRemainingSeconds <= 0 && examState.timeElapsedSeconds > 0) {
+      onFinishSection(computeExamResults());
+    }
+  }, [examState.timeRemainingSeconds, examState.timeElapsedSeconds, isReviewMode]);
 
   // 2-Second Auto-save mechanism
   useEffect(() => {
@@ -1007,7 +1046,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                 )}
               </div>
               <h2 className="text-sm sm:text-base font-black font-heading text-white line-clamp-1 mt-0.5">
-                {examState.examCode}: Đề Thi Mô Phỏng Tiêu Chuẩn Goethe & TELC
+                {examState.examCode || selectedExam?.examCode ? `${examState.examCode || selectedExam?.examCode}: ` : ''}{selectedExam?.name || 'Đề Thi Mô Phỏng Tiêu Chuẩn Goethe & TELC'}
               </h2>
             </div>
           </div>

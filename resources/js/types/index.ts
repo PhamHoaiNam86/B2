@@ -95,6 +95,8 @@ export interface ExamFeedItem {
   listeningScore?: number;
   writingScore?: number;
   speakingScore?: number;
+  answers?: Record<string | number, string>;
+  submittedAt?: string;
 }
 
 export interface Question {

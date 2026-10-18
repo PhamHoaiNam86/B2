@@ -20,6 +20,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { AuthPage } from './components/auth/AuthPage';
 import { ProfileView } from './components/profile/ProfileView';
 import { LeaderboardView } from './components/gamification/LeaderboardView';
+import { ExamHistoryView } from './components/exam/ExamHistoryView';
 import { AlertTriangle, X } from 'lucide-react';
 
 const getInitialViewState = () => {
@@ -150,6 +151,10 @@ export default function App() {
       const saved = sessionStorage.getItem('activeExamState');
       if (saved) return JSON.parse(saved);
     } catch {}
+    try {
+      const lastCompleted = localStorage.getItem('lastCompletedExamState');
+      if (lastCompleted) return JSON.parse(lastCompleted);
+    } catch {}
     return INITIAL_EXAM_STATE;
   });
 
@@ -178,12 +183,26 @@ export default function App() {
       sessionStorage.setItem('isExamRoomActive', 'true');
     } else {
       sessionStorage.removeItem('isExamRoomActive');
-      sessionStorage.removeItem('activeExamState');
     }
     setIsExamRoomActiveState(active);
   };
 
-  const [isExamReviewMode, setIsExamReviewMode] = useState<boolean>(false);
+  const [isExamReviewMode, setIsExamReviewModeState] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('isExamReviewMode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const setIsExamReviewMode = (val: boolean) => {
+    if (val) {
+      sessionStorage.setItem('isExamReviewMode', 'true');
+    } else {
+      sessionStorage.removeItem('isExamReviewMode');
+    }
+    setIsExamReviewModeState(val);
+  };
   const [tabSwitchAlert, setTabSwitchAlert] = useState<string | null>(null);
 
   // Toast System
@@ -385,14 +404,18 @@ export default function App() {
             studentName: item.student_name,
             examCode: item.exam_code,
             score: item.score,
-            maxScore: item.max_score || 300,
-            statusText: item.status_text || 'Đạt chuẩn TELC B2',
+            maxScore: item.max_score || 105,
+            statusText: item.status_text || 'Đạt chuẩn',
             timeAgo: item.time_ago || 'Vừa xong',
             description: item.description || '',
             readingScore: item.reading_score || 0,
             listeningScore: item.listening_score || 0,
             writingScore: item.writing_score || 0,
             speakingScore: item.speaking_score || 0,
+            answers: item.answers
+              ? (typeof item.answers === 'string' ? JSON.parse(item.answers) : item.answers)
+              : undefined,
+            submittedAt: item.submitted_at || item.created_at,
           }));
           setLiveFeed(mappedFeed);
         }
@@ -422,10 +445,13 @@ export default function App() {
   const [selectedExam, setSelectedExamState] = useState<ExamModel | null>(() => {
     try {
       const saved = sessionStorage.getItem('selectedExam');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    try {
+      const lastCompleted = localStorage.getItem('lastCompletedExamModel');
+      if (lastCompleted) return JSON.parse(lastCompleted);
+    } catch {}
+    return null;
   });
 
   const setSelectedExam = (exam: ExamModel | null) => {
@@ -529,9 +555,9 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isExamRoomActive]);
 
-  // Live timer interval for exam room
+  // Live timer interval for exam room (paused in review mode)
   useEffect(() => {
-    if (!isExamRoomActive) return;
+    if (!isExamRoomActive || isExamReviewMode) return;
 
     const timer = setInterval(() => {
       setExamState((prev) => {
@@ -548,7 +574,7 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isExamRoomActive]);
+  }, [isExamRoomActive, isExamReviewMode]);
 
   // Format countdown HH:MM:SS
   const formatCountdown = (totalSeconds: number) => {
@@ -851,6 +877,128 @@ export default function App() {
     showToast('Vào phòng thi', `Đã bắt đầu phiên thi thử ${exam ? exam.name : 'TELC B2'} với bộ đếm thời gian.`, 'info');
   };
 
+  const computeExamScoresHelper = (
+    exam: ExamModel | null | undefined,
+    userAnswers: Record<string | number, string> = {},
+    examCodeOverride?: string
+  ) => {
+    const code = examCodeOverride || exam?.examCode || '';
+    const isWritingOrSpeakingExam =
+      code.toUpperCase().includes('SCHREIBEN') ||
+      code.toUpperCase().includes('SPRECHEN') ||
+      code.toUpperCase().includes('VIẾT') ||
+      code.toUpperCase().includes('NÓI') ||
+      (exam?.name || '').toUpperCase().includes('SCHREIBEN') ||
+      (exam?.name || '').toUpperCase().includes('SPRECHEN') ||
+      (exam?.name || '').toUpperCase().includes('VIẾT') ||
+      (exam?.name || '').toUpperCase().includes('NÓI');
+
+    if (isWritingOrSpeakingExam) {
+      return {
+        score: 100,
+        maxScore: 100,
+        readingScore: 0,
+        sprachScore: 100,
+        listeningScore: 0,
+        writingScore: 100,
+        speakingScore: 100,
+        statusText: 'Đã nộp bài thành công (Hoàn thành)',
+        answeredCount: Object.keys(userAnswers).length,
+        correctCount: 1,
+      };
+    }
+
+    const isGoethe =
+      code.toUpperCase().includes('GOETHE') ||
+      (exam?.provider || '').toUpperCase().includes('GOETHE') ||
+      (exam?.level || '').toUpperCase().includes('GOETHE') ||
+      (exam?.name || '').toUpperCase().includes('GOETHE');
+
+    const totalQuestionsCount = (exam?.questions && exam.questions.length > 0)
+      ? exam.questions.length
+      : 40;
+
+    let totalCorrect = 0;
+    let readingCorrect = 0;
+    let readingTotal = 0;
+    let sprachCorrect = 0;
+    let sprachTotal = 0;
+
+    if (exam?.questions && exam.questions.length > 0) {
+      exam.questions.forEach((q: any, idx: number) => {
+        const userAns = userAnswers[q.id];
+        const correctChoice = String(q.correctOptionId || q.correct_option_id || 'A').trim().toUpperCase();
+        const userStr = String(userAns || '').trim().toUpperCase();
+        let isCorrect = false;
+
+        if (userAns) {
+          if (userStr === correctChoice) {
+            isCorrect = true;
+          } else if (Array.isArray(q.options)) {
+            const optIdx = q.options.findIndex((o: any) => String(o.id).trim().toUpperCase() === userStr || o.id === userAns);
+            if (optIdx >= 0) {
+              const letter = String.fromCharCode(65 + optIdx).toUpperCase();
+              isCorrect = letter === correctChoice || Boolean(q.options[optIdx]?.isCorrect);
+            }
+          }
+        }
+
+        if (isCorrect) totalCorrect += 1;
+
+        if (idx < 20) {
+          readingTotal += 1;
+          if (isCorrect) readingCorrect += 1;
+        } else {
+          sprachTotal += 1;
+          if (isCorrect) sprachCorrect += 1;
+        }
+      });
+    } else {
+      const answeredKeys = Object.keys(userAnswers);
+      totalCorrect = answeredKeys.length;
+      readingCorrect = Math.min(20, Math.round(totalCorrect * 0.5));
+      sprachCorrect = Math.max(0, totalCorrect - readingCorrect);
+      readingTotal = 20;
+      sprachTotal = 20;
+    }
+
+    if (isGoethe) {
+      const score = Math.round((totalCorrect / totalQuestionsCount) * 100 * 10) / 10;
+      const isPassed = score >= 60;
+      return {
+        score,
+        maxScore: 100,
+        readingScore: score,
+        sprachScore: 0,
+        listeningScore: 0,
+        writingScore: 0,
+        speakingScore: 0,
+        statusText: isPassed ? 'Đạt chuẩn GOETHE (Bestanden)' : 'Chưa đạt GOETHE (Nicht bestanden)',
+        answeredCount: Object.keys(userAnswers).length,
+        correctCount: totalCorrect,
+      };
+    } else {
+      const rPts = readingTotal > 0 ? (readingCorrect * (75 / readingTotal)) : 0;
+      const sPts = sprachTotal > 0 ? (sprachCorrect * (30 / sprachTotal)) : 0;
+      const readingScore = Math.round(rPts * 10) / 10;
+      const sprachScore = Math.round(sPts * 10) / 10;
+      const score = Math.round((readingScore + sprachScore) * 10) / 10;
+      const isPassed = score >= 63;
+      return {
+        score,
+        maxScore: 105,
+        readingScore,
+        sprachScore,
+        listeningScore: 0,
+        writingScore: 0,
+        speakingScore: 0,
+        statusText: isPassed ? 'Đạt chuẩn TELC (Bestanden)' : 'Chưa đạt TELC (Nicht bestanden)',
+        answeredCount: Object.keys(userAnswers).length,
+        correctCount: totalCorrect,
+      };
+    }
+  };
+
   const handleFinishExamSubmit = (computedResult?: any) => {
     const isWritingOrSpeakingExam =
       (computedResult?.writingScore === 100 && computedResult?.readingScore === 0) ||
@@ -871,32 +1019,34 @@ export default function App() {
     const defaultMax = isGoethe ? 100 : 105;
     const providerLabel = isGoethe ? 'GOETHE' : 'TELC';
 
+    const resolvedResult = computedResult || computeExamScoresHelper(selectedExam, examState.answers, examState.examCode);
+
     const score = isWritingOrSpeakingExam
       ? 100
-      : (typeof computedResult?.score === 'number'
-        ? computedResult.score
+      : (typeof resolvedResult?.score === 'number'
+        ? resolvedResult.score
         : (isGoethe ? 75 : 82.5));
-    const maxScore = isWritingOrSpeakingExam ? 100 : (computedResult?.maxScore || defaultMax);
+    const maxScore = isWritingOrSpeakingExam ? 100 : (resolvedResult?.maxScore || defaultMax);
     const readingScore = isWritingOrSpeakingExam
       ? 0
-      : (typeof computedResult?.readingScore === 'number'
-        ? computedResult.readingScore
+      : (typeof resolvedResult?.readingScore === 'number'
+        ? resolvedResult.readingScore
         : (isGoethe ? score : Math.round(score * (75 / 105) * 10) / 10));
     const sprachScore = isWritingOrSpeakingExam
       ? 100
-      : (typeof computedResult?.sprachScore === 'number'
-        ? computedResult.sprachScore
+      : (typeof resolvedResult?.sprachScore === 'number'
+        ? resolvedResult.sprachScore
         : (isGoethe ? 0 : Math.round((score - readingScore) * 10) / 10));
-    const correctCount = isWritingOrSpeakingExam ? (computedResult?.correctCount ?? 1) : (computedResult?.correctCount ?? 0);
-    const answeredCount = computedResult?.answeredCount ?? Object.keys(examState.answers || {}).length;
+    const correctCount = isWritingOrSpeakingExam ? (resolvedResult?.correctCount ?? 1) : (resolvedResult?.correctCount ?? 0);
+    const answeredCount = resolvedResult?.answeredCount ?? Object.keys(examState.answers || {}).length;
 
     const passThreshold = isGoethe ? 60 : 63;
     const statusText = isWritingOrSpeakingExam
       ? 'Đã nộp bài thành công (Hoàn thành)'
-      : (computedResult?.statusText || (score >= passThreshold ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`));
+      : (resolvedResult?.statusText || (score >= passThreshold ? `Đạt chuẩn ${providerLabel}` : `Chưa đạt ${providerLabel}`));
 
-    setExamState((prev) => ({
-      ...prev,
+    const finalExamState: UserExamState = {
+      ...examState,
       score,
       maxScore,
       readingScore,
@@ -905,7 +1055,16 @@ export default function App() {
       answeredCount,
       correctCount,
       isSubmitted: true,
-    }));
+    };
+
+    setExamState(finalExamState);
+
+    try {
+      localStorage.setItem('lastCompletedExamState', JSON.stringify(finalExamState));
+      if (selectedExam) {
+        localStorage.setItem('lastCompletedExamModel', JSON.stringify(selectedExam));
+      }
+    } catch {}
 
     fetch('/api/v1/submit', {
       method: 'POST',
@@ -923,6 +1082,7 @@ export default function App() {
         tab_switch_count: examState.tabSwitchCount || 0,
         ai_feedback: `Hoàn thành bài thi ${providerLabel}: đạt ${score}/${maxScore} điểm (${statusText}).`,
         description: `Hoàn thành bài thi ${examState.examCode || selectedExam?.name || 'mô phỏng'}`,
+        answers: examState.answers || {},
       }),
     })
       .then((res) => res.json())
@@ -941,6 +1101,8 @@ export default function App() {
             listeningScore: res.data.listening_score || 0,
             writingScore: res.data.writing_score || 0,
             speakingScore: res.data.speaking_score || 0,
+            answers: examState.answers || {},
+            submittedAt: res.data.submitted_at || new Date().toISOString(),
           };
           setLiveFeed((prev) => [newItem, ...prev]);
         }
@@ -949,7 +1111,6 @@ export default function App() {
 
     setIsExamRoomActive(false);
     setIsExamReviewMode(false);
-    sessionStorage.removeItem('activeExamState');
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Đã nộp bài thi', `Hệ thống đã ghi nhận kết quả: ${score}/${maxScore} điểm!`, 'success');
@@ -964,20 +1125,94 @@ export default function App() {
   }, [isExamRoomActive, isExamReviewMode, examState.timeRemainingSeconds, examState.timeElapsedSeconds]);
 
   const handleRetakeExam = () => {
-    setExamState({
+    const currentCode = examState.examCode || selectedExam?.examCode || 'TELC-B2-MOCK-01';
+    const duration = (selectedExam?.durationMinutes || 90) * 60;
+    const retakeState: UserExamState = {
       ...INITIAL_EXAM_STATE,
+      examCode: currentCode,
+      studentName: currentUser === 'admin' ? 'Triệu Vỹ Admin' : 'Học Viên B2',
+      timeRemainingSeconds: duration,
+      timeElapsedSeconds: 0,
       answers: {},
       tabSwitchCount: 0,
-    });
+      isSubmitted: false,
+    };
+    setExamState(retakeState);
+    try {
+      sessionStorage.setItem('activeExamState', JSON.stringify(retakeState));
+    } catch {}
     setIsExamReviewMode(false);
     setIsExamRoomActive(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleReviewExam = () => {
+    let stateToUse = examState;
+    if (!stateToUse.examCode) {
+      try {
+        const saved = localStorage.getItem('lastCompletedExamState');
+        if (saved) {
+          stateToUse = JSON.parse(saved);
+          setExamState(stateToUse);
+        }
+      } catch {}
+    }
+    if (!selectedExam) {
+      try {
+        const savedModel = localStorage.getItem('lastCompletedExamModel');
+        if (savedModel) {
+          setSelectedExam(JSON.parse(savedModel));
+        }
+      } catch {}
+    }
     setIsExamReviewMode(true);
     setIsExamRoomActive(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReviewHistoryExam = (item: ExamFeedItem) => {
+    const matched = exams.find((e) => e.examCode === item.examCode);
+    const examModelToUse: ExamModel = matched || {
+      id: `history-exam-${item.examCode}`,
+      name: item.description || `Đề thi ${item.examCode}`,
+      examCode: item.examCode,
+      level: item.examCode.includes('A1') ? 'A1' : (item.examCode.includes('A2') ? 'A2' : (item.examCode.includes('B1') ? 'B1' : (item.examCode.includes('C1') ? 'C1' : 'TELC B2'))),
+      provider: item.examCode.toUpperCase().includes('GOETHE') ? 'GOETHE' : 'TELC',
+      durationMinutes: 90,
+      totalQuestions: 40,
+      description: item.description || '',
+    };
+    setSelectedExam(examModelToUse);
+
+    const restoredState: UserExamState = {
+      examCode: item.examCode,
+      studentName: item.studentName,
+      score: item.score,
+      maxScore: item.maxScore || (item.examCode.toUpperCase().includes('GOETHE') ? 100 : 105),
+      readingScore: item.readingScore || 0,
+      sprachScore: item.writingScore || 0,
+      listeningScore: item.listeningScore || 0,
+      writingScore: item.writingScore || 0,
+      speakingScore: item.speakingScore || 0,
+      statusText: item.statusText,
+      timeRemainingSeconds: 0,
+      timeElapsedSeconds: 5400,
+      tabSwitchCount: 0,
+      answers: item.answers || {},
+      isSubmitted: true,
+    };
+
+    setExamState(restoredState);
+    try {
+      sessionStorage.setItem('activeExamState', JSON.stringify(restoredState));
+      localStorage.setItem('lastCompletedExamState', JSON.stringify(restoredState));
+      localStorage.setItem('lastCompletedExamModel', JSON.stringify(examModelToUse));
+    } catch {}
+
+    setIsExamReviewMode(true);
+    setIsExamRoomActive(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Xem lại bài thi', `Đang mở bài làm ${item.examCode} (${item.score}/${item.maxScore}đ) với đáp án chi tiết.`, 'info');
   };
 
   const handleCompleteGrammarTopic = (id: string) => {
@@ -1413,23 +1648,15 @@ export default function App() {
 
               {/* TAB 8: HISTORY & LEADERBOARDS */}
               {activeTab === 'history' && (
-                <div className="bg-[#ffffff] border-[2.5px] border-[#1c1b1b] rounded-2xl p-6 brutal-shadow space-y-4">
-                  <h2 className="text-xl font-black text-[#1c1b1b] font-heading">
-                    Lịch Sử Làm Bài & Bảng Điểm Thi Thử Chứng Chỉ Tiếng Đức
-                  </h2>
-                  <div className="divide-y divide-[#1c1b1b]/10 border-2 border-[#1c1b1b] rounded-xl overflow-hidden text-xs">
-                    {liveFeed.map((item) => (
-                      <div key={item.id} className="p-4 bg-white hover:bg-[#fcf9f8] flex items-center justify-between">
-                        <div>
-                          <b className="text-[#1c1b1b] text-sm">{item.studentName}</b>
-                          <p className="text-[#564145] text-xs mt-0.5">{item.description}</p>
-                          <span className="text-[10px] text-[#897175]">{item.timeAgo}</span>
-                        </div>
-                        <span className="text-sm font-black text-[#f36b92]">{item.score} / {item.maxScore}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ExamHistoryView
+                  historyItems={liveFeed}
+                  exams={exams}
+                  onReviewExam={handleReviewHistoryExam}
+                  onSelectExam={(ex) => {
+                    setSelectedExam(ex);
+                    handleStartExamRoom(ex);
+                  }}
+                />
               )}
 
               {/* TAB 9: DEDICATED PROFILE VIEW */}

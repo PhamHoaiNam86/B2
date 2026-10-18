@@ -25,6 +25,7 @@ class ExamResult extends Model
         'description',
         'time_ago',
         'submitted_at',
+        'answers',
     ];
 
     protected $casts = [
@@ -36,5 +37,6 @@ class ExamResult extends Model
         'speaking_score' => 'float',
         'tab_switch_count' => 'integer',
         'submitted_at' => 'datetime',
+        'answers' => 'array',
     ];
 }
