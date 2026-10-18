@@ -21,22 +21,26 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset pagination on search or level change
+  // Reset pagination on search, level, or topic change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedLevel]);
+  }, [search, selectedLevel, selectedTopic]);
 
   const levels = ['all', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => (v.topic || '').trim()).filter(Boolean)))];
 
   const filteredVocabs = vocabs.filter((v) => {
     const vLevel = (v.level || 'B2').toUpperCase();
     const matchesLevel = selectedLevel === 'all' || vLevel === selectedLevel.toUpperCase();
+    const matchesTopic = selectedTopic === 'all' || (v.topic || '').trim() === selectedTopic.trim();
     const matchesSearch =
       v.word.toLowerCase().includes(search.toLowerCase()) ||
-      v.meaningVi.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch && matchesLevel;
+      v.meaningVi.toLowerCase().includes(search.toLowerCase()) ||
+      (v.topic && v.topic.toLowerCase().includes(search.toLowerCase()));
+    return matchesSearch && matchesLevel && matchesTopic;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredVocabs.length / ITEMS_PER_PAGE));
@@ -115,6 +119,20 @@ export const AdminVocabView: React.FC<AdminVocabViewProps> = ({
             </select>
           </div>
 
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b5563] shrink-0">Chủ đề:</span>
+            <select
+              value={selectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}
+              className="p-2 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold max-w-[200px] truncate"
+            >
+              {topics.map((top) => (
+                <option key={top} value={top}>
+                  {top === 'all' ? 'Tất cả chủ đề' : top}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

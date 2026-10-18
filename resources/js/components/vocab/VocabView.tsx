@@ -41,15 +41,20 @@ export const VocabView: React.FC<VocabViewProps> = ({
   }
 
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
+
+  const topics = ['all', ...Array.from(new Set(vocabs.map((v) => (v.topic || '').trim()).filter(Boolean)))];
 
   const filteredVocabs = vocabs.filter((v) => {
     const vLevel = (v.level || 'B2').toUpperCase();
     const matchesLevel = selectedLevel === 'all' || vLevel === selectedLevel.toUpperCase();
+    const matchesTopic = selectedTopic === 'all' || (v.topic || '').trim() === selectedTopic.trim();
     const matchesSearch =
       v.word.toLowerCase().includes(search.toLowerCase()) ||
-      v.meaningVi.toLowerCase().includes(search.toLowerCase());
-    return matchesLevel && matchesSearch;
+      v.meaningVi.toLowerCase().includes(search.toLowerCase()) ||
+      (v.topic && v.topic.toLowerCase().includes(search.toLowerCase()));
+    return matchesLevel && matchesTopic && matchesSearch;
   });
 
   const speakGermanText = (text: string) => {
@@ -141,9 +146,24 @@ export const VocabView: React.FC<VocabViewProps> = ({
           })}
         </div>
 
-        {/* Search Bar */}
-        <div className="pt-2 border-t border-slate-200">
-          <div className="relative w-full">
+        {/* Topic Filter & Search Bar */}
+        <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <span className="text-xs font-black text-[#111827] shrink-0">Chủ đề:</span>
+            <select
+              value={selectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}
+              className="p-2 bg-[#f8fafc] border-2 border-[#1c1b1b] rounded-xl text-xs font-bold w-full sm:w-56 truncate"
+            >
+              {topics.map((top) => (
+                <option key={top} value={top}>
+                  {top === 'all' ? 'Tất cả chủ đề' : top}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative flex-1 w-full">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#564145]" />
             <input
               type="text"

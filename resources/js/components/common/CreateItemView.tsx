@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VocabItem, ExamModel, GrammarTopic } from '../../types';
-import { ArrowLeft, PlusCircle, Edit, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle, Upload, Mic } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, Edit3, ChevronDown, ChevronUp, BookOpen, FileCheck2, Brain, Save, Plus, Trash2, CheckCircle2, Sparkles, FileText, FolderPlus, HelpCircle, Upload, Mic } from 'lucide-react';
 
 interface ExamQuestionOption {
   id: string;
@@ -28,12 +28,27 @@ interface ExamSection {
   questions: ExamQuestion[];
 }
 
+export const COMMON_VOCAB_TOPICS = [
+  'Gia đình & Bạn bè (Familie & Freunde)',
+  'Công việc & Nghề nghiệp (Arbeit & Beruf)',
+  'Ăn uống & Mua sắm (Essen & Einkaufen)',
+  'Nhà ở & Cuộc sống (Wohnen & Leben)',
+  'Du lịch & Giao thông (Reisen & Verkehr)',
+  'Sức khỏe & Y tế (Gesundheit & Medizin)',
+  'Học tập & Giáo dục (Lernen & Bildung)',
+  'Môi trường & Tự nhiên (Umwelt & Natur)',
+  'Giao tiếp hàng ngày (Alltag & Freizeit)',
+  'Thời sự & Xã hội (Gesellschaft & Medien)',
+  'Chủ đề khác (Tự nhập)',
+];
+
 interface CreateItemViewProps {
   type: 'vocab' | 'exam' | 'grammar';
   editingItem?: any | null;
   initialLevel?: string;
   onBack: (targetLevel?: string) => void;
   onAddVocab: (vocab: VocabItem) => void;
+  onAddBulkVocab?: (items: VocabItem[], level: string, topic: string) => void;
   onAddExam: (exam: ExamModel) => void;
   onAddGrammar?: (topic: GrammarTopic) => void;
   onUpdateVocab?: (vocab: VocabItem) => void;
@@ -48,6 +63,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   initialLevel,
   onBack,
   onAddVocab,
+  onAddBulkVocab,
   onAddExam,
   onAddGrammar,
   onUpdateVocab,
@@ -72,6 +88,18 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   };
 
   // Vocab State
+  const [vocabMode, setVocabMode] = useState<'bulk' | 'single'>(editingItem ? 'single' : 'bulk');
+  const [bulkVocabText, setBulkVocabText] = useState('');
+  const [selectedTopicDropdown, setSelectedTopicDropdown] = useState(() => {
+    const t = editingItem?.topic || 'Công việc & Nghề nghiệp (Arbeit & Beruf)';
+    return COMMON_VOCAB_TOPICS.includes(t) ? t : 'Chủ đề khác (Tự nhập)';
+  });
+  const [customTopic, setCustomTopic] = useState(() => {
+    const t = editingItem?.topic || '';
+    return COMMON_VOCAB_TOPICS.includes(t) ? '' : t;
+  });
+  const [showOptionalVocabFields, setShowOptionalVocabFields] = useState(false);
+
   const [word, setWord] = useState(editingItem?.word || '');
   const [article, setArticle] = useState(editingItem?.article || 'der');
   const [plural, setPlural] = useState(editingItem?.plural || '');
@@ -80,8 +108,62 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   const [meaningVi, setMeaningVi] = useState(editingItem?.meaningVi || '');
   const [exampleDe, setExampleDe] = useState(editingItem?.exampleDe || '');
   const [exampleVi, setExampleVi] = useState(editingItem?.exampleVi || '');
-  const [topic, setTopic] = useState(editingItem?.topic || 'Arbeit & Beruf');
   const [vocabLevel, setVocabLevel] = useState(editingItem?.level || 'B2');
+
+  const activeTopic = selectedTopicDropdown === 'Chủ đề khác (Tự nhập)'
+    ? (customTopic.trim() || 'Chủ đề chung')
+    : selectedTopicDropdown;
+
+  const parseBulkVocabList = (text: string, lvl: string, top: string): VocabItem[] => {
+    const lines = text.split('\n');
+    const items: VocabItem[] = [];
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('//')) return;
+
+      let parts = trimmed.split(/[-–—:|]/);
+      if (parts.length < 2) {
+        parts = trimmed.split(/\t+/);
+      }
+
+      if (parts.length >= 2) {
+        let rawWord = parts[0].trim();
+        let rawMeaning = parts.slice(1).join(' - ').trim();
+
+        let art: string | undefined = undefined;
+        const lower = rawWord.toLowerCase();
+        if (lower.startsWith('der ')) {
+          art = 'der';
+          rawWord = rawWord.slice(4).trim();
+        } else if (lower.startsWith('die ')) {
+          art = 'die';
+          rawWord = rawWord.slice(4).trim();
+        } else if (lower.startsWith('das ')) {
+          art = 'das';
+          rawWord = rawWord.slice(4).trim();
+        }
+
+        if (rawWord && rawMeaning) {
+          items.push({
+            id: `bulk-v-${Date.now()}-${idx}`,
+            word: rawWord,
+            article: art,
+            meaningVi: rawMeaning,
+            pos: art ? 'Nomen' : 'Wort',
+            exampleDe: '',
+            exampleVi: '',
+            topic: top,
+            level: lvl,
+            status: 'learning',
+            isFavorite: false,
+          });
+        }
+      }
+    });
+    return items;
+  };
+
+  const parsedBulkItems = parseBulkVocabList(bulkVocabText, vocabLevel, activeTopic);
 
   // Exam State
   const [examName, setExamName] = useState(editingItem?.name || '');
@@ -194,6 +276,7 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
   useEffect(() => {
     if (editingItem) {
       if (type === 'vocab') {
+        setVocabMode('single');
         setWord(editingItem.word || '');
         setArticle(editingItem.article || 'der');
         setPlural(editingItem.plural || '');
@@ -202,7 +285,15 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         setMeaningVi(editingItem.meaningVi || '');
         setExampleDe(editingItem.exampleDe || '');
         setExampleVi(editingItem.exampleVi || '');
-        setTopic(editingItem.topic || 'Arbeit & Beruf');
+        setVocabLevel(editingItem.level || 'B2');
+        const t = editingItem.topic || 'Công việc & Nghề nghiệp (Arbeit & Beruf)';
+        if (COMMON_VOCAB_TOPICS.includes(t)) {
+          setSelectedTopicDropdown(t);
+          setCustomTopic('');
+        } else {
+          setSelectedTopicDropdown('Chủ đề khác (Tự nhập)');
+          setCustomTopic(t);
+        }
       } else if (type === 'exam') {
         setExamName(editingItem.name || '');
         setExamCode(editingItem.examCode || '');
@@ -311,10 +402,17 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         setGrammarSummary(editingItem.summary || '');
         setGrammarContent(editingItem.content || '');
         setGrammarRules(editingItem.rulePoints ? editingItem.rulePoints.join('\n') : '');
+        setGrammarExamplesText(
+          editingItem.examples && Array.isArray(editingItem.examples)
+            ? editingItem.examples.map((ex: any) => `${ex.de || ''} - ${ex.vi || ''}`).join('\n')
+            : ''
+        );
       }
     } else {
       // Reset to fresh blank form for creating new item
       if (type === 'vocab') {
+        setVocabMode('bulk');
+        setBulkVocabText('');
         setWord('');
         setArticle('der');
         setPlural('');
@@ -323,7 +421,9 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         setMeaningVi('');
         setExampleDe('');
         setExampleVi('');
-        setTopic('Arbeit & Beruf');
+        setSelectedTopicDropdown('Công việc & Nghề nghiệp (Arbeit & Beruf)');
+        setCustomTopic('');
+        setVocabLevel(initialLevel || 'B2');
       } else if (type === 'exam') {
         setExamName('');
         setExamCode(`MOCK-${Date.now().toString().slice(-4)}`);
@@ -351,11 +451,12 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
         ]);
       } else if (type === 'grammar') {
         setGrammarTitle('');
-        setGrammarLevel('B2');
+        setGrammarLevel(initialLevel || 'B2');
         setGrammarCategory('Verben & Modi');
         setGrammarSummary('');
         setGrammarContent('');
         setGrammarRules('');
+        setGrammarExamplesText('');
       }
     }
   }, [editingItem, type, initialLevel]);
@@ -733,32 +834,76 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   // Grammar State
   const [grammarTitle, setGrammarTitle] = useState(editingItem?.title || '');
-  const [grammarLevel, setGrammarLevel] = useState(editingItem?.level || 'B2');
+  const [grammarLevel, setGrammarLevel] = useState(editingItem?.level || initialLevel || 'B2');
   const [grammarCategory, setGrammarCategory] = useState(editingItem?.category || 'Verben & Modi');
   const [grammarSummary, setGrammarSummary] = useState(editingItem?.summary || '');
   const [grammarContent, setGrammarContent] = useState(editingItem?.content || '');
   const [grammarRules, setGrammarRules] = useState(
     editingItem?.rulePoints ? editingItem.rulePoints.join('\n') : ''
   );
+  const [grammarExamplesText, setGrammarExamplesText] = useState(() => {
+    if (editingItem?.examples && Array.isArray(editingItem.examples)) {
+      return editingItem.examples.map((ex: any) => `${ex.de || ''} - ${ex.vi || ''}`).join('\n');
+    }
+    return '';
+  });
+
+  const handleSaveBulkVocab = () => {
+    if (parsedBulkItems.length === 0) {
+      onShowToast(
+        'Chưa có từ vựng',
+        'Vui lòng nhập hoặc dán danh sách từ vựng theo định dạng: "Từ tiếng Đức - Nghĩa tiếng Việt"',
+        'warning'
+      );
+      return;
+    }
+
+    if (onAddBulkVocab) {
+      onAddBulkVocab(parsedBulkItems, vocabLevel, activeTopic);
+    } else {
+      parsedBulkItems.forEach((item) => onAddVocab(item));
+    }
+
+    onShowToast(
+      'Thành công',
+      `Đã thêm ${parsedBulkItems.length} từ vựng vào chủ đề "${activeTopic}" (${vocabLevel})!`,
+      'success'
+    );
+    onBack();
+  };
 
   const handleSubmitVocab = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!word || !meaningVi) {
-      onShowToast('Thiếu thông tin', 'Vui lòng nhập từ vựng và nghĩa tiếng Việt', 'warning');
+    if (!word.trim() || !meaningVi.trim()) {
+      onShowToast('Thiếu thông tin', 'Vui lòng nhập từ tiếng Đức và nghĩa tiếng Việt', 'warning');
       return;
+    }
+
+    let cleanWord = word.trim();
+    let finalArticle = article;
+    const lower = cleanWord.toLowerCase();
+    if (lower.startsWith('der ')) {
+      finalArticle = 'der';
+      cleanWord = cleanWord.slice(4).trim();
+    } else if (lower.startsWith('die ')) {
+      finalArticle = 'die';
+      cleanWord = cleanWord.slice(4).trim();
+    } else if (lower.startsWith('das ')) {
+      finalArticle = 'das';
+      cleanWord = cleanWord.slice(4).trim();
     }
 
     const vocabData: VocabItem = {
       id: editingItem?.id || `vocab-${Date.now()}`,
-      word,
-      article,
-      plural,
-      pos,
-      phonetic,
-      meaningVi,
-      exampleDe,
-      exampleVi,
-      topic,
+      word: cleanWord,
+      article: finalArticle || undefined,
+      plural: plural.trim() || undefined,
+      pos: pos || (finalArticle ? 'Nomen' : 'Wort'),
+      phonetic: phonetic.trim() || undefined,
+      meaningVi: meaningVi.trim(),
+      exampleDe: exampleDe.trim() || '',
+      exampleVi: exampleVi.trim() || '',
+      topic: activeTopic,
       level: vocabLevel,
       status: editingItem?.status || 'learning',
       isFavorite: editingItem?.isFavorite || false,
@@ -766,10 +911,10 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
     if (isEditMode && onUpdateVocab) {
       onUpdateVocab(vocabData);
-      onShowToast('Cập nhật thành công', `Đã chỉnh sửa từ vựng "${word}".`, 'success');
+      onShowToast('Cập nhật thành công', `Đã chỉnh sửa từ vựng "${cleanWord}".`, 'success');
     } else {
       onAddVocab(vocabData);
-      onShowToast('Thành công', `Đã thêm từ vựng mới "${word}".`, 'success');
+      onShowToast('Thành công', `Đã thêm từ vựng mới "${cleanWord}".`, 'success');
     }
     onBack();
   };
@@ -852,24 +997,38 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
   const handleSubmitGrammar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!grammarTitle || !grammarSummary) {
+    if (!grammarTitle.trim() || !grammarSummary.trim()) {
       onShowToast('Thiếu thông tin', 'Vui lòng nhập tên chuyên đề và tóm tắt ngữ pháp', 'warning');
       return;
     }
 
+    const parsedExamples = grammarExamplesText
+      .split('\n')
+      .map((line) => {
+        const parts = line.split(/[-–—:]/);
+        if (parts.length >= 2) {
+          return { de: parts[0].trim(), vi: parts.slice(1).join(' - ').trim() };
+        }
+        if (line.trim()) {
+          return { de: line.trim(), vi: '' };
+        }
+        return null;
+      })
+      .filter(Boolean) as { de: string; vi: string }[];
+
+    const parsedRules = grammarRules
+      ? grammarRules.split('\n').map((r) => r.trim()).filter(Boolean)
+      : [];
+
     const topicData: GrammarTopic = {
       id: editingItem?.id || `grammar-${Date.now()}`,
-      title: grammarTitle,
+      title: grammarTitle.trim(),
       level: grammarLevel,
       category: grammarCategory,
-      summary: grammarSummary,
-      content: grammarContent || grammarSummary,
-      rulePoints: grammarRules
-        ? grammarRules.split('\n').filter((r: string) => r.trim() !== '')
-        : ['Quy tắc cơ bản'],
-      examples: editingItem?.examples || [
-        { de: 'Beispiel Sätze auf Deutsch', vi: 'Ví dụ minh họa Tiếng Việt' },
-      ],
+      summary: grammarSummary.trim(),
+      content: grammarContent.trim() || grammarSummary.trim(),
+      rulePoints: parsedRules,
+      examples: parsedExamples,
       status: editingItem?.status || 'in_progress',
       progress: editingItem?.progress || 0,
       score: editingItem?.score || 0,
@@ -928,153 +1087,349 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
 
         {/* 1. FORM VOCAB */}
         {type === 'vocab' && (
-          <form onSubmit={handleSubmitVocab} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Giống từ (Article)</label>
-                <select
-                  value={article}
-                  onChange={(e) => setArticle(e.target.value)}
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+          <div className="space-y-5">
+            {/* Mode Switcher (Chỉ hiển thị khi tạo mới hoặc chuyển chế độ) */}
+            {!isEditMode && (
+              <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#f1f5f9] border-2 border-[#111827] rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setVocabMode('bulk')}
+                  className={`flex-1 min-w-[200px] py-2.5 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    vocabMode === 'bulk'
+                      ? 'bg-[#2563EB] text-white border-2 border-[#111827] brutal-shadow-xs'
+                      : 'text-[#4b5563] hover:text-[#111827]'
+                  }`}
                 >
-                  <option value="der">der (Giống đực)</option>
-                  <option value="die">die (Giống cái)</option>
-                  <option value="das">das (Giống trung)</option>
-                  <option value="">Không có (Verb/Adj)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Từ tiếng Đức *</label>
-                <input
-                  type="text"
-                  required
-                  value={word}
-                  onChange={(e) => setWord(e.target.value)}
-                  placeholder="Ví dụ: Berufsausbildung"
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Dạng số nhiều (Plural)</label>
-                <input
-                  type="text"
-                  value={plural}
-                  onChange={(e) => setPlural(e.target.value)}
-                  placeholder="Ví dụ: die Ausbildungen"
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Loại từ (POS)</label>
-                <select
-                  value={pos}
-                  onChange={(e) => setPos(e.target.value)}
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>⚡ THÊM HÀNG LOẠT THEO CHỦ ĐỀ (SOẠN NHANH)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVocabMode('single')}
+                  className={`flex-1 min-w-[200px] py-2.5 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    vocabMode === 'single'
+                      ? 'bg-[#2563EB] text-white border-2 border-[#111827] brutal-shadow-xs'
+                      : 'text-[#4b5563] hover:text-[#111827]'
+                  }`}
                 >
-                  <option value="Nomen">Nomen (Danh từ)</option>
-                  <option value="Verb">Verb (Động từ)</option>
-                  <option value="Adjektiv">Adjektiv (Tính từ)</option>
-                  <option value="Redewendung">Redewendung (Cụm từ)</option>
-                </select>
+                  <Edit3 className="w-4 h-4" />
+                  <span>✍️ THÊM TỪNG TỪ ĐƠN LẺ</span>
+                </button>
+              </div>
+            )}
+
+            {/* Chung: Cấp độ (CEFR) & Chủ đề (Topic) */}
+            <div className="bg-[#f8fafc] border-2 border-[#111827] rounded-xl p-4 space-y-3.5">
+              <div>
+                <label className="block text-xs font-black text-[#111827] mb-1.5 uppercase tracking-wide">
+                  1. Chọn Cấp Độ (CEFR) *
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((lvl) => {
+                    const isSelected = vocabLevel === lvl;
+                    return (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => setVocabLevel(lvl)}
+                        className={`px-4 py-1.5 rounded-lg border-2 text-xs font-black cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-[#2563EB] text-white border-[#111827] brutal-shadow-xs'
+                            : 'bg-white text-[#111827] border-[#111827] hover:bg-slate-100'
+                        }`}
+                      >
+                        {lvl}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Cấp độ (CEFR) *</label>
-                <select
-                  value={vocabLevel}
-                  onChange={(e) => setVocabLevel(e.target.value)}
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                >
-                  <option value="A1">A1 - Căn bản</option>
-                  <option value="A2">A2 - Sơ cấp</option>
-                  <option value="B1">B1 - Trung cấp</option>
-                  <option value="B2">B2 - Trung cao cấp</option>
-                  <option value="C1">C1 - Cao cấp</option>
-                  <option value="C2">C2 - Thành thạo</option>
-                </select>
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                <div>
+                  <label className="block text-xs font-black text-[#111827] mb-1 uppercase tracking-wide">
+                    2. Chủ Đề Từ Vựng (Topic) *
+                  </label>
+                  <select
+                    value={selectedTopicDropdown}
+                    onChange={(e) => setSelectedTopicDropdown(e.target.value)}
+                    className="w-full p-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                  >
+                    {COMMON_VOCAB_TOPICS.map((top) => (
+                      <option key={top} value={top}>
+                        {top}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Phiên âm (Phonetic)</label>
-                <input
-                  type="text"
-                  value={phonetic}
-                  onChange={(e) => setPhonetic(e.target.value)}
-                  placeholder="Ví dụ: /bəˈʁuːfsʔaʊsˌbɪldʊŋ/"
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Chủ đề (Topic)</label>
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="Ví dụ: Arbeit & Beruf"
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
+                {selectedTopicDropdown === 'Chủ đề khác (Tự nhập)' && (
+                  <div>
+                    <label className="block text-xs font-black text-[#111827] mb-1 uppercase tracking-wide">
+                      Tên chủ đề mới (Tự đặt) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customTopic}
+                      onChange={(e) => setCustomTopic(e.target.value)}
+                      placeholder="Ví dụ: Du lịch & Khách sạn (Reisen & Hotels)"
+                      className="w-full p-2.5 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Nghĩa Tiếng Việt *</label>
-              <input
-                type="text"
-                required
-                value={meaningVi}
-                onChange={(e) => setMeaningVi(e.target.value)}
-                placeholder="Ví dụ: Đào tạo nghề nghiệp"
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-              />
-            </div>
+            {/* CHẾ ĐỘ 1: THÊM HÀNG LOẠT (BULK) */}
+            {vocabMode === 'bulk' && !isEditMode && (
+              <div className="space-y-4">
+                <div className="p-3 bg-blue-50 border-2 border-blue-300 rounded-xl text-xs text-blue-900 font-medium space-y-1">
+                  <div className="font-black flex items-center gap-1.5 text-blue-950">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <span>Hướng dẫn soạn nhanh hàng loạt từ vựng:</span>
+                  </div>
+                  <p>
+                    Dán hoặc gõ danh sách từ vựng vào ô bên dưới, mỗi từ 1 dòng theo định dạng:{' '}
+                    <code className="bg-white px-1.5 py-0.5 rounded border border-blue-300 font-bold">
+                      Từ tiếng Đức - Nghĩa tiếng Việt
+                    </code>
+                  </p>
+                  <p className="text-[11px] text-blue-800">
+                    Hệ thống sẽ <strong>tự động nhận diện mạo từ (der/die/das)</strong> và tự gán cấp độ{' '}
+                    <strong>{vocabLevel}</strong> cùng chủ đề <strong>{activeTopic}</strong>!
+                  </p>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Ví dụ Tiếng Đức</label>
-                <textarea
-                  rows={2}
-                  value={exampleDe}
-                  onChange={(e) => setExampleDe(e.target.value)}
-                  placeholder="Ví dụ: Eine duale Berufsausbildung kombiniert Theorie und Praxis."
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-black text-[#111827] uppercase tracking-wide">
+                      Danh sách từ vựng ({parsedBulkItems.length} từ nhận diện được)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBulkVocabText(
+                          `der Tisch - cái bàn\ndie Wohnung - căn hộ\ndas Auto - xe ô tô\narbeiten - làm việc\nschön - đẹp\nlernen - học tập\ndie Sprache - ngôn ngữ`
+                        )
+                      }
+                      className="text-[11px] text-[#2563EB] hover:underline font-bold cursor-pointer"
+                    >
+                      Dán mẫu ví dụ
+                    </button>
+                  </div>
+                  <textarea
+                    rows={8}
+                    value={bulkVocabText}
+                    onChange={(e) => setBulkVocabText(e.target.value)}
+                    placeholder={`der Tisch - cái bàn\ndie Wohnung - căn hộ\ndas Buch - quyển sách\nschreiben - viết\nwichtig - quan trọng`}
+                    className="w-full p-3 bg-white border-2 border-[#111827] rounded-xl text-xs font-mono font-medium leading-relaxed"
+                  />
+                </div>
+
+                {/* Live Preview List */}
+                {parsedBulkItems.length > 0 && (
+                  <div className="bg-emerald-50 border-2 border-emerald-400 rounded-xl p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Xem trước: {parsedBulkItems.length} từ vựng hợp lệ</span>
+                      </span>
+                      <span className="px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-md text-[10px] font-black uppercase">
+                        Cấp độ: {vocabLevel}
+                      </span>
+                    </div>
+
+                    <div className="max-h-48 overflow-y-auto divide-y divide-emerald-200/60 bg-white border border-emerald-300 rounded-lg">
+                      {parsedBulkItems.map((item, idx) => (
+                        <div key={idx} className="p-2 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-400 font-mono w-5">{idx + 1}.</span>
+                            {item.article && (
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                                  item.article === 'der'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : item.article === 'die'
+                                    ? 'bg-rose-100 text-rose-700'
+                                    : 'bg-emerald-100 text-emerald-700'
+                                }`}
+                              >
+                                {item.article}
+                              </span>
+                            )}
+                            <span className="font-bold text-[#111827]">{item.word}</span>
+                          </div>
+                          <span className="text-slate-600 font-medium">{item.meaningVi}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => onBack()}
+                    className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveBulkVocab}
+                    disabled={parsedBulkItems.length === 0}
+                    className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-not-allowed font-heading"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>LƯU TẤT CẢ ({parsedBulkItems.length} TỪ VỰNG)</span>
+                  </button>
+                </div>
               </div>
+            )}
 
-              <div>
-                <label className="block text-xs font-black text-[#111827] mb-1">Dịch nghĩa câu ví dụ</label>
-                <textarea
-                  rows={2}
-                  value={exampleVi}
-                  onChange={(e) => setExampleVi(e.target.value)}
-                  placeholder="Dịch: Đào tạo nghề kép kết hợp lý thuyết và thực hành."
-                  className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
-                />
-              </div>
-            </div>
+            {/* CHẾ ĐỘ 2: THÊM / SỬA TỪNG TỪ ĐƠN LẺ */}
+            {(vocabMode === 'single' || isEditMode) && (
+              <form onSubmit={handleSubmitVocab} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black text-[#111827] mb-1">
+                      Từ tiếng Đức * <span className="text-slate-400 font-normal">(vd: der Tisch hoặc Tisch)</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={word}
+                      onChange={(e) => setWord(e.target.value)}
+                      placeholder="Ví dụ: Berufsausbildung hoặc der Tisch"
+                      className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                    />
+                  </div>
 
-            <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => onBack()}
-                className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase"
-              >
-                <Save className="w-4 h-4" />
-                <span>Lưu Từ Vựng</span>
-              </button>
-            </div>
-          </form>
+                  <div>
+                    <label className="block text-xs font-black text-[#111827] mb-1">Nghĩa Tiếng Việt *</label>
+                    <input
+                      type="text"
+                      required
+                      value={meaningVi}
+                      onChange={(e) => setMeaningVi(e.target.value)}
+                      placeholder="Ví dụ: Đào tạo nghề nghiệp"
+                      className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+                    />
+                  </div>
+                </div>
+
+                {/* Accordion tùy chọn nâng cao */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowOptionalVocabFields(!showOptionalVocabFields)}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-[#111827] rounded-lg text-xs font-black text-[#111827] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {showOptionalVocabFields ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>{showOptionalVocabFields ? 'Thu gọn chi tiết nâng cao' : '+ Thêm chi tiết nâng cao (Quán từ, Số nhiều, Phiên âm, Ví dụ)'}</span>
+                  </button>
+                </div>
+
+                {showOptionalVocabFields && (
+                  <div className="p-4 bg-slate-50 border-2 border-slate-300 rounded-xl space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-black text-[#111827] mb-1">Giống từ (Article)</label>
+                        <select
+                          value={article}
+                          onChange={(e) => setArticle(e.target.value)}
+                          className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                        >
+                          <option value="der">der (Giống đực)</option>
+                          <option value="die">die (Giống cái)</option>
+                          <option value="das">das (Giống trung)</option>
+                          <option value="">Không có (Verb/Adj)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black text-[#111827] mb-1">Dạng số nhiều (Plural)</label>
+                        <input
+                          type="text"
+                          value={plural}
+                          onChange={(e) => setPlural(e.target.value)}
+                          placeholder="Ví dụ: die Ausbildungen"
+                          className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black text-[#111827] mb-1">Loại từ (POS)</label>
+                        <select
+                          value={pos}
+                          onChange={(e) => setPos(e.target.value)}
+                          className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                        >
+                          <option value="Nomen">Nomen (Danh từ)</option>
+                          <option value="Verb">Verb (Động từ)</option>
+                          <option value="Adjektiv">Adjektiv (Tính từ)</option>
+                          <option value="Redewendung">Redewendung (Cụm từ)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-[#111827] mb-1">Phiên âm (Phonetic)</label>
+                      <input
+                        type="text"
+                        value={phonetic}
+                        onChange={(e) => setPhonetic(e.target.value)}
+                        placeholder="Ví dụ: /bəˈʁuːfsʔaʊsˌbɪldʊŋ/"
+                        className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-black text-[#111827] mb-1">Ví dụ Tiếng Đức</label>
+                        <textarea
+                          rows={2}
+                          value={exampleDe}
+                          onChange={(e) => setExampleDe(e.target.value)}
+                          placeholder="Ví dụ: Eine duale Berufsausbildung kombiniert Theorie und Praxis."
+                          className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black text-[#111827] mb-1">Dịch nghĩa câu ví dụ</label>
+                        <textarea
+                          rows={2}
+                          value={exampleVi}
+                          onChange={(e) => setExampleVi(e.target.value)}
+                          placeholder="Dịch: Đào tạo nghề kép kết hợp lý thuyết và thực hành."
+                          className="w-full p-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t-2 border-[#111827] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => onBack()}
+                    className="px-4 py-2 bg-white border-2 border-[#111827] rounded-xl text-xs font-bold cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#2563EB] text-white border-2 border-[#111827] rounded-xl text-xs font-black brutal-shadow-xs flex items-center gap-2 cursor-pointer uppercase font-heading"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isEditMode ? 'Cập Nhật Từ Vựng' : 'Lưu Từ Vựng'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         )}
 
         {/* 2. DYNAMIC ADMIN EXAM BUILDER (ADMIN TỰ TẠO VÀ ĐẶT TÊN CÁC PHẦN THI) */}
@@ -1773,23 +2128,41 @@ export const CreateItemView: React.FC<CreateItemViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Nội dung bài học chi tiết (Markdown/Text)</label>
+              <label className="block text-xs font-black text-[#111827] mb-1">
+                Nội dung bài học & Lý thuyết chi tiết (Hiển thị đầy đủ trong trang bài học) *
+              </label>
               <textarea
-                rows={5}
+                rows={10}
+                required
                 value={grammarContent}
                 onChange={(e) => setGrammarContent(e.target.value)}
-                placeholder="Nhập chi tiết lý thuyết, công thức và ví dụ..."
-                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold font-mono"
+                placeholder={`Nhập toàn bộ nội dung bài giảng, lý thuyết, giải thích tại đây...\n\nVí dụ:\n1. KHÁI NIỆM & Ý NGHĨA\nĐộng từ trong tiếng Đức chia theo ngôi và theo thì...\n\n2. CẤU TRÚC CHIA ĐỘNG TỪ Ở HIỆN TẠI (PRÄSENS)\n- ich: -e\n- du: -st\n- er/sie/es: -t\n- wir: -en\n- ihr: -t\n- sie/Sie: -en\n\n3. LƯU Ý BẪY ĐỀ THI\nCác động từ đổi nguyên âm e -> i/ie, a -> ä ở ngôi du và er/sie/es...`}
+                className="w-full p-3 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-medium font-mono leading-relaxed"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-[#111827] mb-1">Các quy tắc cốt lõi (Mỗi quy tắc 1 dòng)</label>
+              <label className="block text-xs font-black text-[#111827] mb-1">
+                Ví dụ minh họa thực tế (Mỗi dòng một câu: "Câu tiếng Đức - Dịch tiếng Việt")
+              </label>
+              <textarea
+                rows={4}
+                value={grammarExamplesText}
+                onChange={(e) => setGrammarExamplesText(e.target.value)}
+                placeholder={`Ich lerne jeden Tag fleißig Deutsch. - Tôi học tiếng Đức chăm chỉ mỗi ngày.\nEr fährt am Wochenende nach Berlin. - Cuối tuần anh ấy lái xe đi Berlin.`}
+                className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-[#111827] mb-1">
+                Các quy tắc cốt lõi cần nhớ (Mỗi quy tắc 1 dòng - Không bắt buộc)
+              </label>
               <textarea
                 rows={3}
                 value={grammarRules}
                 onChange={(e) => setGrammarRules(e.target.value)}
-                placeholder="Công thức: hätte / wäre + Partizip II&#10;Dùng để diễn tả ước muốn trong quá khứ..."
+                placeholder="Quy tắc 1: Động từ luôn đứng vị trí số 2 trong câu chính&#10;Quy tắc 2: Trong câu phụ (Nebensatz), động từ dời về cuối câu"
                 className="w-full p-2.5 bg-[#f8fafc] border-2 border-[#111827] rounded-xl text-xs font-bold"
               />
             </div>

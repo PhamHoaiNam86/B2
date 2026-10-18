@@ -33,6 +33,7 @@ Route::prefix('v1')->group(function () {
     // Vocabularies
     Route::get('/vocabs', [VocabController::class, 'index']);
     Route::post('/vocabs', [VocabController::class, 'store']);
+    Route::post('/vocabs/bulk', [VocabController::class, 'bulkStore']);
     Route::put('/vocabs/{id}', [VocabController::class, 'update']);
     Route::delete('/vocabs/{id}', [VocabController::class, 'destroy']);
     Route::patch('/vocabs/{id}/favorite', [VocabController::class, 'toggleFavorite']);

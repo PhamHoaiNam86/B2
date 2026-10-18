@@ -640,6 +640,56 @@ export default function App() {
       .catch(() => {});
   };
 
+  const handleAddBulkVocab = (items: VocabItem[], level: string, topic: string) => {
+    setVocabs((prev) => [...items, ...prev]);
+    fetch('/api/v1/vocabs/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        level,
+        topic,
+        items: items.map((i) => ({
+          word: i.word,
+          article: i.article,
+          plural: i.plural,
+          pos: i.pos,
+          phonetic: i.phonetic,
+          meaning_vi: i.meaningVi,
+          example_de: i.exampleDe,
+          example_vi: i.exampleVi,
+          topic: i.topic || topic,
+          level: i.level || level,
+        })),
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          const createdList: VocabItem[] = res.data.map((v: any) => ({
+            id: String(v.id || v.vocab_id),
+            word: v.word,
+            article: v.article || '',
+            plural: v.plural || '',
+            pos: v.pos || 'Nomen',
+            phonetic: v.phonetic || '',
+            meaningVi: v.meaning_vi,
+            exampleDe: v.example_de || '',
+            exampleVi: v.example_vi || '',
+            topic: v.topic || topic,
+            level: v.level || level,
+            status: v.status || 'learning',
+            isFavorite: Boolean(v.is_favorite),
+          }));
+          setVocabs((prev) => {
+            const tempIds = new Set(items.map((i) => i.id));
+            const filtered = prev.filter((p) => !tempIds.has(p.id));
+            return [...createdList, ...filtered];
+          });
+        }
+      })
+      .catch(() => {});
+  };
+
   const handleUpdateVocab = (updatedVocab: VocabItem) => {
     setVocabs((prev) => prev.map((v) => (v.id === updatedVocab.id ? updatedVocab : v)));
     fetch(`/api/v1/vocabs/${updatedVocab.id}`, {
@@ -1544,6 +1594,11 @@ export default function App() {
                     topic={selectedGrammarTopic}
                     onBack={() => setActiveTab('grammar')}
                     onCompleteTopic={handleCompleteGrammarTopic}
+                    onEditTopic={(topic) => {
+                      setEditingItem(topic);
+                      setCreateItemType('grammar');
+                      setActiveTab('create-item');
+                    }}
                   />
                 ) : (
                   <GrammarView
@@ -1611,6 +1666,7 @@ export default function App() {
                     initialLevel={createItemType === 'exam' ? (editingItem?.level || getInitialExamLevelForTab(previousExamTab)) : undefined}
                     onBack={(targetLevel) => handleBackFromCreateItem(targetLevel)}
                     onAddVocab={handleAddVocab}
+                    onAddBulkVocab={handleAddBulkVocab}
                     onAddExam={handleAddExam}
                     onAddGrammar={handleAddGrammar}
                     onUpdateVocab={handleUpdateVocab}
