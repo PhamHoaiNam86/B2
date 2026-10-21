@@ -474,21 +474,22 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     if (!selection || selection.isCollapsed) return;
     const selectedText = selection.toString().trim();
     if (selectedText.length >= 2) {
-      setHighlights((prev) => {
-        const existingIndex = prev.findIndex((h) => h.text.toLowerCase() === selectedText.toLowerCase());
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = { ...updated[existingIndex], colorId: selectedColor };
-          return updated;
-        } else {
-          const newItem: HighlightItem = {
-            id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-            text: selectedText,
-            colorId: selectedColor,
-          };
-          return [...prev, newItem];
-        }
-      });
+      const existing = highlights.find((h) => h.text.toLowerCase() === selectedText.toLowerCase());
+      if (existing) {
+        setHighlights((prev) =>
+          prev.map((h) => (h.id === existing.id ? { ...h, colorId: selectedColor } : h))
+        );
+      } else {
+        const newId = `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+        const newItem: HighlightItem = {
+          id: newId,
+          text: selectedText,
+          colorId: selectedColor,
+        };
+        setHighlights((prev) => [...prev, newItem]);
+        speakGermanText(selectedText);
+        translateGermanInline(newId, selectedText);
+      }
     }
   };
 
@@ -583,22 +584,23 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
     const cleanText = textToTranslate.trim();
 
     const existing = highlights.find((h) => h.text.toLowerCase() === cleanText.toLowerCase());
-    let targetId = existing?.id;
 
-    if (!existing) {
-      targetId = `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
-      const newItem: HighlightItem = {
-        id: targetId,
-        text: cleanText,
-        colorId: selectedColor,
-      };
-      setHighlights((prev) => [...prev, newItem]);
+    if (existing) {
+      // Đã có dịch/highlight -> Nhấn vào lần nữa là TẮT DỊCH và XÓA HIGHLIGHT
+      removeHighlight(existing.id);
+      return;
     }
 
-    if (targetId) {
-      speakGermanText(cleanText);
-      translateGermanInline(targetId, cleanText);
-    }
+    // Nhấn vào lần đầu -> Tạo mới, phát âm và dịch ngay
+    const targetId = `h-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const newItem: HighlightItem = {
+      id: targetId,
+      text: cleanText,
+      colorId: selectedColor,
+    };
+    setHighlights((prev) => [...prev, newItem]);
+    speakGermanText(cleanText);
+    translateGermanInline(targetId, cleanText);
   };
 
   const renderHighlightedText = (text: string) => {
@@ -620,26 +622,43 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
         return (
           <mark
             key={index}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+            }}
             onClick={(e) => {
               e.stopPropagation();
-              speakGermanText(match.text);
-              if (!match.translation) {
+              e.preventDefault();
+              if (match.translation) {
+                // Nhấn vào lần nữa khi đã có dịch: Tắt dịch và xóa highlight ngay lập tức
+                removeHighlight(match.id);
+              } else {
+                // Nhấn vào là dịch & phát âm
+                speakGermanText(match.text);
                 translateGermanInline(match.id, match.text);
+                updateSingleHighlightColor(match.id, selectedColor);
               }
-              updateSingleHighlightColor(match.id, selectedColor);
             }}
             style={{
               backgroundColor: colorMeta.bg,
               borderColor: colorMeta.border,
               color: colorMeta.text,
             }}
-            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all cursor-pointer hover:opacity-90 active:scale-95 inline-flex items-center gap-1"
-            title={`🔊 Click phát âm | ${match.translation ? `Nghĩa: ${match.translation}` : 'Click dịch & phát âm'}`}
+            className="px-1 py-0.5 rounded border-2 font-bold mx-0.5 shadow-xs transition-all cursor-pointer hover:opacity-90 active:scale-95 inline-flex items-center gap-1 group/mark"
+            title={match.translation ? `🔊 "${match.text}": ${match.translation} (Nhấn vào để tắt dịch)` : `🔊 Nhấn vào để dịch & phát âm "${match.text}"`}
           >
             <span>{part}</span>
             {match.translation && (
-              <span className="text-[10px] bg-white/90 text-[#111827] px-1 rounded font-black border border-black/20">
-                ({match.translation})
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  removeHighlight(match.id);
+                }}
+                className="text-[10px] bg-white/95 text-[#111827] px-1.5 py-0.5 rounded font-black border border-black/20 hover:bg-rose-50 hover:text-rose-600 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                title="Nhấn vào để tắt dịch"
+              >
+                <span>({match.translation})</span>
+                <span className="text-slate-400 group-hover/mark:text-rose-600 font-bold ml-0.5 text-[9px]">✕</span>
               </span>
             )}
           </mark>
@@ -1263,7 +1282,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
               className="p-4 bg-[#fffdfa] border-2 border-slate-200 rounded-xl text-sm sm:text-base text-[#111827] leading-relaxed space-y-4 select-text font-medium"
             >
               <div className="p-2 bg-[#fff8e7] border border-[#d97706]/30 rounded-lg text-[11px] font-bold text-[#b45309] flex items-center justify-between">
-                <span>💡 Bôi đen văn bản bên dưới để dùng tool Tô Màu Highlight!</span>
+                <span>💡 Bôi đen (hoặc nhấp đúp) từ để Dịch & Highlight. Nhấn vào từ đã dịch một lần nữa để Tắt dịch!</span>
                 {highlights.length > 0 && (
                   <span className="text-[10px] bg-[#d97706] text-white px-1.5 py-0.5 rounded font-black">
                     {highlights.length} cụm từ
@@ -1304,7 +1323,7 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                     </>
                   ) : (
                     <>
-                      <strong>Hướng dẫn:</strong> Đọc kỹ văn bản bên dưới để đối chiếu thông tin với các câu hỏi ở cột bên phải. Bôi đen văn bản để tra từ hoặc dùng công cụ <mark className="bg-yellow-300 text-slate-900 font-extrabold px-1.5 py-0.5 rounded mx-1 shadow-xs">Tô Màu Highlight</mark> ghi chú!
+                      <strong>Hướng dẫn:</strong> Đọc kỹ văn bản bên dưới để đối chiếu thông tin với các câu hỏi ở cột bên phải. Bôi đen (hoặc nhấp đúp) từ để <mark className="bg-yellow-300 text-slate-900 font-extrabold px-1.5 py-0.5 rounded mx-1 shadow-xs">Dịch ngay</mark>, nhấn vào từ một lần nữa để tắt dịch!
                     </>
                   )}
                 </p>
@@ -1350,9 +1369,19 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
             {/* Highlighted Words Chips */}
             {highlights.length > 0 && (
               <div className="p-3 bg-slate-50 border-2 border-[#111827] rounded-xl space-y-1.5">
-                <span className="text-[11px] font-black text-[#111827] flex items-center gap-1 uppercase font-heading">
-                  <Highlighter className="w-3.5 h-3.5 text-[#2563EB]" /> Các từ/cụm từ bạn đã Highlight ({highlights.length}):
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-[#111827] flex items-center gap-1 uppercase font-heading">
+                    <Highlighter className="w-3.5 h-3.5 text-[#2563EB]" /> Các từ/cụm từ bạn đã Highlight ({highlights.length}):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setHighlights([])}
+                    className="text-[10px] text-red-600 hover:text-red-700 font-bold hover:underline cursor-pointer"
+                    title="Xóa tất cả highlight"
+                  >
+                    Xóa tất cả
+                  </button>
+                </div>
                 <div className="flex flex-wrap gap-1.5">
                   {highlights.map((h) => {
                     const colorMeta = HIGHLIGHT_COLORS_MAP[h.colorId] || HIGHLIGHT_COLORS_MAP.yellow;
@@ -1384,9 +1413,9 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                             👉 {h.translation}
                             <button
                               type="button"
-                              onClick={() => translateGermanInline(h.id, h.text)}
-                              className="text-slate-400 hover:text-slate-700 ml-1 text-[9px] font-bold"
-                              title="Ẩn dịch"
+                              onClick={() => removeHighlight(h.id)}
+                              className="text-slate-400 hover:text-slate-700 ml-1 text-[9px] font-bold cursor-pointer"
+                              title="Tắt dịch & xóa highlight"
                             >
                               ✕
                             </button>
@@ -1568,17 +1597,28 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                               {q.subSection}
                             </span>
                           )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickTranslateText(q.title);
-                            }}
-                            className="px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded border border-blue-300 text-[10px] font-black cursor-pointer transition-all flex items-center gap-1 shadow-2xs"
-                            title="Tra từ & dịch Tiếng Việt toàn bộ câu hỏi này"
-                          >
-                            🌐 Dịch & Phát Âm Câu Hỏi
-                          </button>
+                          {(() => {
+                            const isQuestionTranslated = highlights.some(
+                              (h) => h.text.toLowerCase() === q.title.trim().toLowerCase()
+                            );
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickTranslateText(q.title);
+                                }}
+                                className={`px-2 py-0.5 rounded border text-[10px] font-black cursor-pointer transition-all flex items-center gap-1 shadow-2xs ${
+                                  isQuestionTranslated
+                                    ? 'bg-amber-100 text-amber-900 border-amber-400 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300'
+                                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300'
+                                }`}
+                                title={isQuestionTranslated ? 'Nhấn để tắt dịch câu hỏi' : 'Tra từ & dịch Tiếng Việt toàn bộ câu hỏi này'}
+                              >
+                                <span>{isQuestionTranslated ? '✕ Tắt Dịch Câu Hỏi' : '🌐 Dịch & Phát Âm Câu Hỏi'}</span>
+                              </button>
+                            );
+                          })()}
                         </div>
                         <h4 className="text-sm sm:text-base font-black text-[#111827] font-heading mt-1 leading-relaxed">
                           {renderHighlightedText(q.title)}
@@ -1963,21 +2003,30 @@ export const ExamRoomScreen: React.FC<ExamRoomScreenProps> = ({
                               </div>
 
                               <div className="flex items-center gap-1.5 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleQuickTranslateText(opt.text);
-                                  }}
-                                  className={`px-1.5 py-0.5 rounded border text-[10px] font-bold cursor-pointer transition-all ${
-                                    isSelected
-                                      ? 'bg-white/20 text-white border-white/40 hover:bg-white/30'
-                                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-blue-50 hover:text-blue-700'
-                                  }`}
-                                  title="Dịch nghĩa Tiếng Việt đáp án này"
-                                >
-                                  🌐 Dịch
-                                </button>
+                                {(() => {
+                                  const isOptTranslated = highlights.some(
+                                    (h) => h.text.toLowerCase() === opt.text.trim().toLowerCase()
+                                  );
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickTranslateText(opt.text);
+                                      }}
+                                      className={`px-1.5 py-0.5 rounded border text-[10px] font-bold cursor-pointer transition-all ${
+                                        isOptTranslated
+                                          ? 'bg-amber-100 text-amber-900 border-amber-400 hover:bg-rose-100 hover:text-rose-700'
+                                          : isSelected
+                                          ? 'bg-white/20 text-white border-white/40 hover:bg-white/30'
+                                          : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-blue-50 hover:text-blue-700'
+                                      }`}
+                                      title={isOptTranslated ? 'Nhấn để tắt dịch đáp án này' : 'Dịch nghĩa Tiếng Việt đáp án này'}
+                                    >
+                                      {isOptTranslated ? '✕ Tắt dịch' : '🌐 Dịch'}
+                                    </button>
+                                  );
+                                })()}
                                 {badgeElement}
                               </div>
                             </div>
